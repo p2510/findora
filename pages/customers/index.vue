@@ -1,0 +1,563 @@
+<template>
+  <div class="mt-14 space-y-4 pr-4">
+    <CustomerMetrics />
+    <UCard
+      class="w-full"
+      :ui="{
+        base: '',
+        ring: '',
+        divide: 'divide-y divide-gray-200 dark:divide-gray-700',
+        header: { padding: 'px-4 py-5' },
+        body: {
+          padding: '',
+          base: 'divide-y divide-gray-200 dark:divide-gray-700',
+        },
+        footer: { padding: 'p-4' },
+      }"
+    >
+      <template #header>
+        <div class="flex justify-between items-center">
+          <h2
+            class="font-semibold text-xl text-gray-900 dark:text-white leading-tight"
+          >
+            Gérer vos clients
+          </h2>
+          <AddCustomer @submit="fetchCustomers" />
+        </div>
+      </template>
+
+      <!-- Filters -->
+      <div class="flex items-center justify-between gap-3 px-4 py-3">
+        <UInput
+          v-model="search"
+          icon="i-heroicons-magnifying-glass-20-solid"
+          placeholder="Recherche par nom, téléphone, ou email..."
+          class="border-[#f3c775] border-[1px] rounded-lg"
+          variant="none"
+        />
+
+        <USelectMenu
+          v-model="selectedType"
+          :options="customerTypes"
+          multiple
+          placeholder="Type de client"
+          variant="none"
+          class="w-40 border-[#f3c775] border-[1px] rounded-lg"
+        />
+      </div>
+
+      <!-- Header and Action buttons -->
+      <div class="flex justify-between items-center w-full px-4 py-3">
+        <div class="flex items-center gap-1.5">
+          <span class="text-sm leading-5">Ligne par page :</span>
+
+          <USelect
+            v-model="pageCount"
+            :options="[3, 5, 10, 20, 30, 40]"
+            class="me-2 w-20"
+            size="xs"
+          />
+        </div>
+
+        <UButton
+          icon="i-heroicons-funnel"
+          color="gray"
+          size="xs"
+          :disabled="search === '' && selectedType.length === 0"
+          @click="resetFilters"
+        >
+          Réinitialiser
+        </UButton>
+      </div>
+
+      <!-- Table -->
+      <UTable
+        v-model="selectedRows"
+        :rows="paginatedCustomers"
+        :columns="columnsTable"
+        :loading="status === 'pending'"
+        sort-asc-icon="i-heroicons-arrow-up"
+        sort-desc-icon="i-heroicons-arrow-down"
+        class="w-full h-80 overflow-y-scroll"
+        :ui="{
+          td: { base: 'max-w-[0] truncate' },
+          default: { checkbox: { color: 'gray' } },
+        }"
+        @select="select"
+        :empty-state="{
+          icon: 'i-heroicons-circle-stack-20-solid',
+          label: 'Oups , Aucun client trouvé',
+        }"
+      >
+        <template #customer_type-data="{ row }">
+          <UBadge
+            v-if="row.customer_type == 'Entreprise'"
+            size="xs"
+            label="Entreprise"
+            color="emerald"
+            variant="subtle"
+          />
+          <UBadge
+            v-else
+            size="xs"
+            label="Particulier"
+            color="orange"
+            variant="subtle"
+          />
+        </template>
+
+        <template #actions-data="{ row }">
+          <UDropdown :items="items(row)">
+            <UButton
+              color="gray"
+              variant="ghost"
+              icon="i-heroicons-ellipsis-horizontal-20-solid"
+            />
+          </UDropdown>
+        </template>
+      </UTable>
+
+      <!-- Number of rows & Pagination -->
+      <template #footer>
+        <div class="flex flex-wrap justify-between items-center">
+          <div>
+            <span class="text-sm leading-5">
+              Affichage
+              <span class="font-medium">{{ pageFrom }}</span>
+              à
+              <span class="font-medium">{{ pageTo }}</span>
+              sur
+              <span class="font-medium">{{ filteredCustomers.length }}</span>
+              résultats
+            </span>
+          </div>
+          <UPagination
+            v-model="page"
+            :page-count="pageCount"
+            :total="filteredCustomers.length"
+            :ui="{
+              wrapper: 'flex items-center gap-1',
+              rounded: '!rounded-full min-w-[32px] justify-center',
+              default: {
+                activeButton: {
+                  variant: 'outline',
+                },
+              },
+            }"
+          />
+        </div>
+      </template>
+    </UCard>
+
+    <!--Show customer-->
+    <UModal v-model="isOpenShow">
+      <div class="p-4 space-y-5">
+        <div class="flex justify-between items-center">
+          <div>
+            <h3 class="font-semibold text-gray-700 text-xl">
+              {{ selectedCustomer.name }}
+            </h3>
+            <h5 class="font-semibold text-gray-500 text-md">
+              {{ selectedCustomer.email }}
+            </h5>
+          </div>
+          <div class="flex items-center gap-2">
+            <UIcon
+              name="i-heroicons-phone-arrow-up-right"
+              class="text-gray-700 w-5 h-5"
+            />
+            <span class="font-semibold text-gray-700 text-md">
+              {{ selectedCustomer.phone }}</span
+            >
+          </div>
+          <UBadge
+            color="amber"
+            variant="soft"
+            class="text-md"
+            :icon="
+              selectedCustomer.customer_type == 'Particulier'
+                ? 'i-heroicons-users'
+                : 'i-heroicons-building-office-2'
+            "
+            >{{ selectedCustomer.customer_type }}</UBadge
+          >
+        </div>
+        <div class="flex items-center gap-2">
+          <UIcon name="i-heroicons-map-pin" class="text-gray-800 w-5 h-5" />
+          <span class="text-gray-800 text-md">
+            {{ selectedCustomer?.address }}</span
+          >
+        </div>
+      </div>
+    </UModal>
+    <!--Edit customer-->
+    <USlideover v-model="isOpenEdit">
+      <UCard
+        class="flex flex-col flex-1"
+        :ui="{
+          body: { base: 'flex-1' },
+          ring: '',
+          divide: 'divide-y divide-gray-100 dark:divide-gray-800',
+        }"
+      >
+        <template #header>
+          <UButton
+            color="gray"
+            variant="ghost"
+            size="sm"
+            icon="i-heroicons-x-mark-20-solid"
+            class="flex sm:hidden absolute end-5 top-5 z-10"
+            square
+            padded
+            @click="isOpenEdit = false"
+          />
+
+          <div class="space-y-[1px]">
+            <h5>
+              <UBadge color="gray" variant="soft" size="lg" v-if="!isEntreprise"
+                >Particulier</UBadge
+              >
+              <UBadge color="amber" variant="soft" size="lg" v-else
+                >Entreprise</UBadge
+              >
+            </h5>
+            <span class="text-gray-500 text-sm" v-if="!isEntreprise"
+              >Vous êtes sur le point de modifier un client de type
+              particulier.</span
+            >
+            <span class="text-gray-500 text-sm" v-else
+              >Vous êtes sur le point de modifier un client de type
+              entreprise.</span
+            >
+          </div>
+        </template>
+
+        <form class="grid grid-cols-12 gap-4" @submit.prevent="editCustomer">
+          <div class="col-span-full flex items-center justify-center gap-4">
+            <p>
+              <span class="text-gray-500 text-sm" v-if="!isEntreprise"
+                >Activer pour passer à un client de type entreprise</span
+              >
+              <span class="text-gray-500 text-sm" v-else
+                >Activer pour passer à un client de type particulier</span
+              >
+            </p>
+            <UToggle
+              v-model="isEntreprise"
+              size="2xl"
+              on-icon="i-heroicons-check-20-solid"
+              off-icon="i-heroicons-x-mark-20-solid"
+              color="amber"
+            />
+          </div>
+          <div class="col-span-full space-y-[1px]">
+            <label
+              for="name"
+              class="text-gray-500 font-semibold"
+              v-if="!isEntreprise"
+              >Nom & prénom
+            </label>
+            <label for="name" class="text-gray-500 font-semibold" v-else
+              >Nom d'entreprise
+            </label>
+            <InputFiled
+              type="text"
+              autofocus
+              custom-class="hover:shadow-sm p-2 rounded-lg"
+              v-model="formData.name"
+            />
+            <div v-if="errors.name.length" class="error">
+              {{ errors.name[0] }}
+            </div>
+          </div>
+
+          <div class="col-span-full space-y-[1px]">
+            <label for="email" class="text-gray-500 font-semibold">Email</label>
+            <InputFiled
+              type="email"
+              custom-class="hover:shadow-sm p-2 rounded-lg"
+              v-model="formData.email"
+            />
+            <div v-if="errors.email.length" class="error">
+              {{ errors.email[0] }}
+            </div>
+          </div>
+          <div class="col-span-full space-y-[1px]">
+            <label for="phone" class="text-gray-500 font-semibold"
+              >Numéro de téléphone</label
+            >
+            <InputFiled
+              type="text"
+              custom-class="hover:shadow-sm p-2 rounded-lg"
+              v-model="formData.phone"
+            />
+            <div v-if="errors.phone.length" class="error">
+              {{ errors.phone[0] }}
+            </div>
+          </div>
+          <div class="col-span-full space-y-[1px]">
+            <label for="adress" class="text-gray-500 font-semibold"
+              >Adresse</label
+            >
+            <InputFiled
+              type="text"
+              custom-class="hover:shadow-sm p-2 rounded-lg"
+              v-model="formData.address"
+            />
+          </div>
+          <div class="col-span-full space-y-[1px]">
+            <UButton
+              :loading="isRequestInProgress"
+              type="submit"
+              size="lg"
+              variant="solid"
+              color="yellow"
+              >Mettre à jour ce client</UButton
+            >
+          </div>
+        </form>
+      </UCard>
+    </USlideover>
+
+    <!--Alert message-->
+    <div v-if="isAlertDeleteOpen">
+      <AlertModal
+        title="Client supprimé"
+        type="success"
+        @close-alert="closeDeleteAlert"
+      >
+        <template #message>
+          <p>
+            La suppression du client a été effectuée avec
+            <span class="font-semibold">succès</span>.
+          </p>
+        </template>
+      </AlertModal>
+    </div>
+    <div v-if="isAlertEditOpen">
+      <AlertModal
+        title="Informations incorrectes"
+        type="error"
+        @close-alert="closeEditAlert"
+      >
+        <template #message>
+          <p>
+            {{ errorMessage }}
+          </p>
+        </template>
+      </AlertModal>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from "vue";
+definePageMeta({
+  middleware: "auth",
+  alias: "/client",
+});
+const supabase = useSupabaseClient();
+const { errors, validateForm, handleServerErrors } = useFormValidation();
+
+// Table Columns
+const columns = [
+  { key: "name", label: "Nom", sortable: true },
+  { key: "phone", label: "Téléphone", sortable: true },
+  { key: "email", label: "Email", sortable: true },
+  { key: "address", label: "Adresse", sortable: true },
+  { key: "customer_type", label: "Type", sortable: true },
+  { key: "actions", label: "Actions", sortable: false },
+];
+const selectedColumns = ref(columns);
+const columnsTable = computed(() =>
+  columns.filter((column) => selectedColumns.value.includes(column))
+);
+
+// Filters and Search
+const search = ref("");
+const selectedType = ref([]);
+const customerTypes = [
+  { key: "Entreprise", label: "Entreprise", value: "Entreprise" },
+  { key: "Particulier", label: "Particulier", value: "Particulier" },
+];
+const resetFilters = () => {
+  search.value = "";
+  selectedType.value = [];
+};
+
+// Pagination
+const page = ref(1);
+const pageCount = ref(10);
+const pageFrom = computed(() => (page.value - 1) * pageCount.value + 1);
+const pageTo = computed(() => {
+  if (!filteredCustomers.value || filteredCustomers.value.length === 0) {
+    return 0;
+  }
+  return Math.min(page.value * pageCount.value, filteredCustomers.value.length);
+});
+// Customers
+const customers = ref([]);
+const status = ref("idle");
+const fetchCustomers = async () => {
+  status.value = "pending";
+  const { data, error } = await supabase.from("customers").select("*");
+  if (error) {
+    console.error("Error fetching customers:", error);
+    status.value = "error";
+  } else {
+    customers.value = data || [];
+    status.value = "success";
+  }
+};
+onMounted(fetchCustomers);
+
+// Filtered and Paginated Data
+const filteredCustomers = computed(() =>
+  customers.value.filter(
+    (customer) =>
+      (search.value === "" ||
+        [customer.name, customer.phone, customer.email]
+          .join(" ")
+          .toLowerCase()
+          .includes(search.value.toLowerCase())) &&
+      (selectedType.value.length === 0 ||
+        selectedType.value.some((obj) => obj.value === customer.customer_type))
+  )
+);
+
+const paginatedCustomers = computed(() =>
+  filteredCustomers.value.slice(
+    (page.value - 1) * pageCount.value,
+    page.value * pageCount.value
+  )
+);
+const isOpenShow = ref(false);
+const selectedCustomer = ref([]);
+const items = (row) => [
+  [
+    {
+      label: "Voir ce client",
+      icon: "i-heroicons-eye-20-solid",
+      click: () => {
+        isOpenShow.value = true;
+        selectedCustomer.value = filteredCustomers.value.find(
+          (customer) => customer.id === row.id
+        );
+      },
+    },
+    {
+      label: "Modifier",
+      icon: "i-heroicons-pencil-square-20-solid",
+      click: () => {
+        isOpenEdit.value = true;
+        customerId.value = row.id;
+        const selectedCustomer = filteredCustomers.value.find(
+          (customer) => customer.id === row.id
+        );
+        formData.value.name = selectedCustomer.name;
+        formData.value.email = selectedCustomer.email;
+        formData.value.phone = selectedCustomer.phone;
+        formData.value.address = selectedCustomer.address;
+        isEntreprise.value =
+          selectedCustomer.customer_type === "Particulier" ? false : true;
+      },
+    },
+    {
+      label: "Supprimer",
+      icon: "i-heroicons-trash-20-solid",
+      click: () => deleteCustomer(row.id),
+    },
+  ],
+];
+
+//show Customer
+
+// edit customer
+const isOpenEdit = ref(false);
+let customerId = ref(null);
+const isAlertEditOpen = ref(false);
+const isEntreprise = ref(false);
+const isRequestInProgress = ref(false);
+const errorMessage = ref("");
+
+const formData = ref({
+  name: "",
+  email: "",
+  phone: "",
+  address: "",
+});
+let closeEditAlert = () => {
+  isAlertEditOpen.value = false;
+};
+const editCustomer = async () => {
+  isRequestInProgress.value = true;
+  const validationErrors = validateForm({
+    name: formData.value.name,
+    email: formData.value.email,
+    phone: formData.value.phone,
+    address: formData.value.address,
+  });
+  if (validationErrors.global.length > 0) {
+    isRequestInProgress.value = false;
+    return;
+  }
+  try {
+    const { data, error } = await supabase
+      .from("customers")
+      .update({
+        name: formData.value.name,
+        email: formData.value.email,
+        phone: formData.value.phone,
+        address: formData.value.address,
+        customer_type: isEntreprise.value ? "Entreprise" : "Particulier",
+      })
+      .eq("id", customerId.value)
+      .select();
+
+    if (error) {
+      if (error.code === "23505") {
+        errorMessage.value = "Ce client existe déjà avec cet adresse E-mail.";
+      } else {
+        handleServerErrors(error);
+        errorMessage.value = error.message;
+      }
+      isRequestInProgress.value = false;
+      isAlertEditOpen.value = true;
+    } else {
+      formData.value.name = "";
+      formData.value.email = "";
+      formData.value.phone = "";
+      formData.value.address = "";
+      isRequestInProgress.value = false;
+      fetchCustomers();
+      isOpenEdit.value = false;
+    }
+  } catch (err) {
+    handleServerErrors({ code: "23514", message: "Erreur serveur" });
+    isRequestInProgress.value = false;
+  }
+};
+
+// delete customer
+const isAlertDeleteOpen = ref(false);
+let closeDeleteAlert = () => {
+  isAlertDeleteOpen.value = false;
+};
+const deleteCustomer = async (customer) => {
+  const { error } = await supabase
+    .from("customers")
+    .delete()
+    .eq("id", customer);
+
+  if (!error) {
+    isAlertDeleteOpen.value = true;
+    fetchCustomers();
+  }
+};
+</script>
+
+<style scoped>
+.error {
+  color: red;
+}
+</style>

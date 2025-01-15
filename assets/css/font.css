@@ -1,0 +1,9 @@
+@font-face {
+  font-family: "Primary-Font";
+  src: url("./../font/findora-type-1.woff2") format("woff2");
+}
+
+.primary-font {
+  font-family: Primary-Font;
+}
+
