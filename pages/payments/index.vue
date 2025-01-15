@@ -192,7 +192,11 @@
           >
         </template>
         <template #reminder-data="{ row }">
-          <AddReminder :payment-id="row.id" :customer-id="row.customers.id" />
+          <AddReminder
+            :payment-id="row.id"
+            :customer-id="row.customers.id"
+            :customer-phone="row.customers.phone"
+          />
         </template>
         <template #actions-data="{ row }">
           <UDropdown :items="items(row)">

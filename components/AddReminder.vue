@@ -129,6 +129,10 @@ const props = defineProps({
     type: Number,
     default: 0,
   },
+  customerPhone: {
+    type: String,
+    default: 0,
+  },
 });
 const templates = ref([]);
 const template_selected = ref({
@@ -178,6 +182,7 @@ let AddReminder = async () => {
   }
 
   try {
+    
     const { data, error } = await supabase
       .from("reminders")
       .insert([
@@ -200,6 +205,22 @@ let AddReminder = async () => {
       isOpen.value = false;
     } else {
       // Réinitialisation des champs si la soumission a réussi
+      const currentDate = new Date(); // Date d'aujourd'hui
+      const sendDate = new Date(formData.value.send_date); // Date de send_date
+      const currentDateInSeconds = currentDate.getTime() / 1000;
+      const sendDateInSeconds = sendDate.getTime() / 1000;
+      const differenceInSeconds = Math.floor(
+        sendDateInSeconds - currentDateInSeconds
+      );
+      const { data, error } = await supabase.schema("pgmq_public").rpc("send", {
+        queue_name: "sendsms",
+        message: {
+          phone: props.customerPhone,
+          message: formData.value.message,
+          created_by: user.value.id,
+        },
+        sleep_seconds: differenceInSeconds,
+      });
       isOpen.value = false;
       isSuccessOpen.value = true;
       formData.value.send_date = null;
