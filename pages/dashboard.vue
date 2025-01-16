@@ -1,17 +1,19 @@
 <template>
-  <div>
-    
-  </div>
+  <div></div>
 </template>
 
 <script setup>
-import { ref,computed,onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 definePageMeta({
   middleware: "auth",
 });
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
-console.log(user.value.id)
-
+const fetchLibrary = async () => {
+  const { libraries } = await $fetch("/api/send-sms");
+  console.log(libraries);
+};
+onMounted(() => {
+  fetchLibrary();
+});
 </script>
-
