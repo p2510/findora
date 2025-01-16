@@ -268,6 +268,19 @@
         </div>
       </div>
     </UModal>
+    <div v-if="isAlertOpen">
+      <AlertModal
+        title="Informations incorrectes"
+        type="error"
+        @close-alert="closeErrorAlert"
+      >
+        <template #message>
+          <p>
+            {{ errorMessage }}
+          </p>
+        </template>
+      </AlertModal>
+    </div>
   </div>
 </template>
 
@@ -282,6 +295,11 @@ const supabase = useSupabaseClient();
 const isOpen = ref(false); // open choice of template
 let isEmailTemplate = ref(false); //  Check if email selected
 let showFormModal = ref(false);
+const errorMessage = ref("");
+const isAlertOpen = ref(false);
+let closeErrorAlert = () => {
+  isAlertOpen.value = false;
+};
 let showEmailForm = () => {
   showFormModal.value = true;
 };

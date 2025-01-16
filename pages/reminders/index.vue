@@ -19,7 +19,6 @@
           </span>
         </div>
         <div>
-    
           <ul class="p-2 space-y-2 overflow-y-scroll h-[75vh] pb-32">
             <ReminderItem
               v-for="reminder in reminders"

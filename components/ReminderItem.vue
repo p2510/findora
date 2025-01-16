@@ -22,7 +22,6 @@
         <UIcon name="i-heroicons-arrow-up-right" />
       </button>
       <span>{{ formattedDate }}</span>
-      <span>{{ formattedTime }}</span>
     </p>
     <div class="flex items-center justify-between pt-3">
       <span
@@ -59,7 +58,7 @@ const props = defineProps({
 // Formater la date au format "08 févr. 2025"
 const formattedDate = computed(() => {
   const reminderDate = new Date(props.date);
-  return format(reminderDate, "dd MMM. yyyy", { locale: fr });
+  return format(reminderDate, "dd MMM yyyy", { locale: fr });
 });
 
 // Définir la classe dynamique pour le statut
@@ -71,11 +70,5 @@ const statusClass = computed(() =>
     : "bg-orange-200 text-slate-800"
 );
 
-// Formater l'heure (ici, tu pourrais calculer l'heure en fonction de la `send_date`)
-const formattedTime = computed(() => {
-  const reminderDate = new Date(props.date);
-  const hours = reminderDate.getHours().toString().padStart(2, "0");
-  const minutes = reminderDate.getMinutes().toString().padStart(2, "0");
-  return `${hours}:${minutes}`;
-});
+
 </script>

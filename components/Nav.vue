@@ -28,7 +28,7 @@
           </template>
         </NavLink>
 
-        <NavLink to="/" label="Abonnement">
+        <NavLink to="/abonnement" label="Abonnement">
           <template #icon>
             <LifebuoyIcon class="size-5" />
           </template>
@@ -48,10 +48,10 @@
           <span>Déconnexion</span>
         </li>
 
-        <li>
+        <li v-if="subscriptions?.subscription_type === 'free'">
           <NuxtLink
             class="group relative px-4 py-3 bg-slate-800 hover:bg-slate-900 text-white rounded-lg font-medium text-sm grid overflow-hidden border border-white/10 shadow-lg"
-            to="/"
+            to="/abonnement"
             ><div class="grid gap-1 z-20">
               <p>Passer au premium →</p>
               <p class="text-[0.8125rem] text-gray-300">
@@ -110,6 +110,7 @@ import {
 } from "@heroicons/vue/24/outline";
 
 const supabase = useSupabaseClient();
+
 let logout = async () => {
   let { error } = await supabase.auth.signOut();
   if (error) {
@@ -117,4 +118,13 @@ let logout = async () => {
     return navigateTo("/");
   }
 };
+let subscriptions = ref({});
+
+onMounted(async () => {
+  const { data, error } = await supabase.from("subscriptions").select("*");
+
+  if (data) {
+    subscriptions.value = data[0];
+  }
+});
 </script>

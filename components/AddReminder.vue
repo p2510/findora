@@ -10,20 +10,15 @@
     <UModal v-model="isOpen">
       <div class="p-4">
         <div class="space-y-6">
-          <h4
-            class="text-slate-800 text-lg font-semibold pb-2 flex justify-between"
-          >
+          <h4 class="text-slate-800 text-lg font-semibold pb-2 flex justify-between">
             <span> Programmer une relance</span>
           </h4>
           <form class="grid grid-cols-12 gap-4" @submit.prevent="AddReminder">
             <div class="col-span-full space-y-[1px]">
-              <label for="payment_date" class="text-gray-500 font-semibold"
-                >Date et heure</label
-              >
-
+              <label for="payment_date" class="text-gray-500 font-semibold">Date et heure</label>
               <InputFiled
                 v-model="formData.send_date"
-                type="datetime-local"
+                type="date"
                 custom-class="hover:shadow-sm p-2 rounded-lg"
               />
               <div v-if="errors.send_date.length" class="error">
@@ -35,9 +30,7 @@
               </div>
             </div>
             <div class="col-span-full space-y-[1px]">
-              <label for="name" class="text-gray-500 font-semibold"
-                >Choisir depuis un template (Optionnel)</label
-              >
+              <label for="name" class="text-gray-500 font-semibold">Choisir depuis un template (Optionnel)</label>
               <USelectMenu
                 searchable
                 searchable-placeholder="Trouver un template..."
@@ -52,13 +45,10 @@
                 :ui="{
                   base: 'hover:shadow-sm rounded-lg hover:shadow-sm  rounded-lg bg-white outline-none border-2 border-solid focus:rounded-lg transition duration-300 ease-in-out text-slate-800/80 w-full focus:border-[#f3c775]',
                 }"
-              >
-              </USelectMenu>
+              ></USelectMenu>
             </div>
             <div class="col-span-full space-y-[1px]">
-              <label for="content" class="text-gray-500 font-semibold"
-                >Contenu de votre message</label
-              >
+              <label for="content" class="text-gray-500 font-semibold">Contenu de votre message</label>
               <textarea
                 v-model="formData.message"
                 class="text-sm hover:shadow-sm p-2 rounded-lg bg-white outline-none border-2 border-solid focus:rounded-lg transition duration-300 ease-in-out text-slate-800/80 w-full focus:border-[#f3c775]"
@@ -90,6 +80,7 @@
         </div>
       </div>
     </UModal>
+
     <!-- Alerte d'erreur -->
     <div v-if="isAlertOpen">
       <AlertModal title="Erreur" type="error" @close-alert="closeErrorAlert">
@@ -100,12 +91,9 @@
         </template>
       </AlertModal>
     </div>
+
     <div v-if="isSuccessOpen">
-      <AlertModal
-        title="Relance programméé"
-        type="success"
-        @close-alert="closeSuccessAlert"
-      >
+      <AlertModal title="Relance programméé" type="success" @close-alert="closeSuccessAlert">
         <template #message>
           <p>Votre relance a été programmée avec succès .</p>
         </template>
@@ -115,7 +103,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const { errors, validateForm } = useFormValidationReminder();
@@ -138,9 +126,22 @@ const templates = ref([]);
 const template_selected = ref({
   content: "",
 });
-// fech template
+
+// Fetch templates
 const template_content = computed(() => template_selected.value?.content);
+
+// Dynamically update formData.message when template_content changes
+const formData = ref({
+  send_date: null,
+  message: "", // initial empty message
+});
+
+watch(template_content, (newContent) => {
+  formData.value.message = newContent; // dynamically update message when template changes
+});
+
 const status = ref("idle");
+
 const fetchTemplateSms = async () => {
   status.value = "pending";
   const { data, error } = await supabase.from("templates").select("*");
@@ -154,10 +155,6 @@ const fetchTemplateSms = async () => {
 };
 
 // send reminder
-const formData = ref({
-  send_date: null,
-  message: template_content,
-});
 const isRequestInProgress = ref(false);
 const errorMessage = ref("");
 const isAlertOpen = ref(false);
@@ -182,7 +179,6 @@ let AddReminder = async () => {
   }
 
   try {
-    
     const { data, error } = await supabase
       .from("reminders")
       .insert([
@@ -199,6 +195,8 @@ let AddReminder = async () => {
     if (error) {
       if (error.code === "23505") {
         errorMessage.value = "Une erreur est survenue";
+      }else{
+        errorMessage.value = error.message;
       }
       isAlertOpen.value = true; // Affichage de l'alerte
       isRequestInProgress.value = false;
@@ -212,15 +210,7 @@ let AddReminder = async () => {
       const differenceInSeconds = Math.floor(
         sendDateInSeconds - currentDateInSeconds
       );
-      const { data, error } = await supabase.schema("pgmq_public").rpc("send", {
-        queue_name: "sendsms",
-        message: {
-          phone: props.customerPhone,
-          message: formData.value.message,
-          created_by: user.value.id,
-        },
-        sleep_seconds: differenceInSeconds,
-      });
+
       isOpen.value = false;
       isSuccessOpen.value = true;
       formData.value.send_date = null;
@@ -235,6 +225,7 @@ let AddReminder = async () => {
     isRequestInProgress.value = false;
   }
 };
+
 onMounted(() => {
   fetchTemplateSms();
 });

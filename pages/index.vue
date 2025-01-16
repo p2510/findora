@@ -44,7 +44,11 @@
         </form>
 
         <div v-if="isAlertOpen">
-          <AlertModal title="Accès Incorrect" type="error" @close-alert="closeAlert">
+          <AlertModal
+            title="Accès Incorrect"
+            type="error"
+            @close-alert="closeAlert"
+          >
             <template #message>
               <p class="">
                 Les informations de connexion que vous avez saisies sont
@@ -71,9 +75,9 @@ definePageMeta({
 });
 const supabase = useSupabaseClient();
 const isAlertOpen = ref(false);
-let closeAlert=()=>{
-    isAlertOpen.value=false
-}
+let closeAlert = () => {
+  isAlertOpen.value = false;
+};
 
 let DataForms = ref({
   email: "",
@@ -96,7 +100,7 @@ let login = async () => {
     });
   if (error?.code === "invalid_credentials") {
     errorMessage.value = "Identifiants de connexion invalides";
-    isAlertOpen.value=true
+    isAlertOpen.value = true;
   }
   if (data?.user) {
     return navigateTo("/confirm");

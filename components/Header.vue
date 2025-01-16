@@ -1,6 +1,6 @@
 <template>
   <header
-    class="flex justify-between py-2 px-4 items-center w-full bg-gradient-to-r from-[#5e4414] to-slate-900 "
+    class="flex justify-between py-2 px-4 items-center w-full bg-gradient-to-r from-[#5e4414] to-slate-900"
   >
     <div class="px-4 w-full flex items-center gap-3 divide-x-[1px] basis-1/2">
       <span class="flex items-center">
@@ -48,14 +48,54 @@
         {{ props.name }}
       </h3>
     </div>
+    <p
+      class="w-full text-sm text-center text-white"
+      v-if="subscriptions?.subscription_type === 'free'"
+    >
+      <span>
+        Allez plus loin avec Findora en passant au premium.
+        <NuxtLink
+          to="/abonnement"
+          class="text-[#f3c775] hover:text-[#f0cd8e] transition duration-500 ease-in-out"
+        >
+          Découvrir l'offre premium
+        </NuxtLink>
+      </span>
+    </p>
+
+    <p
+      class="w-full text-sm text-center text-white"
+      v-else-if="
+        subscriptions?.subscription_type === 'premium' &&
+        new Date(subscriptions?.start_at).setMonth(
+          new Date(subscriptions?.start_at).getMonth() + 1
+        ) < new Date()
+      "
+    >
+      <span>
+        Votre abonnement est expiré.
+        <NuxtLink
+          to="/abonnement"
+          class="text-[#f3c775] hover:text-[#f0cd8e] transition duration-500 ease-in-out"
+        >
+          Renouveler l'offre premium
+        </NuxtLink>
+      </span>
+    </p>
+
+    <p
+      class="w-full text-sm text-center text-white"
+      v-else-if="
+        subscriptions?.subscription_type === 'premium' &&
+        new Date(subscriptions?.start_at) >= new Date()
+      "
+    >
+      <span> Votre abonnement premium est toujours actif. </span>
+    </p>
+
     <div
       class="flex items-center gap-3 divide-x-[1px] divide-slate-400 basis-1/2 justify-end"
     >
-      <input
-        type="text"
-        class="rounded-full px-8 py-2 bg-slate-600 text-slate-100 text-sm outline-none focus:scale-105 transition duration-300 ease-in-out"
-        placeholder="Lancer une recherche"
-      />
       <h4 class="flex gap-2 items-center tracking-tight pl-3">
         <img
           :src="
@@ -79,8 +119,9 @@
 
 <script setup>
 import { ArrowUpRightIcon } from "@heroicons/vue/24/solid";
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 const user = useSupabaseUser();
+const supabase = useSupabaseClient();
 
 let props = defineProps(["name"]);
 const options = {
@@ -91,6 +132,16 @@ const options = {
 };
 
 const formattedDate = ref(new Date().toLocaleDateString("fr-FR", options));
+
+let subscriptions = ref({});
+
+onMounted(async () => {
+  const { data, error } = await supabase.from("subscriptions").select("*");
+
+  if (data) {
+    subscriptions.value = data[0];
+  }
+});
 </script>
 <style scoped>
 @import url("~/assets/css/font.css");
