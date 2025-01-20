@@ -2,7 +2,7 @@
   <div class="w-full">
     <div class="grid grid-cols-12 gap-4 primary-font">
       <div
-        class=" col-span-full xl:col-span-6 flex flex-col items-center justify-center h-screen relative"
+        class="col-span-full xl:col-span-6 flex flex-col items-center justify-center h-screen relative"
       >
         <h4 class="text-slate-900 text-4xl pb-2">
           Un seul
@@ -72,6 +72,7 @@
 import { ref } from "vue";
 definePageMeta({
   middleware: "redirect-auth",
+  alias: "/inscription",
 });
 const supabase = useSupabaseClient();
 const isAlertOpen = ref(false);

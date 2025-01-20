@@ -44,12 +44,12 @@
           </text>
         </svg>
       </span>
-      <h3 class="font-medium text-xl text-slate-50 capitalize pl-3">
+      <h3 class=" font-medium text-xl text-slate-50 capitalize pl-3">
         {{ props.name }}
       </h3>
     </div>
     <p
-      class="w-full text-sm text-center text-white"
+      class="hidden lg:block w-full text-sm text-center text-white"
       v-if="subscriptions?.subscription_type === 'free'"
     >
       <span>
@@ -64,7 +64,7 @@
     </p>
 
     <p
-      class="w-full text-sm text-center text-white"
+      class="hidden lg:block w-full text-sm text-center text-white"
       v-else-if="
         subscriptions?.subscription_type === 'premium' &&
         new Date(subscriptions?.start_at).setMonth(
@@ -84,7 +84,7 @@
     </p>
 
     <p
-      class="w-full text-sm text-center text-white"
+      class="hidden lg:block w-full text-sm text-center text-white"
       v-else-if="
         subscriptions?.subscription_type === 'premium' &&
         new Date(subscriptions?.start_at) >= new Date()
@@ -94,7 +94,7 @@
     </p>
 
     <div
-      class="flex items-center gap-3 divide-x-[1px] divide-slate-400 basis-1/2 justify-end"
+      class="hidden lg:flex items-center gap-3 divide-x-[1px] divide-slate-400 basis-1/2 justify-end"
     >
       <h4 class="flex gap-2 items-center tracking-tight pl-3">
         <img

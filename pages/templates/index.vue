@@ -44,7 +44,15 @@
           Vos templates SMS
         </p>
         <!--List template-->
-        <ul class="space-y-2 overflow-y-auto h-[75vh] pb-8 pr-3">
+        <SkeletonNotFound
+          v-if="templates_Sms.length == 0"
+          title="Aucun template détecté"
+          subtitle="actuellement"
+          label-btn=" Créer votre premier template"
+          to="/templates"
+          custom-css="text-lg lg:text-xl xl:text-3xl "
+        />
+        <ul v-else class="space-y-2 overflow-y-auto h-[75vh] pb-8 pr-3">
           <TemplateSmsCard
             v-for="template in templates_Sms"
             :key="template.id"
@@ -56,7 +64,6 @@
           />
         </ul>
       </div>
-
       <div class="col-span-4 space-y-4">
         <p
           class="bg-white/80 px-6 py-2 w-full font-semibold text-slate-800/80 rounded-lg shadow-md"

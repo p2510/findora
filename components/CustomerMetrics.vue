@@ -1,7 +1,12 @@
 <template>
   <div class="grid grid-cols-12 gap-5">
+    <SkeletonCard
+      class="col-span-6 lg:col-span-4 xl:col-span-3"
+      v-if="customerCount == null"
+    />
     <div
-      class="col-span-3 rounded-lg p-3 bg-emerald-700 text-white shadow-md relative overflow-hidden"
+      v-else
+      class="col-span-6 lg:col-span-4 xl:col-span-3 rounded-3xl p-3 bg-[#f3c775] text-white shadow-md relative overflow-hidden"
     >
       <div class="absolute inset-0 z-0 opacity-10 transform rotate-45">
         <span
@@ -12,9 +17,9 @@
       </div>
 
       <p class="pb-3 flex justify-between items-center z-10">
-        <span> Total client</span>
+        <span class="text-slate-950"> Total client</span>
         <span
-          class="p-2 bg-white/20 rounded-full flex items-center justify-center"
+          class="p-2 bg-slate-950/20 rounded-full flex items-center justify-center"
         >
           <UIcon name="i-heroicons-user-group" class="w-5 h-5 text-white" />
         </span>
@@ -22,32 +27,39 @@
 
       <ul class="flex gap-4 w-full">
         <li class="space-y-3 w-full">
-          <span class="font-semibold text-5xl">{{ customerCount }}</span>
+          <span class="font-semibold text-5xl text-slate-950">{{
+            customerCount
+          }}</span>
           <div class="flex justify-between items-center gap-[1px]">
             <p
-              class="text-xs space-x-[1px] rounded-full px-3 py-[1px] text-white"
+              class="text-xs space-x-[1px] rounded-full px-3 py-[1px] text-slate-700"
             >
               <span>{{ currentMonthCount }} client(s) ce mois</span>
               <UIcon
                 name="i-heroicons-arrow-up-right"
-                class="w-4 h-4 text-white"
+                class="w-4 h-4 text-slate-700"
               />
             </p>
           </div>
         </li>
       </ul>
     </div>
+    <SkeletonCard
+      class="col-span-6 lg:col-span-4 xl:col-span-3"
+      v-if="customerCount == null"
+    />
     <div
-      class="col-span-3 rounded-lg p-3 bg-white shadow-md relative overflow-hidden"
+      v-else
+      class="col-span-6 lg:col-span-4 xl:col-span-3 rounded-3xl p-3 bg-white shadow-md relative overflow-hidden"
     >
       <p class="pb-3 flex justify-between items-center z-10 text-slate-900/60">
         <span> Client(s) entreprise</span>
         <span
-          class="p-2 bg-emerald-700/10 rounded-full flex items-center justify-center"
+          class="p-2 bg-[#f3c775]/10 rounded-full flex items-center justify-center"
         >
           <UIcon
             name="i-heroicons-building-office-2"
-            class="w-5 h-5 bg-emerald-700"
+            class="w-5 h-5 bg-[#f3c775]"
           />
         </span>
       </p>
@@ -60,15 +72,20 @@
         </li>
       </ul>
     </div>
+    <SkeletonCard
+      class="col-span-6 lg:col-span-4 xl:col-span-3"
+      v-if="customerParticulierCount == null"
+    />
     <div
-      class="col-span-3 rounded-lg p-3 bg-white shadow-md relative overflow-hidden"
+      v-else
+      class="col-span-12 lg:col-span-4 xl:col-span-3 rounded-3xl p-3 bg-white shadow-md relative overflow-hidden"
     >
       <p class="pb-3 flex justify-between items-center z-10 text-slate-900/60">
         <span> Client(s) particulier</span>
         <span
-          class="p-2 bg-emerald-700/10 rounded-full flex items-center justify-center"
+          class="p-2 bg-[#f3c775]/10 rounded-full flex items-center justify-center"
         >
-          <UIcon name="i-heroicons-users" class="w-5 h-5 bg-emerald-700" />
+          <UIcon name="i-heroicons-users" class="w-5 h-5 bg-[#f3c775]" />
         </span>
       </p>
 
@@ -88,7 +105,7 @@ import { ref, computed, onMounted } from "vue";
 const supabase = useSupabaseClient();
 let customerCount = ref(null);
 let currentMonthCount = ref(null);
-let customerParticulierCount = ref(0);
+let customerParticulierCount = ref(null);
 const fetchCustomers = async () => {
   const { data, error, count } = await supabase
     .from("customers")

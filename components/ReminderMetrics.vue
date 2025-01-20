@@ -20,11 +20,11 @@
       <div class="col-span-4 text-black"></div>
       <div class="col-span-4 border-b-2 border-yellow-700">
         <p class="text-sm text-slate-600">Relance en cours</p>
-        <p class="text-3xl">{{ total - isPaste.length }}</p>
+        <p class="text-3xl">{{ isWaiting.length }}</p>
       </div>
       <div class="col-span-4 border-b-2 border-emerald-700">
         <p class="text-sm text-slate-600">Relance terminée</p>
-        <p class="text-3xl">{{ isPaste.length }}</p>
+        <p class="text-3xl">{{ total - isWaiting.length }}</p>
       </div>
     </div>
   </section>
@@ -35,9 +35,9 @@ import { ref, computed, onMounted } from "vue";
 const supabase = useSupabaseClient();
 const reminders = ref([]);
 const total = ref(0);
-let isPaste = computed(() => {
+let isWaiting = computed(() => {
   return reminders.value.filter((reminder) => {
-    return reminder?.send_date && new Date(reminder.send_date) < new Date();
+    return !reminder?.is_sent;
   });
 });
 onMounted(async () => {

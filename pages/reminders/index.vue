@@ -1,21 +1,27 @@
 <template>
   <div class="mt-14 space-y-4 pr-4">
     <ReminderMetrics />
-    <div class="grid grid-cols-12 gap-2">
+    <SkeletonNotFound
+      v-if="reminders.length == 0"
+      title="Aucune relance détectée"
+      subtitle="actuellement"
+      label-btn=" Créer votre premier relance"
+      to="/paiement"
+      custom-css="text-xl lg:text-2xl xl:text-4xl "
+    />
+    <div v-else class="grid grid-cols-12 gap-2">
       <section
-        class="col-span-3 bg-transparent border-[1px] border-slate-200 h-screen rounded-xl"
+        class="col-span-4 lg:col-span-4 2xl:col-span-3 bg-transparent border-[1px] border-slate-200 h-screen rounded-xl"
       >
         <div class="flex items-center justify-between p-3">
           <h2 class="">
-            <p class="text-sm text-slate-500">100 :200 CC</p>
-            <p class="font-bold text-lg text-slate-800/95">
-              Liste des relances
-            </p>
+            <p class="text-sm text-slate-500">Relances</p>
+            <p class="font-bold text-lg text-slate-800/95">programmée(s)</p>
           </h2>
           <span
-            class="cursor-pointer rounded-full p-2 border-[1px] flex justify-center items-center hover:bg-slate-100 transition ease-in-out duration-300"
+            class="rounded-full p-2 border-[1px] flex justify-center items-center hover:bg-slate-100 transition ease-in-out duration-300"
           >
-            <UIcon name="i-heroicons-funnel" />
+            <UIcon name="i-heroicons-bolt" />
           </span>
         </div>
         <div>
@@ -39,7 +45,7 @@
       </section>
       <section
         v-if="selectedReminder"
-        class="col-span-9 h-screen bg-dotted-pattern border border-slate-200 rounded-xl relative"
+        class="col-span-8 lg:col-span-8 2xl:col-span-9 h-screen bg-dotted-pattern border border-slate-200 rounded-xl relative"
       >
         <UModal v-model="showMessage">
           <div class="p-4 text-sm">
@@ -147,14 +153,21 @@ let selectedReminderId = ref(null);
 const reminders = ref([]);
 const fetchReminders = async () => {
   status.value = "pending";
-  const { data, error } = await supabase.from("reminders").select(`
+  const { data, error } = await supabase
+    .from("reminders")
+    .select(
+      `
     id,message,send_date,
     customers(
       id,name
     ),payments(
       amount
     )
-  `);
+  `
+    )
+    .eq("is_sent", false)
+    .gt("send_date", new Date().toISOString())
+    .order("send_date", { ascending: false });
   if (error) {
     console.error("Error fetching reminders:", error);
     status.value = "error";

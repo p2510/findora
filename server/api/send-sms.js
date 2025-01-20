@@ -11,14 +11,6 @@ export default defineEventHandler(async (event) => {
     apiKey
   );
 
-  const { data, error } = await supabase
-    .from("test_tables")
-    .insert([
-      {
-        name: "Jule" + Math.random(),
-      },
-    ])
-    .select();
   // Récupérer la date actuelle sans l'heure (format YYYY-MM-DD)
   const today = new Date();
   const todayDate = today.toISOString().split("T")[0];
@@ -33,7 +25,8 @@ export default defineEventHandler(async (event) => {
       )
       `
     )
-    .eq("send_date", todayDate);
+    .eq("send_date", todayDate)
+    .eq("is_sent", false);
 
   if (remindersError) {
     console.error(
@@ -62,7 +55,7 @@ export default defineEventHandler(async (event) => {
     .from("sms_backlogs")
     .select(
       `
-      id, application_id,client_id,client_secret,sender_name,valide_date,user_id
+      id, application_id,client_id,client_secret,sender_name,valide_date,user_id,count
       `
     )
     .in("user_id", userIds); // Filtrer par les IDs des created_by
@@ -87,6 +80,89 @@ export default defineEventHandler(async (event) => {
     ); // Associer les SMS dont user_id correspond à created_by
     return { ...reminder, sms_backlogs: relatedSms };
   });
+  // Boucle sur les reminders
+  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms)); // Fonction pour ajouter une pause
+  const batchSize = 5; // Taille du lot (5 SMS par seconde)
+
+  for (const reminder of mergedData) {
+    const { message, customers, sms_backlogs, id } = reminder;
+
+    if (!sms_backlogs || sms_backlogs.length === 0) {
+      console.log(`Aucun SMS backlog trouvé pour le reminder ${reminder.id}`);
+      continue;
+    }
+
+    let counter = 0; // Compteur pour les SMS envoyés
+
+    for (const sms of sms_backlogs) {
+      const {
+        valide_date,
+        client_id,
+        client_secret,
+        sender_name,
+        user_id,
+        count,
+      } = sms;
+
+      if (valide_date == todayDate) {
+        try {
+          // Envoi du SMS
+          sendSMS(
+            customers.phone,
+            message,
+            client_id,
+            client_secret,
+            sender_name
+          );
+          // Mise à jour des données dans Supabase
+          await supabase
+            .from("reminders")
+            .update({ is_sent: true })
+            .eq("id", id);
+
+          const { data: smsData, error: fetchError } = await supabase
+            .from("sms_backlogs")
+            .select("count")
+            .eq("user_id", user_id)
+            .single();
+          if (fetchError || !smsData) {
+            console.error(
+              `Erreur lors de la récupération du count pour user_id ${user_id}:`,
+              fetchError || "Données introuvables"
+            );
+            continue;
+          }
+          const currentCount = smsData.count;
+
+          await supabase
+            .from("sms_backlogs")
+            .update({ count: currentCount - 1 })
+            .eq("user_id", user_id);
+
+          console.log(
+            `SMS envoyé avec succès au numéro ${customers.phone} pour le reminder ${reminder.id}`
+          );
+        } catch (error) {
+          console.error(
+            `Erreur lors de l'envoi du SMS pour le reminder ${reminder.id}:`,
+            error
+          );
+        }
+      } else {
+        console.log(
+          `La date valide ${valide_date} est passée pour le reminder ${reminder.id}`
+        );
+      }
+
+      counter++; // Incrémenter le compteur de SMS envoyés
+
+      // Pause après chaque lot de 5 SMS
+      if (counter % batchSize === 0) {
+        console.log("Pause pour respecter la limite TPS (5 SMS/sec)");
+        await delay(2000); // Pause de 1 seconde
+      }
+    }
+  }
 
   // Étape 5 : Retourner les données combinées
   return {
@@ -95,3 +171,69 @@ export default defineEventHandler(async (event) => {
     data: mergedData,
   };
 });
+
+async function sendSMS(phone, message, client_id, client_secret, sender_name) {
+  try {
+    // URL de l'API d'authentification
+    const authUrl = "https://api.orange.com/oauth/v3/token";
+
+    // Authentification pour obtenir l'access_token
+    const authResponse = await fetch(authUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        grant_type: "client_credentials",
+        client_id: client_id, // Remplacez par votre client_id
+        client_secret: client_secret, // Remplacez par votre client_secret
+      }),
+    });
+
+    const authData = await authResponse.json();
+
+    if (!authResponse.ok) {
+      throw new Error("Erreur lors de l'authentification");
+    }
+
+    // Récupérer l'access_token
+    const accessToken = authData.access_token;
+
+    // URL pour envoyer le SMS
+    const postUrl =
+      "https://api.orange.com/smsmessaging/v1/outbound/tel:+2250160485654/requests";
+
+    // Corps de la requête pour envoyer le SMS
+    const postData = {
+      outboundSMSMessageRequest: {
+        address: `tel:+225${phone}`,
+        senderAddress: "tel:+2250160485654",
+        outboundSMSTextMessage: {
+          message: message,
+        },
+        senderName: sender_name,
+      },
+    };
+
+    // Envoi de la requête pour envoyer le SMS avec l'access_token dans les en-têtes
+    const postResponse = await fetch(postUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(postData),
+    });
+
+    const postDataResponse = await postResponse.json();
+
+    if (!postResponse.ok) {
+      throw new Error("Erreur lors de l'envoi du SMS");
+    }
+
+    console.log("SMS envoyé avec succès:", postDataResponse);
+    return postDataResponse;
+  } catch (error) {
+    console.error("Erreur:", error);
+  }
+}

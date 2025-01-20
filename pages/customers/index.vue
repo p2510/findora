@@ -35,7 +35,6 @@
           class="border-[#f3c775] border-[1px] rounded-lg"
           variant="none"
         />
-
         <USelectMenu
           v-model="selectedType"
           :options="customerTypes"
@@ -71,7 +70,9 @@
       </div>
 
       <!-- Table -->
+    
       <UTable
+  
         v-model="selectedRows"
         :rows="paginatedCustomers"
         :columns="columnsTable"

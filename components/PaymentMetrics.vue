@@ -2,13 +2,13 @@
   <section
     class="flex justify-between items-center gap-3 w-full bg-slate-900 p-2 rounded-lg shadow-md"
   >
-    <div class="basis-1/4 w-full">
+    <div class="hidden  2xl:block 2xl:basis-1/4 w-full">
       <h3 class="text-white text-3xl">Vos paiements</h3>
       <span class="text-slate-300 text-sm"
         >Suivez les paiements de vos différents clients</span
       >
     </div>
-    <div class="basis-3/4 w-full flex justify-between gap-6 items-center">
+    <div class="2xl:basis-3/4 w-full flex justify-between gap-6 items-center">
       <div class="flex items-center gap-4">
         <span
           class="p-2 bg-white/20 rounded-full flex items-center justify-center"
@@ -89,7 +89,7 @@
           </p>
         </div>
       </div>
-      <div class="flex items-center gap-4">
+      <div class="hidden xl:flex items-center gap-4">
         <span
           class="p-2 bg-white/20 rounded-full flex items-center justify-center"
         >
