@@ -469,6 +469,9 @@ definePageMeta({
   middleware: "auth",
   alias: "/paiement",
 });
+useHead({
+  title: 'Findora - Paiement',
+})
 const supabase = useSupabaseClient();
 const { errors, validateForm, handleServerErrors } = useFormValidationPayment();
 let customers = ref([]);

@@ -357,6 +357,9 @@ definePageMeta({
   middleware: "auth",
   alias: "/client",
 });
+useHead({
+  title: 'Findora - Mes clients',
+})
 const supabase = useSupabaseClient();
 const { errors, validateForm, handleServerErrors } = useFormValidation();
 

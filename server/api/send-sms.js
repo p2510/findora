@@ -80,6 +80,7 @@ export default defineEventHandler(async (event) => {
     ); // Associer les SMS dont user_id correspond à created_by
     return { ...reminder, sms_backlogs: relatedSms };
   });
+
   // Boucle sur les reminders
   const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms)); // Fonction pour ajouter une pause
   const batchSize = 5; // Taille du lot (5 SMS par seconde)
@@ -93,7 +94,6 @@ export default defineEventHandler(async (event) => {
     }
 
     let counter = 0; // Compteur pour les SMS envoyés
-
     for (const sms of sms_backlogs) {
       const {
         valide_date,
@@ -104,7 +104,7 @@ export default defineEventHandler(async (event) => {
         count,
       } = sms;
 
-      if (valide_date == todayDate) {
+      if (reminder.send_date.slice(0, 10) == todayDate) {
         try {
           // Envoi du SMS
           sendSMS(

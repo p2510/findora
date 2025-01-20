@@ -264,6 +264,9 @@ import { ref, computed, onMounted } from "vue";
 definePageMeta({
   middleware: "auth",
 });
+useHead({
+  title: 'Findora - Dashboard',
+})
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 let userInfo = ref(null);

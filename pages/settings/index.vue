@@ -14,6 +14,9 @@ definePageMeta({
   middleware: "auth",
   alias: "/parametre",
 });
+useHead({
+  title: 'Findora - Paramètre',
+})
 </script>
 <style scoped>
 .error {

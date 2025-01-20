@@ -146,6 +146,9 @@ definePageMeta({
   middleware: "auth",
   alias: "/relance",
 });
+useHead({
+  title: 'Findora - Relance',
+})
 const supabase = useSupabaseClient();
 const status = ref("idle");
 let selectedReminderId = ref(null);

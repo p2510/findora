@@ -315,6 +315,9 @@ definePageMeta({
   middleware: "auth",
   alias: "/abonnement",
 });
+useHead({
+  title: 'Findora - Abonnement',
+})
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 </script>

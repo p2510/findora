@@ -297,6 +297,9 @@ definePageMeta({
   middleware: "auth",
   alias: "/templates",
 });
+useHead({
+  title: 'Findora - Template',
+})
 const { errors, validateForm, handleServerErrors } = useFormValidationSms();
 const supabase = useSupabaseClient();
 const isOpen = ref(false); // open choice of template
