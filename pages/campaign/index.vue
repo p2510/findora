@@ -1,0 +1,221 @@
+<template>
+  <div class="mt-14 space-y-4 pr-4">
+    <div
+      class="bg-gradient-to-r from-[#f3c775] to-[#c7a15a] w-full py-4 px-3 rounded-xl"
+    >
+      <h2 class="text-slate-800 text-lg">
+        Lancer des campagnes vers vos clients
+      </h2>
+      <p class="text-sm text-slate-700">
+        Partager avec un ou plusieurs clients des informations précises et
+        pertinentes.
+      </p>
+    </div>
+    <form class="grid grid-cols-12 gap-4 pt-6">
+      <div class="col-span-full flex items-end gap-4">
+        <div class="space-y-[1px]">
+          <label for="name" class="text-gray-500 text-sm">Client</label>
+          <USelectMenu
+            searchable
+            searchable-placeholder="Trouver un client..."
+            class="w-full lg:w-48"
+            placeholder="Choisir un client"
+            :options="customers"
+            option-attribute="name"
+            multiple
+            v-model="formData.customers"
+            size="lg"
+            color="black"
+            variant="none"
+            :ui="{
+              base: 'hover:shadow-sm rounded-lg hover:shadow-sm  rounded-lg bg-white outline-none border-2 border-solid focus:rounded-lg transition duration-300 ease-in-out text-slate-800/80 w-full focus:border-[#f3c775]',
+            }"
+          >
+          </USelectMenu>
+        </div>
+        <button
+          @click="selectAll"
+          type="button"
+          class="bg-slate-800 text-white rounded-md px-3 py-2 hover:bg-slate-950 transition duration-300 ease-in-out"
+        >
+          Choisir tous les client
+        </button>
+      </div>
+      <div class="col-span-full space-y-[1px]">
+        <label for="name" class="text-gray-500 text-sm">Message</label>
+
+        <textarea
+          v-model="formData.content"
+          class="text-sm hover:shadow-sm p-2 rounded-lg bg-white outline-none border-2 border-solid focus:rounded-lg transition duration-300 ease-in-out text-slate-800/80 w-full focus:border-[#f3c775]"
+          rows="7"
+        ></textarea>
+        <div v-if="errors.content.length" class="error">
+          <ul>
+            <li v-for="error in errors.content" :key="error">
+              {{ error }}
+            </li>
+          </ul>
+        </div>
+      </div>
+      <!-- Bouton de soumission -->
+      <div class="col-span-full space-y-[1px]">
+        <UButton
+          @click="AddCampaign"
+          :loading="isRequestInProgress"
+          type="button"
+          size="lg"
+          variant="soft"
+          color="emerald"
+        >
+          Envoyer maintenant
+        </UButton>
+      </div>
+    </form>
+    <div v-if="isSuccessOpen">
+      <AlertModal
+        title="Campagne effectué"
+        type="success"
+        @close-alert="closeSuccessAlert"
+      >
+        <template #message>
+          <p>Votre campagne a été effectuée avec succès .</p>
+        </template>
+      </AlertModal>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from "vue";
+definePageMeta({
+  middleware: "auth",
+  alias: "/campagne",
+});
+useHead({
+  title: "Findora - Campagne",
+});
+const supabase = useSupabaseClient();
+const user = useSupabaseUser();
+
+const { errors, validateForm, handleServerErrors } =
+  useFormValidationCampaignNow();
+const isOpen = ref(false);
+const isRequestInProgress = ref(false);
+const errorMessage = ref("");
+const isAlertOpen = ref(false);
+let closeErrorAlert = () => {
+  isAlertOpen.value = false;
+};
+const isSuccessOpen = ref(false);
+let closeSuccessAlert = () => {
+  isSuccessOpen.value = false;
+};
+let customers = ref([]);
+const formData = ref({
+  customers: [],
+  content: "",
+  send_date: null,
+});
+
+let selectAll = () => {
+  formData.value.customers = customers.value;
+};
+let AddCampaign = async () => {
+  isRequestInProgress.value = true;
+  const validationErrors = validateForm({
+    content: formData.value.content,
+  });
+  if (validationErrors.global.length > 0) {
+    isRequestInProgress.value = false;
+    return;
+  }
+  try {
+    const { data, error } = await supabase
+      .from("campaigns")
+      .insert(
+        formData.value.customers.map((customer) => ({
+          send_date: formData.value.send_date || null,
+          message: formData.value.content,
+          phone: customer.phone,
+          created_by: user.value.id,
+        }))
+      )
+      .select();
+
+    if (error) {
+      if (error.code === "23505") {
+        errorMessage.value = "Une erreur est survenue";
+      } else {
+        errorMessage.value = error.message;
+      }
+      isAlertOpen.value = true; // Affichage de l'alerte
+      isRequestInProgress.value = false;
+      isOpen.value = false;
+    } else {
+      sendSMS();
+      isOpen.value = false;
+      formData.value.send_date = null;
+      formData.value.content = "";
+    }
+  } catch (err) {
+    console.error(err);
+    isRequestInProgress.value = false;
+  }
+};
+let sms_backlogs = ref(null);
+
+onMounted(async () => {
+  const { data, error } = await supabase
+    .from("customers")
+    .select("phone,name,id");
+  if (error) {
+  } else {
+    customers.value = data || [];
+  }
+  const { data: smsBacklogs, error: smsBacklogsError } = await supabase
+    .from("sms_backlogs")
+    .select(
+      `
+       client_id,client_secret,sender_name
+      `
+    )
+    .single();
+  if (smsBacklogsError) {
+  } else {
+    sms_backlogs.value = smsBacklogs;
+  }
+});
+
+async function sendSMS() {
+  const url = "https://findora-five.vercel.app/api/send-campaign";
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      body: JSON.stringify({
+        smsbacklogs: sms_backlogs.value,
+        customers: formData.value.customers,
+        content: formData.value.content,
+        user_id: user.value.id,
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(`Response status: ${response.status}`);
+    }
+
+    const json = await response.json();
+    if (json) {
+      isRequestInProgress.value = false;
+      isSuccessOpen.value = true;
+    }
+  } catch (error) {
+    isRequestInProgress.value = false;
+    console.error(error.message);
+  }
+}
+</script>
+
+<style scoped>
+.error {
+  color: red;
+}
+</style>

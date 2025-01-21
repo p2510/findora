@@ -17,7 +17,7 @@ watch(
   <div class="grid grid-cols-12 relative primary-font">
     <Header class="col-span-12 fixed z-40" :name="routeName" />
     <main
-      class="xl:fixed isolate col-span-12 grid grid-cols-12 gap-2 w-full mt-14 bg-gradient-to-r from-white to-[#eeeff0]/30"
+      class="relative 2xl:fixed isolate col-span-12 grid grid-cols-12 gap-2 w-full mt-14 bg-gradient-to-r from-white to-[#eeeff0]/30"
     >
       <div
         class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
@@ -47,11 +47,16 @@ watch(
           "
         />
       </div>
-      <Nav class="col-span-full xl:col-span-2 w-full xl:h-screen flex justify-center" />
-      <NuxtPage class="col-span-full xl:col-span-10 w-full px-4 xl:px-0" />
+      <Nav
+        class="2xl:sticky 2xl:top-0 col-span-full xl:col-span-2 w-full xl:h-screen flex justify-center"
+      />
+      <NuxtPage
+        class="relative col-span-full xl:col-span-10 w-full px-4 xl:px-3"
+      />
     </main>
   </div>
 </template>
 <style scoped>
 @import url("~/assets/css/font.css");
+
 </style>

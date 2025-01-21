@@ -10,12 +10,16 @@
     <UModal v-model="isOpen">
       <div class="p-4">
         <div class="space-y-6">
-          <h4 class="text-slate-800 text-lg font-semibold pb-2 flex justify-between">
+          <h4
+            class="text-slate-800 text-lg font-semibold pb-2 flex justify-between"
+          >
             <span> Programmer une relance</span>
           </h4>
           <form class="grid grid-cols-12 gap-4" @submit.prevent="AddReminder">
             <div class="col-span-full space-y-[1px]">
-              <label for="payment_date" class="text-gray-500 font-semibold">Date et heure</label>
+              <label for="payment_date" class="text-gray-500 font-semibold"
+                >Date et heure</label
+              >
               <InputFiled
                 v-model="formData.send_date"
                 type="date"
@@ -30,7 +34,9 @@
               </div>
             </div>
             <div class="col-span-full space-y-[1px]">
-              <label for="name" class="text-gray-500 font-semibold">Choisir depuis un template (Optionnel)</label>
+              <label for="name" class="text-gray-500 font-semibold"
+                >Choisir depuis un template (Optionnel)</label
+              >
               <USelectMenu
                 searchable
                 searchable-placeholder="Trouver un template..."
@@ -48,7 +54,9 @@
               ></USelectMenu>
             </div>
             <div class="col-span-full space-y-[1px]">
-              <label for="content" class="text-gray-500 font-semibold">Contenu de votre message</label>
+              <label for="content" class="text-gray-500 font-semibold"
+                >Contenu de votre message</label
+              >
               <textarea
                 v-model="formData.message"
                 class="text-sm hover:shadow-sm p-2 rounded-lg bg-white outline-none border-2 border-solid focus:rounded-lg transition duration-300 ease-in-out text-slate-800/80 w-full focus:border-[#f3c775]"
@@ -93,7 +101,11 @@
     </div>
 
     <div v-if="isSuccessOpen">
-      <AlertModal title="Relance programméé" type="success" @close-alert="closeSuccessAlert">
+      <AlertModal
+        title="Relance programmée"
+        type="success"
+        @close-alert="closeSuccessAlert"
+      >
         <template #message>
           <p>Votre relance a été programmée avec succès .</p>
         </template>
@@ -112,6 +124,10 @@ const props = defineProps({
   paymentId: {
     type: Number,
     default: 0,
+  },
+  paymentDate: {
+    type: Date,
+    default: new Date(),
   },
   customerId: {
     type: Number,
@@ -195,7 +211,7 @@ let AddReminder = async () => {
     if (error) {
       if (error.code === "23505") {
         errorMessage.value = "Une erreur est survenue";
-      }else{
+      } else {
         errorMessage.value = error.message;
       }
       isAlertOpen.value = true; // Affichage de l'alerte
@@ -227,7 +243,9 @@ let AddReminder = async () => {
 };
 
 onMounted(() => {
+  formData.value.send_date = props.paymentDate
   fetchTemplateSms();
+  
 });
 </script>
 

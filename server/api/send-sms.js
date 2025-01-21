@@ -26,7 +26,8 @@ export default defineEventHandler(async (event) => {
       `
     )
     .eq("send_date", todayDate)
-    .eq("is_sent", false);
+    .eq("is_sent", false)
+    .limit(7);
 
   if (remindersError) {
     console.error(

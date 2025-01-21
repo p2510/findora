@@ -22,12 +22,16 @@
             <BoltIcon class="size-5" />
           </template>
         </NavLink>
+        <NavLink to="/campagne" label="Campagne">
+          <template #icon>
+            <MegaphoneIcon class="size-5" />
+          </template>
+        </NavLink>
         <NavLink to="/templates" label="Templates">
           <template #icon>
             <InboxArrowDownIcon class="size-5" />
           </template>
         </NavLink>
-
         <NavLink to="/abonnement" label="Abonnement">
           <template #icon>
             <LifebuoyIcon class="size-5" />
@@ -114,6 +118,11 @@
             <BoltIcon class="size-8 flex justify-center" />
           </template>
         </NavIcon>
+        <NavIcon to="/campagne">
+          <template #icon>
+            <MegaphoneIcon class="size-8 flex justify-center" />
+          </template>
+        </NavIcon>
         <NavIcon to="/templates">
           <template #icon>
             <InboxArrowDownIcon class="size-8 flex justify-center" />
@@ -125,6 +134,7 @@
             <LifebuoyIcon class="size-8 flex justify-center" />
           </template>
         </NavIcon>
+
       </ul>
       <ul class="flex flex-row">
         <NavIcon to="/parametre">
@@ -197,6 +207,8 @@ import {
   CreditCardIcon,
   PresentationChartLineIcon,
   Cog6ToothIcon,
+  ChatBubbleLeftRightIcon,
+  MegaphoneIcon,
 } from "@heroicons/vue/24/outline";
 
 const supabase = useSupabaseClient();

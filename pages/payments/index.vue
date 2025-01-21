@@ -91,6 +91,7 @@
         }"
       >
         <template #customers-data="{ row }">
+          
           <h4 class="flex gap-2 items-center tracking-tight">
             <img
               :src="
@@ -191,9 +192,11 @@
             >Non payé</UBadge
           >
         </template>
+        
         <template #reminder-data="{ row }">
           <AddReminder
             :payment-id="row.id"
+            :payment-date="row.payment_date"
             :customer-id="row.customers?.id"
             :customer-phone="row.customers?.phone"
           />
@@ -320,6 +323,7 @@
         </template>
 
         <form class="grid grid-cols-12 gap-4" @submit.prevent="editPayment">
+
           <div class="col-span-full space-y-[1px]">
             <label for="payment_date" class="text-gray-500 font-semibold"
               >Date d'émission</label

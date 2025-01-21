@@ -3,7 +3,7 @@ import { ref } from 'vue'
 // Définir les messages d'erreur génériques
 const errorMessages = {
   name_length: "Le nom doit comporter entre 3 et 50 caractères.",
-  content_length: "Le contenu doit comporter entre 10 et 500 caractères.",
+  content_length: "Le contenu doit comporter entre 8 et 160 caractères.",
   required_field: "Ce champ est requis. Veuillez le remplir.",
   unique_constraint: "Cette valeur existe déjà. Veuillez vérifier les données.",
   generic_error: "Une erreur inattendue est survenue. Veuillez réessayer."
@@ -49,7 +49,7 @@ export function useFormValidationSms() {
 
     // Validation de chaque champ
     errors.value.name = validateField(formData.name, { required: true, minLength: 3, maxLength: 50 })
-    errors.value.content = validateField(formData.content, { required: true, minLength: 10, maxLength: 500 })
+    errors.value.content = validateField(formData.content, { required: true, minLength: 8, maxLength: 160})
 
     // Vérification globale des erreurs
     if (errors.value.name.length || errors.value.content.length) {
