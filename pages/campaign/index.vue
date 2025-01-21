@@ -82,6 +82,19 @@
         </template>
       </AlertModal>
     </div>
+    <div v-if="isAlertOpen">
+      <AlertModal
+        title="Informations incorrectes"
+        type="error"
+        @close-alert="closeErrorAlert"
+      >
+        <template #message>
+          <p>
+            {{ errorMessage }}
+          </p>
+        </template>
+      </AlertModal>
+    </div>
   </div>
 </template>
 
@@ -152,7 +165,7 @@ let AddCampaign = async () => {
       isRequestInProgress.value = false;
       isOpen.value = false;
     } else {
-      sendSMS();
+      //sendSMS();
       isOpen.value = false;
       formData.value.send_date = null;
       formData.value.content = "";

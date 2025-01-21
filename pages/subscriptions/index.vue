@@ -115,6 +115,23 @@
             </svg>
             Création de template
           </li>
+          <li class="flex gap-x-3 text-slate-400">
+            <svg
+              class="h-6 w-5 flex-none text-slate-700"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 20 20"
+              stroke-width="1.5"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M6 18 18 6M6 6l12 12"
+              />
+            </svg>
+            Campagne client
+          </li>
 
           <li class="flex gap-x-3 text-slate-400">
             <svg
@@ -235,7 +252,22 @@
             </svg>
             Création de template
           </li>
-
+          <li class="flex gap-x-3">
+            <svg
+              class="h-6 w-5 flex-none text-[#f3c775]"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+              data-slot="icon"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            Campagne client
+          </li>
           <li class="flex gap-x-3">
             <svg
               class="h-6 w-5 flex-none text-[#f3c775]"
@@ -256,13 +288,16 @@
         </ul>
         <div class="flex justify-center mt-6">
           <a
-            href="https://pay.wave.com/m/M_ci_KZ66i6-Hu0Q2/c/ci/?amount=6500" target="_blank"
+            href="https://pay.wave.com/m/M_ci_KZ66i6-Hu0Q2/c/ci/?amount=6500"
+            target="_blank"
             class="bg-[#f3c775] hover:bg-[#ddab4e] rounded-full shadow-md text-md py-3 px-6 transition-all duration-300 ease-in-out"
             >Passer premium</a
           >
         </div>
       </div>
-      <div class="hidden  col-start-9 col-end-13 bg-transparent lg:flex items-center h-screen">
+      <div
+        class="hidden col-start-9 col-end-13 bg-transparent lg:flex items-center h-screen"
+      >
         <div
           class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg"
         >
@@ -296,13 +331,13 @@
                 </h3>
                 <div class="mt-2">
                   <p class="text-sm text-gray-500">
-                    Une fois que votre paiement effectué votre abonnement est activé dans un délai de 2h maximum . 
+                    Une fois que votre paiement effectué votre abonnement est
+                    activé dans un délai de 2h maximum .
                   </p>
                 </div>
               </div>
             </div>
           </div>
- 
         </div>
       </div>
     </section>
@@ -316,8 +351,8 @@ definePageMeta({
   alias: "/abonnement",
 });
 useHead({
-  title: 'Findora - Abonnement',
-})
+  title: "Findora - Abonnement",
+});
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 </script>
