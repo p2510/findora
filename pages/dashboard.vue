@@ -69,9 +69,12 @@
         <div class="flex items-center text-slate-950 gap-2">
           <span class="text-md text-slate-950 font-semibold">Pay</span>
           <span class="rounded-md w-2 h-2 bg-slate-950"> </span>
-          <span class="text-md text-slate-950/50">
+          <span class="text-md text-slate-950/50" v-if="totalPayments != null">
             {{ ((totalDue * 100) / totalPayments).toFixed(2) }}% paiement
             échu</span
+          >
+          <span class="text-md text-slate-950/50" v-else>
+            0% paiement échu</span
           >
         </div>
       </div>
@@ -265,8 +268,8 @@ definePageMeta({
   middleware: "auth",
 });
 useHead({
-  title: 'Findora - Dashboard',
-})
+  title: "Findora - Dashboard",
+});
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 let userInfo = ref(null);
