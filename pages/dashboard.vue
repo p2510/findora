@@ -46,7 +46,7 @@
       </div>
       <SkeletonCard
         class="col-span-6 lg:col-span-4 xl:col-span-4 2xl:col-span-3"
-        v-if="totalPayments == 0"
+        v-if="totalPayments == null"
       />
       <div
         v-else
@@ -273,7 +273,7 @@ let userInfo = ref(null);
 let customerCount = ref(null);
 let currentMonthCount = ref(null);
 let payments = ref(null);
-let totalPayments = ref(0);
+let totalPayments = ref(null);
 let totalDue = ref(0);
 const reminders = ref([]);
 let isWaiting = computed(() => {
