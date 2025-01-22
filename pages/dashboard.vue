@@ -69,7 +69,8 @@
         <div class="flex items-center text-slate-950 gap-2">
           <span class="text-md text-slate-950 font-semibold">Pay</span>
           <span class="rounded-md w-2 h-2 bg-slate-950"> </span>
-          <span class="text-md text-slate-950/50" v-if="totalPayments != null">
+
+          <span class="text-md text-slate-950/50" v-if="totalPayments != 0">
             {{ ((totalDue * 100) / totalPayments).toFixed(2) }}% paiement
             échu</span
           >
