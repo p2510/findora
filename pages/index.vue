@@ -42,6 +42,14 @@
             </SubmitButton>
           </div>
         </form>
+        <div class="flex justify-center pt-10">
+          <a
+            href="https://calendly.com/poupoinaka03/demo-findora"
+            target="_blank"
+            class="text-md text-slate-700 hover:text-slate-800 transition ease-in-out duration-300"
+            >Demander une démo</a
+          >
+        </div>
 
         <div v-if="isAlertOpen">
           <AlertModal
@@ -74,8 +82,8 @@ definePageMeta({
   middleware: "redirect-auth",
 });
 useHead({
-  title: 'Findora - Me connecter',
-})
+  title: "Findora - Me connecter",
+});
 const supabase = useSupabaseClient();
 const isAlertOpen = ref(false);
 let closeAlert = () => {
