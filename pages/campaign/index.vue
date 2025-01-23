@@ -165,7 +165,7 @@ let AddCampaign = async () => {
       isRequestInProgress.value = false;
       isOpen.value = false;
     } else {
-      //sendSMS();
+      sendSMS();
       isOpen.value = false;
       formData.value.send_date = null;
       formData.value.content = "";
@@ -200,7 +200,7 @@ onMounted(async () => {
 });
 
 async function sendSMS() {
-  const url = "https://findora-five.vercel.app/api/send-campaign";
+  const url = "http://localhost:3000/api/send-campaign";
   try {
     const response = await fetch(url, {
       method: "POST",
