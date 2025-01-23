@@ -248,6 +248,10 @@
           >
             <p class="flex flex-col">
               <span class="text-slate-950">SMS restant(s)</span>
+              <span
+                class="bg-slate-950/5 text-sm h-2 w-4 rounded-full animate-pulse"
+                v-if="sms == null"
+              ></span>
               <span class="text-slate-600 text-sm">{{ sms }}</span>
             </p>
             <NuxtLink
@@ -264,7 +268,6 @@
 </template>
 
 <script setup>
-
 import { ref, computed, onMounted } from "vue";
 definePageMeta({
   middleware: "auth",
@@ -290,7 +293,7 @@ let isWaiting = computed(() => {
 let averagePayment = ref(null);
 let nextPayments = ref([]);
 let subscriptions = ref([]);
-let sms = ref(0);
+let sms = ref(null);
 // customer metric
 const fetchCustomers = async () => {
   const { data, error, count } = await supabase
@@ -436,17 +439,35 @@ function subscriptionExpired(startDate) {
   date.setDate(date.getDate() + 30);
   return date <= new Date();
 }
-// stat sms
-const fetchSms = async () => {
+
+async function checkSms() {
   let { data, error } = await supabase
     .from("sms_backlogs")
-    .select("count")
-    .single();
+    .select("client_id,client_secret");
   if (error) {
   } else {
-    sms.value = data?.count;
+    const url = "https://app.myfindora.com/api/info-purchase";
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        body: JSON.stringify({
+          client_id: data[0]?.client_id,
+          client_secret: data[0]?.client_secret,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error(`Response status: ${response.status}`);
+      }
+
+      const json = await response.json();
+      if (json) {
+        sms.value = json.data?.availableUnits;
+      }
+    } catch (error) {
+      console.error(error.message);
+    }
   }
-};
+}
 
 // fetch
 onMounted(async () => {
@@ -459,6 +480,6 @@ onMounted(async () => {
   fetchReminders();
   fetchNextPayments();
   fetchSubscriptions();
-  fetchSms();
+  checkSms();
 });
 </script>

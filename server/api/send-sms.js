@@ -120,29 +120,6 @@ export default defineEventHandler(async (event) => {
             .from("reminders")
             .update({ is_sent: true })
             .eq("id", id);
-
-          const { data: smsData, error: fetchError } = await supabase
-            .from("sms_backlogs")
-            .select("count")
-            .eq("user_id", user_id)
-            .single();
-          if (fetchError || !smsData) {
-            console.error(
-              `Erreur lors de la récupération du count pour user_id ${user_id}:`,
-              fetchError || "Données introuvables"
-            );
-            continue;
-          }
-          const currentCount = smsData.count;
-
-          await supabase
-            .from("sms_backlogs")
-            .update({ count: currentCount - 1 })
-            .eq("user_id", user_id);
-
-          console.log(
-            `SMS envoyé avec succès au numéro ${customers.phone} pour le reminder ${reminder.id}`
-          );
         } catch (error) {
           console.error(
             `Erreur lors de l'envoi du SMS pour le reminder ${reminder.id}:`,

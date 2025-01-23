@@ -506,6 +506,7 @@ const paymentTypes = [
   { key: "unpaid", label: "Non payé", value: "non-payé" },
   { key: "waiting", label: "En attente", value: "en-attente" },
 ];
+
 const resetFilters = () => {
   search.value = "";
   selectedType.value = [];
