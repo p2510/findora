@@ -200,7 +200,7 @@ onMounted(async () => {
 });
 
 async function sendSMS() {
-  const url = "http://localhost:3000/api/send-campaign";
+  const url = "https://app.myfindora.com/api/send-campaign";
   try {
     const response = await fetch(url, {
       method: "POST",
