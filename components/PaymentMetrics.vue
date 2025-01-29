@@ -20,7 +20,8 @@
         </span>
         <div class="flex flex-col justify-center">
           <p class="flex justify-between text-md">
-            <span class="text-white">{{
+            <SkeletonText v-if="payments ==null" />
+            <span class="text-white" v-else>{{
               totalPayments.toLocaleString("fr-FR")
             }}</span>
             <span class="font-semibold text-slate-500">F</span>
@@ -41,7 +42,9 @@
         </span>
         <div class="flex flex-col justify-center">
           <p class="flex justify-between text-md">
-            <span class="text-white">{{
+            <SkeletonText v-if="payments ==null" />
+
+            <span class="text-white" v-else>{{
               totalDue.toLocaleString("fr-FR")
             }}</span>
             <span class="font-semibold text-slate-500">F</span>
@@ -69,7 +72,9 @@
         </span>
         <div class="flex flex-col justify-center">
           <p class="flex justify-between text-md">
-            <span class="text-white">{{
+            <SkeletonText v-if="payments ==null" />
+
+            <span class="text-white" v-else>{{
               totalPaid.toLocaleString("fr-FR")
             }}</span>
             <span class="font-semibold text-slate-500">F</span>
@@ -100,7 +105,9 @@
         </span>
         <div class="flex flex-col justify-center">
           <p class="flex justify-between text-md">
-            <span class="text-white">{{
+            <SkeletonText v-if="payments ==null" />
+
+            <span class="text-white" v-else>{{
               totalValidated.toLocaleString("fr-FR")
             }}</span>
             <span class="font-semibold text-slate-500">F</span>
@@ -133,7 +140,7 @@ let totalPaid = ref(0);
 let PercentagetotalPaid = ref(0);
 let totalDue = ref(0);
 let totalValidated = ref(0);
-let payments = ref([]);
+let payments = ref(null);
 const fetchPayments = async () => {
   const { data, error } = await supabase.from("payments").select("*");
   if (error) {

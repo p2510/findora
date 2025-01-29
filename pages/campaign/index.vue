@@ -14,7 +14,7 @@
     <form class="grid grid-cols-12 gap-4 pt-6">
       <div class="col-span-full flex items-end gap-4">
         <div class="space-y-[1px]">
-          <label for="name" class="text-gray-500 text-sm">Client</label>
+          <label for="name" class="text-gray-500 text-sm">Client </label>
           <USelectMenu
             searchable
             searchable-placeholder="Trouver un client..."
@@ -31,6 +31,15 @@
               base: 'hover:shadow-sm rounded-lg hover:shadow-sm  rounded-lg bg-white outline-none border-2 border-solid focus:rounded-lg transition duration-300 ease-in-out text-slate-800/80 w-full focus:border-[#f3c775]',
             }"
           >
+            <template #option-empty="{ query }">
+              <q>{{ query }}</q> n'existe pas
+            </template>
+            <template #label>
+              <span v-if="formData.customers.length" class="truncate"
+                >{{ formData.customers.length }} Selectionné(s)</span
+              >
+              <span v-else>Selection client</span>
+            </template>
           </USelectMenu>
         </div>
         <button
@@ -39,6 +48,25 @@
           class="bg-slate-800 text-white rounded-md px-3 py-2 hover:bg-slate-950 transition duration-300 ease-in-out"
         >
           Choisir tous les client
+        </button>
+        <div class="flex gap-4" v-if="list_group == null">
+          <SkeletonButton />
+          <SkeletonButton />
+        </div>
+        <button
+          v-else
+          v-for="group in list_group"
+          :key="group.id"
+          @click="selectByGroup(group.customers, group.name)"
+          type="button"
+          class="text-slate-800 rounded-md px-3 py-2 transition duration-300 ease-in-out"
+          :class="
+            group_select == group.name
+              ? ' bg-[#f3c775] hover:bg-[#b99653]'
+              : ' bg-[#f3c775]/50 hover:bg-[#b99653]'
+          "
+        >
+          {{ group.name }}
         </button>
       </div>
       <div class="col-span-full space-y-[1px]">
@@ -132,7 +160,9 @@ const formData = ref({
 
 let selectAll = () => {
   formData.value.customers = customers.value;
+  group_select.value = null;
 };
+
 let AddCampaign = async () => {
   isRequestInProgress.value = true;
   const validationErrors = validateForm({
@@ -177,6 +207,12 @@ let AddCampaign = async () => {
 };
 let sms_backlogs = ref(null);
 
+let list_group = ref(null);
+const group_select = ref(null);
+let selectByGroup = (customers, group) => {
+  formData.value.customers = customers;
+  group_select.value = group;
+};
 onMounted(async () => {
   const { data, error } = await supabase
     .from("customers")
@@ -196,6 +232,29 @@ onMounted(async () => {
   if (smsBacklogsError) {
   } else {
     sms_backlogs.value = smsBacklogs;
+  }
+  const { data: groups, error: groupsError } = await supabase
+    .from("groups")
+    .select("id,name");
+  if (groups) {
+    const { data: groupsCustomers, error: groupsCustomersError } =
+      await supabase.from("groups_customers").select(
+        `
+       *,customers(
+       phone,name,id
+       )
+      `
+      );
+    groupsCustomers.forEach((item) => {
+      const targetGroup = groups.find((g) => g.id == item.groups_id);
+      if (targetGroup) {
+        if (!targetGroup.customers) {
+          targetGroup.customers = [];
+        }
+        targetGroup.customers.push(item.customers);
+      }
+    });
+    list_group.value = groups;
   }
 });
 

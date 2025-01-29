@@ -28,23 +28,34 @@
 
       <!-- Filters -->
       <div class="flex items-center justify-between gap-3 px-4 py-3">
-        <UInput
-          v-model="search"
-          icon="i-heroicons-magnifying-glass-20-solid"
-          placeholder="Recherche par nom, téléphone, ou email..."
-          class="border-[#f3c775] border-[1px] rounded-lg"
-          variant="none"
-        />
-        <USelectMenu
-          v-model="selectedType"
-          :options="customerTypes"
-          multiple
-          placeholder="Type de client"
-          variant="none"
-          class="w-40 border-[#f3c775] border-[1px] rounded-lg"
-        />
-      </div>
+        <div class="flex items-center justify-between gap-3 basis-1/2">
+          <UInput
+            v-model="search"
+            icon="i-heroicons-magnifying-glass-20-solid"
+            placeholder="Recherche par nom, téléphone, ou email..."
+            class="border-[#f3c775] border-[1px] rounded-lg basis-1/2"
+            variant="none"
+          />
+          <USelectMenu
+            v-model="selectedType"
+            :options="customerTypes"
+            multiple
+            placeholder="Type de client"
+            variant="none"
+            class="w-40 border-[#f3c775] border-[1px] rounded-lg basis-1/2"
+          >
+          
+            <template #label>
+              <span v-if="selectedType.length" class="truncate"
+                >{{ selectedType.length }} Selectionné(s)</span
+              >
+              <span v-else>Type de client</span>
+            </template>
+          </USelectMenu>
+        </div>
 
+        <AssignGroup class="basis-1/2" :customers="selectedRows" />
+      </div>
       <!-- Header and Action buttons -->
       <div class="flex justify-between items-center w-full px-4 py-3">
         <div class="flex items-center gap-1.5">
@@ -70,9 +81,8 @@
       </div>
 
       <!-- Table -->
-    
+
       <UTable
-  
         v-model="selectedRows"
         :rows="paginatedCustomers"
         :columns="columnsTable"
@@ -159,7 +169,7 @@
               {{ selectedCustomer.name }}
             </h3>
             <h5 class="font-semibold text-gray-500 text-md">
-              {{ selectedCustomer.email }}
+              {{ selectedCustomer?.email }}
             </h5>
           </div>
           <div class="flex items-center gap-2">
@@ -183,11 +193,29 @@
             >{{ selectedCustomer.customer_type }}</UBadge
           >
         </div>
-        <div class="flex items-center gap-2">
-          <UIcon name="i-heroicons-map-pin" class="text-gray-800 w-5 h-5" />
-          <span class="text-gray-800 text-md">
-            {{ selectedCustomer?.address }}</span
-          >
+        <div class="flex justify-between items-center">
+          <div class="flex gap-2 items-center">
+            <UBadge
+              color="emerald"
+              variant="soft"
+              v-for="item in selectedCustomer.groups"
+              :key="item.id"
+              class="text-sm flex items-center justify-between"
+            >
+              <span>{{ item }}</span>
+              <UIcon
+                @click="deleteGroups(selectedCustomer.id, item)"
+                name="i-heroicons-x-mark"
+                class="cursor-pointer text-slate-800 w-3 h-3 hover:opacity-80 transition ease-in-out duration-300"
+            /></UBadge>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <UIcon name="i-heroicons-map-pin" class="text-gray-800 w-5 h-5" />
+            <span class="text-gray-800 text-md">
+              {{ selectedCustomer?.address }}</span
+            >
+          </div>
         </div>
       </div>
     </UModal>
@@ -358,13 +386,15 @@ definePageMeta({
   alias: "/client",
 });
 useHead({
-  title: 'Findora - Mes clients',
-})
+  title: "Findora - Mes clients",
+});
 const supabase = useSupabaseClient();
 const { errors, validateForm, handleServerErrors } = useFormValidation();
 
+let selectedRows = ref([]);
 // Table Columns
 const columns = [
+  { key: "id", label: "ID", sortable: false },
   { key: "name", label: "Nom", sortable: true },
   { key: "phone", label: "Téléphone", sortable: true },
   { key: "email", label: "Email", sortable: true },
@@ -413,7 +443,54 @@ const fetchCustomers = async () => {
     status.value = "success";
   }
 };
-onMounted(fetchCustomers);
+let groupedCustomers = ref([]);
+const fetchCustomersWithGroupNames = async () => {
+  try {
+    // Requête avec jointure pour récupérer les noms des groupes associés à chaque client
+    const { data, error } = await supabase.from("groups_customers").select(`
+        customers_id,
+        groups(name)
+      `);
+
+    if (error) {
+      console.error("Erreur lors de la récupération des données :", error);
+      return [];
+    }
+
+    // Grouper les résultats par `customers_id`
+    const groupedData = data.reduce((acc, item) => {
+      const customerId = item.customers_id;
+
+      if (!acc[customerId]) {
+        acc[customerId] = {
+          customer_id: customerId,
+          groups: [],
+        };
+      }
+
+      // Ajouter le nom du groupe au client
+      acc[customerId].groups.push(item.groups.name);
+      return acc;
+    }, {});
+
+    // Convertir en tableau
+    const groupedArray = Object.values(groupedData);
+    groupedCustomers.value = groupedArray;
+  } catch (err) {
+    console.error("Erreur inattendue :", err);
+    return [];
+  }
+};
+const getCustomerGroupsById = (customerId) => {
+  const customer = groupedCustomers.value.find(
+    (customer) => customer.customer_id === customerId
+  );
+  return customer ? customer.groups : [];
+};
+onMounted(() => {
+  fetchCustomers();
+  fetchCustomersWithGroupNames();
+});
 
 // Filtered and Paginated Data
 const filteredCustomers = computed(() =>
@@ -447,6 +524,10 @@ const items = (row) => [
         selectedCustomer.value = filteredCustomers.value.find(
           (customer) => customer.id === row.id
         );
+        const customerGroups = getCustomerGroupsById(selectedCustomer.value.id);
+
+        // Assigner les groupes du client à selectedCustomer ou une autre variable si nécessaire
+        selectedCustomer.value.groups = customerGroups;
       },
     },
     {
@@ -541,7 +622,27 @@ const editCustomer = async () => {
     isRequestInProgress.value = false;
   }
 };
+// delete groups
+const deleteGroups = async (customer_id, group_name) => {
+  const { data, error: errorGroup } = await supabase
+    .from("groups")
+    .select()
+    .single()
+    .eq("name", group_name);
 
+  if (data) {
+    const { error } = await supabase
+      .from("groups_customers")
+      .delete()
+      .eq("customers_id", customer_id)
+      .eq("groups_id", data.id);
+    if (!error) {
+      selectedCustomer.value.groups = selectedCustomer.value.groups.filter(
+        (item) => item !== group_name
+      );
+    }
+  }
+};
 // delete customer
 const isAlertDeleteOpen = ref(false);
 let closeDeleteAlert = () => {

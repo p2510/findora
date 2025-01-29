@@ -43,7 +43,14 @@
           placeholder="État de paiement"
           variant="none"
           class="w-40 border-[#f3c775] border-[1px] rounded-lg"
-        />
+        >
+          <template #label>
+            <span v-if="selectedType.length" class="truncate"
+              >{{ selectedType.length }} Selectionné(s)</span
+            >
+            <span v-else>État actuel</span>
+          </template>
+        </USelectMenu>
       </div>
 
       <!-- Header and Action buttons -->
@@ -91,7 +98,6 @@
         }"
       >
         <template #customers-data="{ row }">
-          
           <h4 class="flex gap-2 items-center tracking-tight">
             <img
               :src="
@@ -192,7 +198,7 @@
             >Non payé</UBadge
           >
         </template>
-        
+
         <template #reminder-data="{ row }">
           <AddReminder
             :payment-id="row.id"
@@ -322,8 +328,11 @@
           </div>
         </template>
 
-        <form class="grid grid-cols-12 gap-4" @submit.prevent="editPayment">
-
+        <form
+          class="grid grid-cols-12 gap-4"
+          @submit.prevent="editPayment"
+          tabindex="-1"
+        >
           <div class="col-span-full space-y-[1px]">
             <label for="payment_date" class="text-gray-500 font-semibold"
               >Date d'émission</label
@@ -474,8 +483,8 @@ definePageMeta({
   alias: "/paiement",
 });
 useHead({
-  title: 'Findora - Paiement',
-})
+  title: "Findora - Paiement",
+});
 const supabase = useSupabaseClient();
 const { errors, validateForm, handleServerErrors } = useFormValidationPayment();
 let customers = ref([]);

@@ -44,25 +44,29 @@
           Vos templates SMS
         </p>
         <!--List template-->
-        <SkeletonNotFound
-          v-if="templates_Sms.length == 0"
-          title="Aucun template détecté"
-          subtitle="actuellement"
-          label-btn=" Créer votre premier template"
-          to="/templates"
-          custom-css="text-lg lg:text-xl xl:text-3xl "
-        />
-        <ul v-else class="space-y-2 overflow-y-auto h-[75vh] pb-8 pr-3">
-          <TemplateSmsCard
-            v-for="template in templates_Sms"
-            :key="template.id"
-            :id="template.id"
-            :name="template.name"
-            :content="template.content"
-            :created_at="template.created_at"
-            @template-delete="deleteTemplate"
+
+        <SkeletonTemplateCard v-if="templates_Sms == null" />
+        <div class="space-y-4" v-else>
+          <SkeletonNotFound
+            v-if="templates_Sms.length == 0"
+            title="Aucun template détecté"
+            subtitle="actuellement"
+            label-btn=" Créer votre premier template"
+            to="/templates"
+            custom-css="text-lg lg:text-xl xl:text-3xl "
           />
-        </ul>
+          <ul v-else class="space-y-2 overflow-y-auto h-[75vh] pb-8 pr-3">
+            <TemplateSmsCard
+              v-for="template in templates_Sms"
+              :key="template.id"
+              :id="template.id"
+              :name="template.name"
+              :content="template.content"
+              :created_at="template.created_at"
+              @template-delete="deleteTemplate"
+            />
+          </ul>
+        </div>
       </div>
       <div class="col-span-4 space-y-4">
         <p
@@ -70,8 +74,9 @@
         >
           Templates préfinis
         </p>
+        <SkeletonTemplateCard v-if="templates_Predicated == null" />
         <!--List template-->
-        <ul class="space-y-2 overflow-y-scroll h-[75vh] pb-8 pr-3">
+        <ul class="space-y-2 overflow-y-scroll h-[75vh] pb-8 pr-3" v-else>
           <li
             class="rounded-xl p-4 bg-[#eeeff0]/50 hover:shadow-md transition duration-500 ease-in-out"
             v-for="template in templates_Predicated"
@@ -298,8 +303,8 @@ definePageMeta({
   alias: "/templates",
 });
 useHead({
-  title: 'Findora - Template',
-})
+  title: "Findora - Template",
+});
 const { errors, validateForm, handleServerErrors } = useFormValidationSms();
 const supabase = useSupabaseClient();
 const isOpen = ref(false); // open choice of template
@@ -377,7 +382,7 @@ let AddSms = async () => {
   }
 };
 
-const templates_Sms = ref([]);
+const templates_Sms = ref(null);
 const status = ref("idle");
 const fetchTemplateSms = async () => {
   status.value = "pending";
@@ -400,7 +405,7 @@ const deleteTemplate = async (id) => {
     fetchTemplateSms();
   }
 };
-const templates_Predicated = ref([]);
+const templates_Predicated = ref(null);
 const fetchTemplatePredicated = async () => {
   const { data, error } = await supabase
     .from("templates_predicted")

@@ -4,21 +4,15 @@ import { ref } from "vue";
 // Définir les messages d'erreur génériques
 const errorMessages = {
   name_length: "Le nom doit comporter entre 3 et 50 caractères.",
-  email_format: "L'email doit avoir un format valide.",
-  phone_format:
-    "Le numéro de téléphone doit commencer par 01, 05 ou 07 et contenir 10 chiffres.",
   required_field: "Ce champ est requis. Veuillez le remplir.",
-  unique_constraint: "Cette valeur existe déjà. Veuillez vérifier les données.",
   generic_error: "Une erreur inattendue est survenue. Veuillez réessayer.",
 };
 
 // Fonction pour gérer les erreurs
-export function useFormValidation() {
+export function useFormValidationGroup() {
   // Etat réactif pour les erreurs de formulaire
   const errors = ref({
     name: [],
-    email: [],
-    phone: [],
     global: [],
   });
 
@@ -43,10 +37,6 @@ export function useFormValidation() {
       );
     }
 
-    if (constraints.pattern && !constraints.pattern.test(value)) {
-      fieldErrors.push(constraints.patternMessage || "Format invalide.");
-    }
-
     return fieldErrors;
   };
 
@@ -55,8 +45,6 @@ export function useFormValidation() {
     // Réinitialiser les erreurs
     errors.value = {
       name: [],
-      email: [],
-      phone: [],
       global: [],
     };
 
@@ -66,26 +54,9 @@ export function useFormValidation() {
       minLength: 3,
       maxLength: 50,
     });
-    errors.value.email = validateField(formData.email, {
-      required: false,
-      pattern: formData.email
-        ? /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/
-        : null,
-      patternMessage: "L'email est invalide.",
-    });
-    errors.value.phone = validateField(formData.phone, {
-      required: true,
-      pattern: /^(01|05|07)\d{8}$/,
-      patternMessage:
-        "Le téléphone doit commencer par 01, 05, ou 07 et comporter 10 chiffres.",
-    });
 
     // Vérification globale des erreurs
-    if (
-      errors.value.name.length ||
-      errors.value.email.length ||
-      errors.value.phone.length
-    ) {
+    if (errors.value.name.length) {
       errors.value.global.push("Veuillez corriger les erreurs ci-dessus.");
     }
 

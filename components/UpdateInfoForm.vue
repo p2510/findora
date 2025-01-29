@@ -81,7 +81,11 @@
             'Communication visuelle',
           ]"
           class="hover:shadow-sm rounded-lg bg-white outline-none border-2 border-solid focus:rounded-lg transition duration-300 ease-in-out text-slate-800/80 w-full focus:border-[#f3c775]"
-        />
+        >
+          <template #option-empty="{ query }">
+            <q>{{ query }}</q> n'existe pas
+          </template>
+        </USelectMenu>
         <div v-if="errors.domain.length" class="error">
           <div v-for="(error, index) in errors.domain" :key="index">
             {{ error }}

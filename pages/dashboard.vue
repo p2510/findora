@@ -134,7 +134,8 @@
         </div>
       </div>
     </section>
-    <section class="grid grid-cols-12 items-center gap-6">
+    <SkeletonDashboardPayment v-if="nextPayments == null" />
+    <section class="grid grid-cols-12 items-center gap-6" v-else>
       <div class="col-span-6 lg:col-span-8">
         <h2 class="flex justify-between items-center w-full pb-4">
           <p class="text-slate-800 text-md lg:text-xl">Paiements à venir</p>
@@ -291,7 +292,7 @@ let isWaiting = computed(() => {
   });
 });
 let averagePayment = ref(null);
-let nextPayments = ref([]);
+let nextPayments = ref(null);
 let subscriptions = ref([]);
 let sms = ref(null);
 // customer metric
