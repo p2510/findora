@@ -201,7 +201,6 @@
           <p class="text- lg:text-md text-slate-950 pb-3 font-semibold">
             Mon abonnement
           </p>
-
           <div>
             <div
               v-for="subscription in subscriptions"
@@ -209,57 +208,85 @@
               class="space-y-2"
             >
               <div
+                v-if="subscription.is_partner"
                 class="flex items-center justify-between bg-white p-2 rounded-md"
               >
                 <p class="flex flex-col">
-                  <span class="text-slate-950">Valide </span>
+                  <span class="text-slate-950">Partenaire Officiel </span>
                   <span class="text-slate-600 text-sm"
-                    >Jusqu'au
-                    {{ calculateDatePlus30(subscription.start_at) }}</span
+                    >Exempt des frais d'abonnement mensuel</span
                   >
                 </p>
-                <NuxtLink
-                  v-if="subscriptionExpired(subscription.start_at)"
-                  to="/"
-                  class="text-white bg-slate-950/70 hover:bg-slate-950 hover:shadow-sm transition duration-300 ease-in-out p-2 rounded-md text-sm"
-                  >Renouvellement</NuxtLink
-                >
               </div>
-              <div
-                class="flex items-center justify-between bg-white p-2 rounded-md"
-              >
-                <p class="flex flex-col">
-                  <span class="text-slate-950">Abonnement</span>
-                  <span class="text-slate-600 text-sm">{{
-                    subscription.subscription_type
-                  }}</span>
-                </p>
-                <NuxtLink
-                  v-if="subscription.subscription_type == 'free'"
-                  to="/"
-                  class="text-slate-950 bg-[#f3c775]/70 hover:bg-[#f3c775] hover:shadow-sm transition duration-300 ease-in-out p-2 rounded-md text-sm"
-                  >Passer aux premium</NuxtLink
+              <div class="space-y-2" v-else>
+                <div
+                  class="flex items-center justify-between bg-white p-2 rounded-md"
                 >
+                  <p class="flex flex-col">
+                    <span class="text-slate-950">Valide </span>
+                    <span class="text-slate-600 text-sm"
+                      >Jusqu'au
+                      {{ calculateDatePlus30(subscription.start_at) }}</span
+                    >
+                  </p>
+                  <NuxtLink
+                    v-if="subscriptionExpired(subscription.start_at)"
+                    to="/abonnement"
+                    class="text-white bg-slate-950/70 hover:bg-slate-950 hover:shadow-sm transition duration-300 ease-in-out p-2 rounded-md text-sm"
+                    >Renouvellement</NuxtLink
+                  >
+                </div>
+                <div
+                  class="flex items-center justify-between bg-white p-2 rounded-md"
+                >
+                  <p class="flex flex-col">
+                    <span class="text-slate-950">Abonnement</span>
+                    <span class="text-slate-600 text-sm">{{
+                      subscription.subscription_type
+                    }}</span>
+                  </p>
+                  <NuxtLink
+                    v-if="subscription.subscription_type == 'free'"
+                    to="/abonnement"
+                    class="text-slate-950 bg-[#f3c775]/70 hover:bg-[#f3c775] hover:shadow-sm transition duration-300 ease-in-out p-2 rounded-md text-sm"
+                    >Passer aux premium</NuxtLink
+                  >
+                </div>
               </div>
             </div>
           </div>
-
           <div
             class="flex items-center justify-between bg-white p-2 rounded-md"
+            v-if="subscriptions[0]?.is_partner"
           >
-            <p class="flex flex-col">
+            <div class="flex flex-col">
               <span class="text-slate-950">SMS restant(s)</span>
               <span
                 class="bg-slate-950/5 text-sm h-2 w-4 rounded-full animate-pulse"
                 v-if="sms == null"
               ></span>
-              <span class="text-slate-600 text-sm">{{ sms }}</span>
-            </p>
+
+              <p class="text-slate-600 text-sm">
+                <i class="not-italic">{{ sms }}</i>
+                <span v-if="valideSms != null" class="not-italic text-xs">
+                  <i v-if="new Date(valideSms) > new Date()" class="not-italic">
+                    Valide jusqu'au {{ formatDate(valideSms) }}
+                  </i>
+                  <i v-else class="not-italic"> SMS gelé </i>
+                </span>
+              </p>
+            </div>
             <NuxtLink
               v-if="sms == 0"
-              to="/"
+              to="/parametre#plus-de-sms"
               class="text-slate-950 bg-[#f3c775]/70 hover:bg-[#f3c775] hover:shadow-sm transition duration-300 ease-in-out p-2 rounded-md text-sm"
               >Acheter plus de SMS</NuxtLink
+            >
+            <NuxtLink
+              v-else-if="new Date(valideSms) < new Date()"
+              to="/parametre#plus-de-sms"
+              class="text-slate-950 bg-[#f3c775]/70 hover:bg-[#f3c775] hover:shadow-sm transition duration-300 ease-in-out p-2 rounded-md text-sm"
+              >Dégeler en achetant un pack</NuxtLink
             >
           </div>
         </div>
@@ -295,6 +322,8 @@ let averagePayment = ref(null);
 let nextPayments = ref(null);
 let subscriptions = ref([]);
 let sms = ref(null);
+let valideSms = ref(null);
+
 // customer metric
 const fetchCustomers = async () => {
   const { data, error, count } = await supabase
@@ -326,7 +355,6 @@ const fetchPayments = async () => {
     .select("*")
     .order("payment_date", { ascending: false });
   if (error) {
-    console.error("Error fetching payments:", error);
   } else {
     payments.value = data || [];
     totalPayments.value = payments.value.reduce(
@@ -360,7 +388,6 @@ let fetchReminders = async () => {
 // Average payment delay
 const calculateAveragePaymentDelay = (data) => {
   if (!data || data.length === 0) {
-    console.log("Aucune donnée de paiement disponible.");
     return null;
   }
 
@@ -381,7 +408,6 @@ const calculateAveragePaymentDelay = (data) => {
     });
 
   if (paymentDelays.length === 0) {
-    console.log("Aucun paiement valide trouvé parmi les 10 derniers.");
     return null;
   }
 
@@ -435,6 +461,16 @@ function calculateDatePlus30(startDate) {
     year: "numeric",
   });
 }
+function formatDate(currentDate) {
+  // Convertir la date d'entrée en objet Date
+  const date = new Date(currentDate);
+  // Retourner la date au format lisible (ex : "31 janvier 2025")
+  return date.toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+}
 function subscriptionExpired(startDate) {
   const date = new Date(startDate);
   date.setDate(date.getDate() + 30);
@@ -444,9 +480,10 @@ function subscriptionExpired(startDate) {
 async function checkSms() {
   let { data, error } = await supabase
     .from("sms_backlogs")
-    .select("client_id,client_secret");
+    .select("client_id,client_secret,valide_date");
   if (error) {
   } else {
+    valideSms.value = data[0]?.valide_date;
     const url = "https://app.myfindora.com/api/info-purchase";
     try {
       const response = await fetch(url, {
@@ -465,7 +502,6 @@ async function checkSms() {
         sms.value = json.data?.availableUnits;
       }
     } catch (error) {
-      console.error(error.message);
     }
   }
 }

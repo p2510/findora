@@ -90,7 +90,6 @@ export default defineEventHandler(async (event) => {
     const { message, customers, sms_backlogs, id } = reminder;
 
     if (!sms_backlogs || sms_backlogs.length === 0) {
-      console.log(`Aucun SMS backlog trouvé pour le reminder ${reminder.id}`);
       continue;
     }
 
@@ -136,7 +135,6 @@ export default defineEventHandler(async (event) => {
 
       // Pause après chaque lot de 5 SMS
       if (counter % batchSize === 0) {
-        console.log("Pause pour respecter la limite TPS (5 SMS/sec)");
         await delay(2000); // Pause de 1 seconde
       }
     }
@@ -209,9 +207,7 @@ async function sendSMS(phone, message, client_id, client_secret, sender_name) {
       throw new Error("Erreur lors de l'envoi du SMS");
     }
 
-    console.log("SMS envoyé avec succès:", postDataResponse);
     return postDataResponse;
   } catch (error) {
-    console.error("Erreur:", error);
   }
 }

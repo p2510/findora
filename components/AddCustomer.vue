@@ -75,7 +75,6 @@ let AddCustomer = async () => {
       emit("submit"); // Émettre un événement pour informer que le client a été créé
     }
   } catch (err) {
-    console.error(err);
     handleServerErrors({ code: "23514", message: "Erreur serveur" });
     isRequestInProgress.value = false;
   }

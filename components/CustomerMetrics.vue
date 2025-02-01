@@ -250,7 +250,6 @@ let addGroup = async () => {
       fetchGroups();
     }
   } catch (err) {
-    console.error(err);
     handleServerErrors({ code: "23514", message: "Erreur serveur" });
     isRequestInProgress.value = false;
   }
@@ -258,7 +257,6 @@ let addGroup = async () => {
 const fetchGroups = async () => {
   const { data, error } = await supabase.from("groups").select("*");
   if (error) {
-    console.error("Error fetching groups:", error);
   } else {
     groups.value = data || [];
   }

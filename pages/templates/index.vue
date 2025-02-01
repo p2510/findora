@@ -376,7 +376,6 @@ let AddSms = async () => {
       emit("submit"); // Émettre un événement pour informer que le client a été créé
     }
   } catch (err) {
-    console.error(err);
     handleServerErrors({ code: "23514", message: "Erreur serveur" });
     isRequestInProgress.value = false;
   }
@@ -388,7 +387,6 @@ const fetchTemplateSms = async () => {
   status.value = "pending";
   const { data, error } = await supabase.from("templates").select("*");
   if (error) {
-    console.error("Error fetching templates:", error);
     status.value = "error";
   } else {
     templates_Sms.value = data || [];
@@ -411,7 +409,6 @@ const fetchTemplatePredicated = async () => {
     .from("templates_predicted")
     .select("*");
   if (error) {
-    console.error("Error fetching templates:", error);
   } else {
     templates_Predicated.value = data || [];
   }

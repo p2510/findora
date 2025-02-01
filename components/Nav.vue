@@ -52,7 +52,12 @@
           <span>Déconnexion</span>
         </li>
 
-        <li v-if="subscriptions?.subscription_type === 'free'">
+        <li
+          v-if="
+            subscriptions?.subscription_type === 'free' &&
+            !subscriptions?.is_partner
+          "
+        >
           <NuxtLink
             class="group relative px-4 py-3 bg-slate-800 hover:bg-slate-900 text-white rounded-lg font-medium text-sm grid overflow-hidden border border-white/10 shadow-lg"
             to="/abonnement"
@@ -134,7 +139,6 @@
             <LifebuoyIcon class="size-8 flex justify-center" />
           </template>
         </NavIcon>
-
       </ul>
       <ul class="flex flex-row">
         <NavIcon to="/parametre">

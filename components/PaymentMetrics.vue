@@ -144,7 +144,6 @@ let payments = ref(null);
 const fetchPayments = async () => {
   const { data, error } = await supabase.from("payments").select("*");
   if (error) {
-    console.error("Error fetching payments:", error);
   } else {
     payments.value = data || [];
     totalPayments.value = payments.value.reduce(

@@ -73,9 +73,7 @@ async function getData(client_id, client_secret) {
       throw new Error("Erreur lors de l'envoi du SMS");
     }
 
-    console.log("SMS envoyé avec succès:", apiResult);
     return apiResult[0];
   } catch (error) {
-    console.error("Erreur:", error);
   }
 }

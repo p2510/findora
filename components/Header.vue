@@ -44,55 +44,83 @@
           </text>
         </svg>
       </span>
-      <h3 class=" font-medium text-xl text-slate-50 capitalize pl-3">
+      <h3 class="font-medium text-xl text-slate-50 capitalize pl-3">
         {{ props.name }}
       </h3>
     </div>
-    <p
-      class="hidden lg:block w-full text-sm text-center text-white"
-      v-if="subscriptions?.subscription_type === 'free'"
+
+    <div
+      class="flex justify-center  gap-2 w-full"
+      v-if="subscriptions?.is_partner"
     >
-      <span>
-        Allez plus loin avec Findora en passant au premium.
+      <p class="text-xs  lg:text-sm  text-white">
+        <span> Vous êtes partenaire Findora 🚀</span>
+      </p>
+
+      <p class="text-xs lg:text-sm  text-white">
         <NuxtLink
-          to="/abonnement"
+          v-if="new Date(smsInfo?.valide_date) < new Date()"
+          to="/parametre#plus-de-sms"
           class="text-[#f3c775] hover:text-[#f0cd8e] transition duration-500 ease-in-out"
         >
-          Découvrir l'offre premium
+          Vos sms sont gelés depuis le {{ formatDate(smsInfo.valide_date) }}
         </NuxtLink>
-      </span>
-    </p>
+      </p>
+    </div>
 
-    <p
-      class="hidden lg:block w-full text-sm text-center text-white"
-      v-else-if="
-        subscriptions?.subscription_type === 'premium' &&
-        new Date(subscriptions?.start_at).setMonth(
-          new Date(subscriptions?.start_at).getMonth() + 1
-        ) < new Date()
-      "
-    >
-      <span>
-        Votre abonnement est expiré.
+    <div class="flex justify-between gap-2 w-full" v-else>
+      <p
+        class="text-xs lg:block w-full lg:text-sm text-center text-white"
+        v-if="subscriptions?.subscription_type === 'free'"
+      >
+        <span>
+          Allez plus loin avec Findora en passant au premium.
+          <NuxtLink
+            to="/abonnement"
+            class="text-[#f3c775] hover:text-[#f0cd8e] transition duration-500 ease-in-out"
+          >
+            Découvrir l'offre premium
+          </NuxtLink>
+        </span>
+      </p>
+
+      <p
+        class="text-xs lg:block w-full lg:text-sm text-center text-white"
+        v-else-if="
+          subscriptions?.subscription_type === 'premium' &&
+          new Date(subscriptions?.start_at).setMonth(
+            new Date(subscriptions?.start_at).getMonth() + 1
+          ) < new Date()
+        "
+      >
+        <span>
+          Votre abonnement est expiré.
+          <NuxtLink
+            to="/abonnement"
+            class="text-[#f3c775] hover:text-[#f0cd8e] transition duration-500 ease-in-out"
+          >
+            Renouveler l'offre premium
+          </NuxtLink>
+        </span>
+      </p>
+
+      <p
+        class="text-xs lg:block w-full lg:text-sm text-center text-white"
+        v-else-if="
+          subscriptions?.subscription_type === 'premium' &&
+          new Date(subscriptions?.start_at) >= new Date()
+        "
+      >
+        <span> Votre abonnement premium est toujours actif. </span>
         <NuxtLink
-          to="/abonnement"
+          v-if="new Date(smsInfo?.valide_date) < new Date()"
+          to="/parametre#plus-de-sms"
           class="text-[#f3c775] hover:text-[#f0cd8e] transition duration-500 ease-in-out"
         >
-          Renouveler l'offre premium
+          Mais vos sms sont gelés depuis le {{ formatDate(smsInfo.valide_date) }}
         </NuxtLink>
-      </span>
-    </p>
-
-    <p
-      class="hidden lg:block w-full text-sm text-center text-white"
-      v-else-if="
-        subscriptions?.subscription_type === 'premium' &&
-        new Date(subscriptions?.start_at) >= new Date()
-      "
-    >
-      <span> Votre abonnement premium est toujours actif. </span>
-    </p>
-
+      </p>
+    </div>
     <div
       class="hidden lg:flex items-center gap-3 divide-x-[1px] divide-slate-400 basis-1/2 justify-end"
     >
@@ -134,13 +162,33 @@ const options = {
 const formattedDate = ref(new Date().toLocaleDateString("fr-FR", options));
 
 let subscriptions = ref({});
-
+let smsInfo = ref(null);
+let fetchSms = async () => {
+  let { data, error } = await supabase
+    .from("sms_backlogs")
+    .select("count,valide_date")
+    .single();
+  if (data) {
+    smsInfo.value = data;
+  }
+};
+function formatDate(currentDate) {
+  // Convertir la date d'entrée en objet Date
+  const date = new Date(currentDate);
+  // Retourner la date au format lisible (ex : "31 janvier 2025")
+  return date.toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+}
 onMounted(async () => {
   const { data, error } = await supabase.from("subscriptions").select("*");
 
   if (data) {
     subscriptions.value = data[0];
   }
+  fetchSms();
 });
 </script>
 <style scoped>

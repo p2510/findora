@@ -434,9 +434,8 @@ const customers = ref([]);
 const status = ref("idle");
 const fetchCustomers = async () => {
   status.value = "pending";
-  const { data, error } = await supabase.from("customers").select("*");
+  const { data, error } = await supabase.from("customers").select("*").order("created_at", { ascending: false });
   if (error) {
-    console.error("Error fetching customers:", error);
     status.value = "error";
   } else {
     customers.value = data || [];
@@ -453,7 +452,6 @@ const fetchCustomersWithGroupNames = async () => {
       `);
 
     if (error) {
-      console.error("Erreur lors de la récupération des données :", error);
       return [];
     }
 
@@ -477,7 +475,6 @@ const fetchCustomersWithGroupNames = async () => {
     const groupedArray = Object.values(groupedData);
     groupedCustomers.value = groupedArray;
   } catch (err) {
-    console.error("Erreur inattendue :", err);
     return [];
   }
 };

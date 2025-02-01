@@ -169,7 +169,6 @@ let submit = async () => {
       emit("submit");
     }
   } catch {
-    console.error(err);
     handleServerErrors({ code: "23514", message: "Erreur serveur" });
     isRequestInProgress.value = false;
   }

@@ -172,7 +172,6 @@ const fetchReminders = async () => {
     .gt("send_date", new Date().toISOString())
     .order("send_date", { ascending: false });
   if (error) {
-    console.error("Error fetching reminders:", error);
     status.value = "error";
   } else {
     reminders.value = data || [];

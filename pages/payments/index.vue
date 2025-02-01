@@ -542,9 +542,8 @@ const fetchPayments = async () => {
     customers(
       id,name,phone,email,customer_type
     )
-  `);
+  `).order("created_at", { ascending: false });
   if (error) {
-    console.error("Error fetching payments:", error);
     status.value = "error";
   } else {
     payments.value = data || [];

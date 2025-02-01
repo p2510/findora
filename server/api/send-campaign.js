@@ -75,7 +75,6 @@ export default defineEventHandler(async (event) => {
       const postDataResponse = await postResponse.json();
 
       if (!postResponse.ok) {
-        console.error("Erreur lors de l'envoi du SMS pour", customer.phone);
         continue; // Passer au suivant en cas d'échec
       }
 
@@ -86,7 +85,6 @@ export default defineEventHandler(async (event) => {
 
       // Pause d'1 seconde après chaque lot de 5 messages
       if ((i + 1) % 5 === 0) {
-        console.log("Pause d'1 seconde...");
         await sleep(1000); // Attendre 1 seconde
       }
     }
@@ -104,7 +102,6 @@ export default defineEventHandler(async (event) => {
       success: "Campagne envoyée",
     };
   } catch (error) {
-    console.error("Erreur:", error);
     return {
       error: "Erreur lors de l'envoi des SMS",
     };

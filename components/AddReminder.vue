@@ -162,7 +162,6 @@ const fetchTemplateSms = async () => {
   status.value = "pending";
   const { data, error } = await supabase.from("templates").select("*");
   if (error) {
-    console.error("Error fetching templates:", error);
     status.value = "error";
   } else {
     templates.value = data || [];
@@ -237,7 +236,6 @@ let AddReminder = async () => {
       emit("submit");
     }
   } catch (err) {
-    console.error(err);
     isRequestInProgress.value = false;
   }
 };

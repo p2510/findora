@@ -201,7 +201,6 @@ let AddCampaign = async () => {
       formData.value.content = "";
     }
   } catch (err) {
-    console.error(err);
     isRequestInProgress.value = false;
   }
 };
@@ -281,7 +280,6 @@ async function sendSMS() {
     }
   } catch (error) {
     isRequestInProgress.value = false;
-    console.error(error.message);
   }
 }
 </script>
