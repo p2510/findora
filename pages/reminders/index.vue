@@ -5,7 +5,7 @@
       v-if="reminders.length == 0"
       title="Aucune relance détectée"
       subtitle="actuellement"
-      label-btn=" Créer votre premier relance"
+      label-btn=" Créer votre première relance"
       to="/paiement"
       custom-css="text-xl lg:text-2xl xl:text-4xl "
     />
