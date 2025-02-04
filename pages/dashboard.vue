@@ -289,6 +289,30 @@
               >Dégeler en achetant un pack</NuxtLink
             >
           </div>
+          <div
+            class="flex items-center justify-between bg-white p-2 rounded-md"
+            v-else
+          >
+            <div class="flex flex-col">
+              <span class="text-slate-950">SMS restant(s)</span>
+              <span
+                class="bg-slate-950/5 text-sm h-2 w-4 rounded-full animate-pulse"
+                v-if="sms == null"
+              ></span>
+
+              <p class="text-slate-600 text-sm">
+                <i class="not-italic">{{ sms }}</i>
+                
+              </p>
+            </div>
+            <NuxtLink
+              v-if="sms == 0"
+              to="/parametre#plus-de-sms"
+              class="text-slate-950 bg-[#f3c775]/70 hover:bg-[#f3c775] hover:shadow-sm transition duration-300 ease-in-out p-2 rounded-md text-sm"
+              >Acheter plus de SMS</NuxtLink
+            >
+           
+          </div>
         </div>
       </div>
     </section>
