@@ -182,7 +182,7 @@ async function sendSMS(phone, message, client_id, client_secret, sender_name) {
     // Corps de la requête pour envoyer le SMS
     const postData = {
       outboundSMSMessageRequest: {
-        address: `tel:+225${phone}`,
+        address: `tel:${phone}`,
         senderAddress: "tel:+2250160485654",
         outboundSMSTextMessage: {
           message: message,
@@ -208,6 +208,5 @@ async function sendSMS(phone, message, client_id, client_secret, sender_name) {
     }
 
     return postDataResponse;
-  } catch (error) {
-  }
+  } catch (error) {}
 }

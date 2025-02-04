@@ -55,13 +55,19 @@
             </div>
             <div class="col-span-full space-y-[1px]">
               <label for="content" class="text-gray-500 font-semibold"
-                >Contenu de votre message</label
+                >Contenu de votre message (160 Caratères maximum)</label
               >
               <textarea
                 v-model="formData.message"
                 class="text-sm hover:shadow-sm p-2 rounded-lg bg-white outline-none border-2 border-solid focus:rounded-lg transition duration-300 ease-in-out text-slate-800/80 w-full focus:border-[#f3c775]"
                 rows="7"
+                maxlength="160"
               ></textarea>
+              <span
+                v-if="formData.message.length > 0"
+                class="text-xs opacity-40"
+                >Caratères : {{ formData.message.length }}
+              </span>
               <div v-if="errors.message.length" class="error">
                 <ul>
                   <li v-for="error in errors.message" :key="error">
@@ -241,9 +247,8 @@ let AddReminder = async () => {
 };
 
 onMounted(() => {
-  formData.value.send_date = props.paymentDate
+  formData.value.send_date = props.paymentDate;
   fetchTemplateSms();
-  
 });
 </script>
 

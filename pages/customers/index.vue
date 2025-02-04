@@ -44,7 +44,6 @@
             variant="none"
             class="w-40 border-[#f3c775] border-[1px] rounded-lg basis-1/2"
           >
-          
             <template #label>
               <span v-if="selectedType.length" class="truncate"
                 >{{ selectedType.length }} Selectionné(s)</span
@@ -315,10 +314,23 @@
             <label for="phone" class="text-gray-500 font-semibold"
               >Numéro de téléphone</label
             >
-            <InputFiled
-              type="text"
-              custom-class="hover:shadow-sm p-2 rounded-lg"
+            <MazPhoneNumberInput
+              block
+              :translations="{
+                countrySelector: {
+                  placeholder: 'Indicatif',
+                  error: 'Choisir un pays',
+                  searchPlaceholder: 'Trouver un pays',
+                },
+                phoneInput: {
+                  placeholder: 'Numéro de téléphone',
+                  example: 'Exemple:',
+                },
+              }"
+              countryCode="CI"
+              orientation="responsive"
               v-model="formData.phone"
+              color="Warning"
             />
             <div v-if="errors.phone.length" class="error">
               {{ errors.phone[0] }}
@@ -434,7 +446,10 @@ const customers = ref([]);
 const status = ref("idle");
 const fetchCustomers = async () => {
   status.value = "pending";
-  const { data, error } = await supabase.from("customers").select("*").order("created_at", { ascending: false });
+  const { data, error } = await supabase
+    .from("customers")
+    .select("*")
+    .order("created_at", { ascending: false });
   if (error) {
     status.value = "error";
   } else {

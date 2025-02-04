@@ -168,14 +168,28 @@ let AddCustomer = async () => {
           </div>
 
           <!-- Téléphone -->
-          <div class="col-span-full space-y-[1px]">
+          <div class="col-span-full space-y-[1px] w-full">
             <label for="phone" class="text-gray-500 font-semibold"
               >Numéro de téléphone</label
             >
-            <InputFiled
-              type="text"
-              custom-class="hover:shadow-sm p-2 rounded-lg"
+
+            <MazPhoneNumberInput
+              block
+              :translations="{
+                countrySelector: {
+                  placeholder: 'Indicatif',
+                  error: 'Choisir un pays',
+                  searchPlaceholder: 'Trouver un pays',
+                },
+                phoneInput: {
+                  placeholder: 'Numéro de téléphone',
+                  example: 'Exemple:',
+                },
+              }"
+              countryCode="CI"
+              orientation="responsive"
               v-model="formData.phone"
+              color="Warning"
             />
             <div v-if="errors.phone.length" class="error">
               {{ errors.phone[0] }}

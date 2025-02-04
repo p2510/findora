@@ -130,7 +130,7 @@
                 d="M6 18 18 6M6 6l12 12"
               />
             </svg>
-           Création de groupe 
+            Création de groupe
           </li>
           <li class="flex gap-x-3 text-slate-400">
             <svg

@@ -7,8 +7,12 @@
         Lancer des campagnes vers vos clients
       </h2>
       <p class="text-sm text-slate-700">
-        Partager avec un ou plusieurs clients des informations précises et
-        pertinentes.
+        Partager des informations précises et pertinentes avec un ou plusieurs
+        clients.
+        <span class="underline">
+          Actuellement, l'envoi de SMS est uniquement disponible pour les
+          numéros en Côte d'Ivoire.</span
+        >
       </p>
     </div>
     <form class="grid grid-cols-12 gap-4 pt-6">
@@ -70,13 +74,19 @@
         </button>
       </div>
       <div class="col-span-full space-y-[1px]">
-        <label for="name" class="text-gray-500 text-sm">Message</label>
+        <label for="name" class="text-gray-500 text-sm"
+          >Message (160 Caratères maximum)</label
+        >
 
         <textarea
           v-model="formData.content"
           class="text-sm hover:shadow-sm p-2 rounded-lg bg-white outline-none border-2 border-solid focus:rounded-lg transition duration-300 ease-in-out text-slate-800/80 w-full focus:border-[#f3c775]"
+          maxlength="160"
           rows="7"
         ></textarea>
+        <span v-if="formData.content.length > 0" class="text-xs opacity-40">Caratères : {{
+          formData.content.length
+        }} </span>
         <div v-if="errors.content.length" class="error">
           <ul>
             <li v-for="error in errors.content" :key="error">
@@ -272,13 +282,13 @@ async function sendSMS() {
     if (!response.ok) {
       throw new Error(`Response status: ${response.status}`);
     }
-
     const json = await response.json();
     if (json) {
       isRequestInProgress.value = false;
       isSuccessOpen.value = true;
     }
   } catch (error) {
+    console.log(error);
     isRequestInProgress.value = false;
   }
 }

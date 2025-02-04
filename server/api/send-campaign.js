@@ -53,7 +53,7 @@ export default defineEventHandler(async (event) => {
       // Préparation de la requête pour envoyer le SMS
       const postData = {
         outboundSMSMessageRequest: {
-          address: `tel:+225${customer.phone}`,
+          address: `tel:${customer.phone}`,
           senderAddress: "tel:+2250160485654",
           outboundSMSTextMessage: {
             message: content,
@@ -106,6 +106,4 @@ export default defineEventHandler(async (event) => {
       error: "Erreur lors de l'envoi des SMS",
     };
   }
-
- 
 });

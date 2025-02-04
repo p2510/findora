@@ -2,7 +2,7 @@
 export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
   devtools: { enabled: true },
-  modules: ['@nuxtjs/supabase', "@nuxt/ui",],
+  modules: ['@nuxtjs/supabase', "@nuxt/ui","maz-ui/nuxt"],
   supabase: {
     url: process.env.PROJECT_URL,
     key: process.env.SUPABASE_KEY,

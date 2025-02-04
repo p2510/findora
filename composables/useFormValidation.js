@@ -5,8 +5,6 @@ import { ref } from "vue";
 const errorMessages = {
   name_length: "Le nom doit comporter entre 3 et 50 caractères.",
   email_format: "L'email doit avoir un format valide.",
-  phone_format:
-    "Le numéro de téléphone doit commencer par 01, 05 ou 07 et contenir 10 chiffres.",
   required_field: "Ce champ est requis. Veuillez le remplir.",
   unique_constraint: "Cette valeur existe déjà. Veuillez vérifier les données.",
   generic_error: "Une erreur inattendue est survenue. Veuillez réessayer.",
@@ -75,9 +73,6 @@ export function useFormValidation() {
     });
     errors.value.phone = validateField(formData.phone, {
       required: true,
-      pattern: /^(01|05|07)\d{8}$/,
-      patternMessage:
-        "Le téléphone doit commencer par 01, 05, ou 07 et comporter 10 chiffres.",
     });
 
     // Vérification globale des erreurs
