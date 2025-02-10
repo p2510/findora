@@ -24,125 +24,7 @@
               </p>
             </h2>
 
-            <ul class="space-y-2 px-4" v-if="!subscriptions?.is_partner">
-              <li>
-                <div
-                  class="flex justify-between p-2 rounded-md bg-white shadow-md hover:bg-white hover:shadow-md transition duration-300 ease-in-out"
-                >
-                  <div class="flex gap-2 items-center">
-                    <p
-                      class="p-4 lg:p-6 bg-slate-950/5 rounded-lg animate-pulse"
-                    ></p>
-
-                    <p class="flex flex-col space-y-2">
-                      <span class="text-sm p-2 rounded-md bg-slate-950/5"
-                        >Starter | 100 SMS</span
-                      >
-                    </p>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <span
-                      class="text-slate-950 p-2 rounded-md bg-slate-800/5 text-sm font-semibold"
-                      >2.000 FCFA</span
-                    >
-                    <a
-                      href="https://wa.me/2250160485654?text=starter"
-                      target="_blank"
-                      class="cursor-pointer text-white p-2 flex items-center justify-center rounded-md bg-[#f3c775] text-sm hover:bg-opacity-80 transition ease-in-out duration-300"
-                      >Payer</a
-                    >
-                  </div>
-                </div>
-              </li>
-              <li>
-                <div
-                  class="flex justify-between p-2 rounded-md bg-white shadow-md hover:bg-white hover:shadow-md transition duration-300 ease-in-out"
-                >
-                  <div class="flex gap-2 items-center">
-                    <p
-                      class="p-4 lg:p-6 bg-slate-950/5 rounded-lg animate-pulse"
-                    ></p>
-                    <p class="flex flex-col space-y-2">
-                      <span class="text-sm p-2 rounded-md bg-slate-950/5"
-                        >Boost | 500 SMS</span
-                      >
-                    </p>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <span
-                      class="text-slate-950 p-2 rounded-md bg-slate-800/5 text-sm font-semibold"
-                      >7.500 FCFA</span
-                    >
-                    <a
-                      href="https://wa.me/2250160485654?text=boost"
-                      target="_blank"
-                      class="cursor-pointer text-white p-2 flex items-center justify-center rounded-md bg-[#f3c775] text-sm hover:bg-opacity-80 transition ease-in-out duration-300"
-                      >Payer</a
-                    >
-                  </div>
-                </div>
-              </li>
-              <li>
-                <div
-                  class="flex justify-between p-2 rounded-md bg-white shadow-md hover:bg-white hover:shadow-md transition duration-300 ease-in-out"
-                >
-                  <div class="flex gap-2 items-center">
-                    <p
-                      class="p-4 lg:p-6 bg-slate-950/5 rounded-lg animate-pulse"
-                    ></p>
-
-                    <p class="flex flex-col space-y-2">
-                      <span class="text-sm p-2 rounded-md bg-slate-950/5"
-                        >Ultra | 1.000 SMS</span
-                      >
-                    </p>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <span
-                      class="text-slate-950 p-2 rounded-md bg-slate-800/5 text-sm font-semibold"
-                      >12.000 FCFA</span
-                    >
-                    <a
-                      href="https://wa.me/2250160485654?text=ultra"
-                      target="_blank"
-                      class="cursor-pointer text-white p-2 flex items-center justify-center rounded-md bg-[#f3c775] text-sm hover:bg-opacity-80 transition ease-in-out duration-300"
-                      >Payer</a
-                    >
-                  </div>
-                </div>
-              </li>
-            </ul>
-            <ul class="space-y-2 px-4" v-else>
-              <li>
-                <div
-                  class="flex justify-between p-2 rounded-md bg-white shadow-md hover:bg-white hover:shadow-md transition duration-300 ease-in-out"
-                >
-                  <div class="flex gap-2 items-center">
-                    <p
-                      class="p-4 lg:p-6 bg-slate-950/5 rounded-lg animate-pulse"
-                    ></p>
-
-                    <p class="flex flex-col space-y-2">
-                      <span class="text-sm p-2 rounded-md bg-slate-950/5"
-                        >8 F / SMS</span
-                      >
-                    </p>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <span
-                      class="text-slate-950 p-2 rounded-md bg-slate-800/5 text-sm font-semibold"
-                      >8 F / SMS</span
-                    >
-                    <a
-                      href="https://wa.me/2250160485654?text=starter"
-                      target="_blank"
-                      class="cursor-pointer text-white p-2 flex items-center justify-center rounded-md bg-[#f3c775] text-sm hover:bg-opacity-80 transition ease-in-out duration-300"
-                      >Payer</a
-                    >
-                  </div>
-                </div>
-              </li>
-            </ul>
+            <PurchaseSms :is-partner="subscriptions?.is_partner" />
           </div>
           <div class="col-span-6 lg:col-span-4">
             <div
@@ -166,7 +48,7 @@
                       </span>
                     </p>
                     <a
-                      href="https://wa.me/2250160485654?text=Nom d'envoi"
+                      href="https://wa.me/2250797966331?text=Je veux changer mon nom d'envoi"
                       target="_blank"
                       class="text-white p-2 text-sm rounded-md bg-slate-800"
                       >Changer</a
@@ -176,40 +58,6 @@
               </div>
             </div>
           </div>
-          <!--
-          <div class="col-span-6 lg:col-span-3">
-            <div
-              class="rounded-lg p-3 bg-gradient-to-br from-slate-800/5 to-slate-800/10 space-y-2"
-            >
-              <p class="text- lg:text-md text-slate-950 pb-3">
-                Code Partenanire
-              </p>
-
-              <div>
-                <div class="space-y-2">
-                  <div
-                    class="flex items-center justify-between bg-white p-2 rounded-md gap-3"
-                  >
-                    <p class="basis-1/2 flex flex-col space-y-2">
-                      <span 
-                        class="text-xs text-slate-950 py-2 px-4 rounded-md bg-slate-800/5"
-                      >
-                        55FTGj
-                      </span>
-                    </p>
-                    <p 
-                      href="https://wa.me/2250160485654?text=Nom d'envoi"
-                      target="_blank"
-                      class="basis-1/2 text-white p-2 text-xs rounded-md bg-slate-800"
-                    >
-                      CashBack : 0 F
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          -->
         </section>
       </div>
     </div>

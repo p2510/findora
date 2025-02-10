@@ -87,7 +87,7 @@
       <p
         class="text-xs lg:block w-full lg:text-sm text-center text-white"
         v-else-if="
-          subscriptions?.subscription_type === 'premium' &&
+          (subscriptions?.subscription_type === 'premium' || 'ultra') &&
           new Date(subscriptions?.start_at).setMonth(
             new Date(subscriptions?.start_at).getMonth() + 1
           ) < new Date()
@@ -99,7 +99,7 @@
             to="/abonnement"
             class="text-[#f3c775] hover:text-[#f0cd8e] transition duration-500 ease-in-out"
           >
-            Renouveler l'offre premium
+            Renouveler l'offre {{subscriptions?.subscription_type}}
           </NuxtLink>
         </span>
       </p>
@@ -107,11 +107,11 @@
       <p
         class="text-xs lg:block w-full lg:text-sm text-center text-white"
         v-else-if="
-          subscriptions?.subscription_type === 'premium' &&
+          (subscriptions?.subscription_type === 'premium' || 'ultra') &&
           new Date(subscriptions?.start_at) >= new Date()
         "
       >
-        <span> Votre abonnement premium est toujours actif. </span>
+        <span> Votre abonnement {{subscriptions?.subscription_type}} est toujours actif. </span>
         <NuxtLink
           v-if="new Date(smsInfo?.valide_date) < new Date()"
           to="/parametre#plus-de-sms"

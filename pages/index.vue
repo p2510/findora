@@ -44,7 +44,7 @@
         </form>
         <div class="flex justify-center pt-10">
           <a
-            href="https://calendly.com/poupoinaka03/demo-findora"
+            href="https://airtable.com/app36NTV9VwhLj46v/pag7NOSoamHB30MJm/form"
             target="_blank"
             class="text-md text-slate-700 hover:text-slate-800 transition ease-in-out duration-300"
             >Demander une démo</a
