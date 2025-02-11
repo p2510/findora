@@ -125,7 +125,7 @@
           </button>
         </p>
         <div class="flex pt-3">
-          <span class="text-slate-950 text-5xl">{{ averagePayment }} J</span>
+          <span class="text-slate-950 text-5xl">{{ Math.floor( averagePayment) }} J</span>
         </div>
         <div class="flex items-center text-slate-950 gap-2">
           <span class="text-md text-slate-950 font-semibold">Indice</span>
