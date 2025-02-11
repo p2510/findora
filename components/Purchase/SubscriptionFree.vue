@@ -113,7 +113,7 @@
                 d="M6 18 18 6M6 6l12 12"
               />
             </svg>
-            Envoyez  des messages WhatsApp
+            Envoyez des messages WhatsApp
           </li>
           <li class="flex gap-x-3 text-slate-400">
             <svg
@@ -166,8 +166,6 @@
             </svg>
             Lancement de campagnes clients
           </li>
-
-   
         </ul>
       </div>
       <div
@@ -253,21 +251,22 @@
             Envoyez jusqu'à de 200 SMS
           </li>
 
-          <li class="flex gap-x-3">
+          <li class="flex gap-x-3 text-slate-400">
             <svg
-              class="h-6 w-5 flex-none text-[#f3c775]"
+              class="h-6 w-5 flex-none text-slate-700"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
               viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden="true"
-              data-slot="icon"
+              stroke-width="1.5"
+              stroke="currentColor"
             >
               <path
-                fill-rule="evenodd"
-                d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
-                clip-rule="evenodd"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M6 18 18 6M6 6l12 12"
               />
             </svg>
-            Envoyez 500 messages WhatsApp
+            Envoyez des messages WhatsApp
           </li>
           <li class="flex gap-x-3">
             <svg
@@ -317,7 +316,6 @@
             </svg>
             Lancement de campagnes clients
           </li>
-
         </ul>
         <div class="flex justify-center mt-6">
           <a
