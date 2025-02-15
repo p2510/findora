@@ -28,9 +28,7 @@
         </div>
       </div>
       <h5 class="flex col-span-full items-center">
-        <label class="text-gray-500 text-sm"
-          >Choisir un ou des cannaux :
-        </label>
+        <label class="text-gray-500 text-sm">Choisir un ou des canaux : </label>
         <div class="flex">
           <div class="pl-4" v-if="subscriptions == null">
             <SkeletonButton />
@@ -112,7 +110,6 @@
             >Programmer l'envoi</UBadge
           >
         </h5>
-
         <div>
           <label for="send_date" class="text-gray-500 text-sm"
             >Date et heure d'envoi</label
@@ -162,5 +159,231 @@
 </template>
 
 <script setup>
+import { sendSMS } from "@/utils/campaign/smsUtils";
+import { sendWhatsapp } from "@/utils/campaign/whatsappUtils";
+const supabase = useSupabaseClient();
+const user = useSupabaseUser();
 
+const { errors, validateForm, handleServerErrors } =
+  useFormValidationCampaignNow();
+const isScheduleModalOpen = ref(false);
+const openScheduleModal = () => {
+  isScheduleModalOpen.value = true;
+};
+const closeScheduleModal = () => {
+  isScheduleModalOpen.value = false;
+};
+const isOpen = ref(false);
+const isRequestInProgress = ref(false);
+const isRequestSchedule = ref(false);
+const errorMessage = ref("");
+const isAlertOpen = ref(false);
+let closeErrorAlert = () => {
+  isAlertOpen.value = false;
+};
+const isSuccessOpen = ref(false);
+let closeSuccessAlert = () => {
+  isSuccessOpen.value = false;
+};
+
+const formData = ref({
+  customers: [],
+  content: "",
+  send_date: null,
+});
+const channels = ref([
+  {
+    name: "sms",
+    selected: false,
+  },
+  {
+    name: "whatsapp",
+    selected: false,
+  },
+]);
+
+let AddCampaign = async () => {
+  isRequestInProgress.value = true;
+  // Vérification si au moins un canal est sélectionné
+  const isAnyChannelSelected = channels.value.some(
+    (channel) => channel.selected
+  );
+  if (!isAnyChannelSelected) {
+    errorMessage.value =
+      "Veuillez sélectionner au moins un canal pour envoyer la campagne. Il suffit de cliquer sur le canal ou plusieurs.";
+    isAlertOpen.value = true;
+    isRequestInProgress.value = false;
+    return;
+  }
+  const validationErrors = validateForm({
+    content: formData.value.content,
+  });
+  if (validationErrors.global.length > 0) {
+    isRequestInProgress.value = false;
+    return;
+  }
+  try {
+    const { data, error } = await supabase
+      .from("campaigns")
+      .insert(
+        formData.value.customers.map((customer) => ({
+          send_date: formData.value.send_date || null,
+          message: formData.value.content,
+          phone: customer.phone,
+          created_by: user.value.id,
+          is_sent: true,
+          sms_channel: channels.value[0].selected,
+          whatsapp_channel: channels.value[1].selected,
+        }))
+      )
+      .select();
+
+    if (error) {
+      if (error.code === "23505") {
+        errorMessage.value = "Une erreur est survenue";
+      } else {
+        errorMessage.value = error.message;
+      }
+      isAlertOpen.value = true;
+      isRequestInProgress.value = false;
+      isOpen.value = false;
+    } else {
+      // Envoi des WhatsApp si le canal WhatsApp est sélectionné
+      /*
+      if (channels.value[1].selected) {
+        // Configurer les options pour la requête POST
+        let customers = [
+          { chatId: "2250797966331@c.us" },
+          { chatId: "2250585711152@c.us" },
+        ];
+        try {
+          const response = await $fetch("/api/send-campaign-whatsapp", {
+            method: "POST",
+            body: {
+              customers: customers, // Passer tous les clients
+              content: formData.value.content, // Passer le contenu du message
+              linkPreview: false,
+            },
+          });
+
+          if (response.success) {
+            console.log(
+              "Messages envoyés à tous les clients:",
+              response.message
+            );
+          } else {
+            console.error("Erreur:", response.error);
+          }
+        } catch (error) {
+          console.error("Erreur lors de l'appel de l'API:", error);
+        }
+      }*/
+      // Envoi des SMS si le canal SMS est sélectionné
+      if (channels.value[0].selected) {
+        await sendSMS(
+          sms_backlogs.value,
+          formData.value.customers,
+          formData.value.content,
+          user.value.id
+        )
+          .then((response) => {
+            isRequestInProgress.value = false;
+            isSuccessOpen.value = true;
+            formData.value.send_date = null;
+            formData.value.content = "";
+            formData.value.customers = [];
+          })
+          .catch((err) => {
+            console.log(err);
+            isRequestInProgress.value = false;
+          });
+      }
+
+      isOpen.value = false;
+    }
+  } catch (err) {
+    isRequestInProgress.value = false;
+  }
+};
+
+const scheduleCampaign = async () => {
+  if (!formData.value.send_date) {
+    errorMessage.value = "Veuillez sélectionner une date d'envoi.";
+    isAlertOpen.value = true;
+    return;
+  }
+  isRequestSchedule.value = true;
+  const validationErrors = validateForm({
+    content: formData.value.content,
+  });
+  if (validationErrors.global.length > 0) {
+    isRequestSchedule.value = false;
+    return;
+  }
+  try {
+    const { data, error } = await supabase
+      .from("campaigns")
+      .insert(
+        formData.value.customers.map((customer) => ({
+          send_date: formData.value.send_date,
+          message: formData.value.content,
+          phone: customer.phone,
+          created_by: user.value.id,
+          is_sent: false,
+        }))
+      )
+      .select();
+
+    if (error) {
+      if (error.code === "23505") {
+        errorMessage.value = "Une erreur est survenue";
+      } else {
+        errorMessage.value = error.message;
+      }
+      closeScheduleModal();
+      isAlertOpen.value = true; // Affichage de l'alerte
+      isRequestSchedule.value = false;
+      isOpen.value = false;
+    } else {
+      closeScheduleModal();
+      isOpen.value = false;
+      isSuccessOpen.value = true;
+      isRequestSchedule.value = false;
+      formData.value.send_date = null;
+      formData.value.content = "";
+    }
+  } catch (err) {
+    closeScheduleModal();
+    isRequestSchedule.value = false;
+  }
+};
+let sms_backlogs = ref(null);
+let subscriptions = ref(null);
+onMounted(async () => {
+  const { data: subscriptionData, error: subscriptionError } = await supabase
+    .from("subscriptions")
+    .select("*")
+    .single();
+
+  if (subscriptionData) {
+    subscriptions.value = subscriptionData;
+  }
+  const { data: smsBacklogs, error: smsBacklogsError } = await supabase
+    .from("sms_backlogs")
+    .select(
+      `
+       client_id,client_secret,sender_name
+      `
+    )
+    .single();
+  if (smsBacklogsError) {
+  } else {
+    sms_backlogs.value = smsBacklogs;
+  }
+});
 </script>
+<style scoped>
+.error {
+  color: red;
+}
+</style>

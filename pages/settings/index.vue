@@ -7,7 +7,6 @@
 
       <div class="col-span-full">
         <section class="grid grid-cols-12 items-center gap-6">
-          <!--
           <div class="col-span-6 lg:col-span-3 h-full">
             <div
               class="rounded-lg p-3 bg-gradient-to-br from-slate-800/5 to-slate-800/10 space-y-2"
@@ -56,8 +55,8 @@
                 </div>
               </div>
             </div>
-          </div>-->
-          <div class="col-span-6 lg:col-span-4 h-full">
+          </div>
+          <div class="col-span-6 lg:col-span-3 h-full">
             <div
               class="rounded-lg p-3 bg-gradient-to-br from-slate-800/5 to-slate-800/10 space-y-2"
             >
@@ -95,7 +94,7 @@
               </div>
             </div>
           </div>
-          <div class="col-span-full lg:col-span-8">
+          <div class="col-span-full lg:col-span-6">
             <h2 class="flex justify-between items-center w-full pb-4">
               <p
                 class="text-slate-800 text-md lg:text-xl"
