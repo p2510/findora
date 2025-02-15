@@ -10,7 +10,6 @@ const isEntreprise = ref(false);
 const isRequestInProgress = ref(false);
 const errorMessage = ref("");
 const isAlertOpen = ref(false);
-
 let closeErrorAlert = () => {
   isAlertOpen.value = false;
 };

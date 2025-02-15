@@ -95,7 +95,7 @@
           </ul>
         </div>
       </div>
-
+    
       <!-- Bouton de soumission -->
       <div class="col-span-full space-y-[1px] flex gap-4">
         <UButton
@@ -215,7 +215,16 @@ const formData = ref({
   content: "",
   send_date: null,
 });
-
+const channels = ref([
+  {
+    name: "sms",
+    selected: true,
+  },
+  {
+    name: "whatsapp",
+    selected: true,
+  },
+]);
 let selectAll = () => {
   formData.value.customers = customers.value;
   group_select.value = null;
@@ -323,7 +332,16 @@ let selectByGroup = (customers, group) => {
   formData.value.customers = customers;
   group_select.value = group;
 };
+let subscriptions = ref(null);
 onMounted(async () => {
+  const { data: subscriptionData, error: subscriptionError } = await supabase
+    .from("subscriptions")
+    .select("*")
+    .single();
+
+  if (subscriptionData) {
+    subscriptions.value = subscriptionData;
+  }
   const { data, error } = await supabase
     .from("customers")
     .select("phone,name,id");
@@ -370,6 +388,7 @@ onMounted(async () => {
 
 async function sendSMS() {
   const url = "https://app.myfindora.com/api/send-campaign";
+  //const url = "http://localhost:3000/api/send-campaign";
   try {
     const response = await fetch(url, {
       method: "POST",
