@@ -16,51 +16,6 @@
           </span>
         </div>
 
-        <!-- Statut en attente de connexion -->
-        <div v-else-if="stateInstance === 'starting'">
-          <span
-            class="flex flex-col space-y-2 text-sm text-white py-2 px-4 rounded-md bg-[#FFB300]"
-          >
-            L'instance est en cours de démarrage. Veuillez patienter...
-          </span>
-        </div>
-
-        <!-- Instance bloquée -->
-        <div v-else-if="stateInstance === 'blocked'">
-          <span
-            class="flex flex-col space-y-2 text-sm text-white py-2 px-4 rounded-md bg-[#FF0000]"
-          >
-            Instance bloquée. Contactez le support.
-          </span>
-        </div>
-
-        <!-- Mode veille -->
-        <div v-else-if="stateInstance === 'sleepMode'">
-          <span
-            class="flex flex-col space-y-2 text-sm text-white py-2 px-4 rounded-md bg-[#FF9F00]"
-          >
-            Instance en mode veille. Rebranchez le téléphone pour réactiver.
-          </span>
-        </div>
-
-        <!-- Message d'erreur si l'instance n'est pas autorisée -->
-        <div v-else-if="stateInstance === 'notAuthorized'">
-          <span
-            class="flex flex-col space-y-2 text-sm text-white py-2 px-4 rounded-md bg-[#FF0000]"
-          >
-            Instance non autorisée. Vérifiez vos informations d'identification.
-          </span>
-        </div>
-
-        <!-- Carte jaune (suspension d'envoi de messages) -->
-        <div v-else-if="stateInstance === 'yellowCard'">
-          <span
-            class="flex flex-col space-y-2 text-sm text-white py-2 px-4 rounded-md bg-[#FFC107]"
-          >
-            Envoi de messages suspendu. Redémarrez pour continuer.
-          </span>
-        </div>
-
         <!-- Autres cas -->
         <div v-else>
           <button

@@ -103,6 +103,7 @@
         </UButton>
       </div>
     </form>
+
     <UModal v-model="isScheduleModalOpen" @prevent-close="closeScheduleModal">
       <section class="bg-white p-4 rounded-xl space-y-6">
         <h5>
@@ -160,7 +161,6 @@
 
 <script setup>
 import { sendSMS } from "@/utils/campaign/smsUtils";
-import { sendWhatsapp } from "@/utils/campaign/whatsappUtils";
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 
@@ -248,38 +248,51 @@ let AddCampaign = async () => {
       isRequestInProgress.value = false;
       isOpen.value = false;
     } else {
+      let pendingRequests = 0;
       // Envoi des WhatsApp si le canal WhatsApp est sélectionné
-      /*
       if (channels.value[1].selected) {
+        pendingRequests++;
         // Configurer les options pour la requête POST
-        let customers = [
-          { chatId: "2250797966331@c.us" },
-          { chatId: "2250585711152@c.us" },
-        ];
-        try {
-          const response = await $fetch("/api/send-campaign-whatsapp", {
-            method: "POST",
-            body: {
-              customers: customers, // Passer tous les clients
-              content: formData.value.content, // Passer le contenu du message
-              linkPreview: false,
-            },
-          });
+        let formattedCustomers = formData.value.customers.map((customer) => ({
+          chatId: customer.phone.replace("+", "") + "@c.us",
+        }));
+        const { data, error } = await supabase
+          .from("whatsapp_backlogs")
+          .select()
+          .single();
+        if (data) {
+          try {
+            const response = await $fetch("/api/send-campaign-whatsapp", {
+              method: "POST",
+              body: {
+                instanceId: data.instance_id,
+                apiToken: data.api_token,
+                customers: formattedCustomers,
+                content: formData.value.content,
+              },
+            });
 
-          if (response.success) {
-            console.log(
-              "Messages envoyés à tous les clients:",
-              response.message
-            );
-          } else {
-            console.error("Erreur:", response.error);
+            if (response.success) {
+              if (!channels.value[0].selected) {
+                isSuccessOpen.value = true;
+                formData.value.send_date = null;
+                formData.value.content = "";
+                formData.value.customers = [];
+              }
+            } else {
+              console.error("Erreur:", response.error);
+            }
+          } catch (error) {
+            console.error("Erreur lors de l'appel de l'API:", error);
+          } finally {
+            pendingRequests--;
+            if (pendingRequests === 0) isRequestInProgress.value = false;
           }
-        } catch (error) {
-          console.error("Erreur lors de l'appel de l'API:", error);
         }
-      }*/
+      }
       // Envoi des SMS si le canal SMS est sélectionné
       if (channels.value[0].selected) {
+        pendingRequests++;
         await sendSMS(
           sms_backlogs.value,
           formData.value.customers,
@@ -287,7 +300,6 @@ let AddCampaign = async () => {
           user.value.id
         )
           .then((response) => {
-            isRequestInProgress.value = false;
             isSuccessOpen.value = true;
             formData.value.send_date = null;
             formData.value.content = "";
@@ -296,6 +308,10 @@ let AddCampaign = async () => {
           .catch((err) => {
             console.log(err);
             isRequestInProgress.value = false;
+          })
+          .finally(() => {
+            pendingRequests--;
+            if (pendingRequests === 0) isRequestInProgress.value = false;
           });
       }
 
@@ -312,6 +328,13 @@ const scheduleCampaign = async () => {
     isAlertOpen.value = true;
     return;
   }
+  if (channels.value[1].selected) {
+    errorMessage.value =
+      "L'envoi programmé n'est pas disponible pour WhatsApp.";
+    isAlertOpen.value = true;
+    return;
+  }
+
   isRequestSchedule.value = true;
   const validationErrors = validateForm({
     content: formData.value.content,
@@ -330,6 +353,8 @@ const scheduleCampaign = async () => {
           phone: customer.phone,
           created_by: user.value.id,
           is_sent: false,
+          sms_channel: true,
+          whatsapp_channel: false,
         }))
       )
       .select();
