@@ -78,12 +78,20 @@
 
 <script setup>
 import { ref } from "vue";
+
+import { useUser } from "@/stores/user";
+const user = useUser();
+import { useWhatsapp } from "@/stores/whatsapp";
+const whatsappStore = useWhatsapp();
+
 definePageMeta({
   middleware: "redirect-auth",
 });
 useHead({
   title: "Findora - Me connecter",
 });
+
+// suite
 const supabase = useSupabaseClient();
 const isAlertOpen = ref(false);
 let closeAlert = () => {
@@ -114,6 +122,35 @@ let login = async () => {
     isAlertOpen.value = true;
   }
   if (data?.user) {
+    let { data: userData, error: userError } = await supabase
+      .from("users")
+      .select("*")
+      .single();
+    if (userData) {
+      user.updateInfo(userData);
+    }
+    let { data: subscriptionData, error: subscriptionError } = await supabase
+      .from("subscriptions")
+      .select("*")
+      .single();
+    if (subscriptionData) {
+      user.updateSubscription(subscriptionData);
+    }
+    let { data: smsData, error: smsError } = await supabase
+      .from("sms_backlogs")
+      .select("*")
+      .single();
+    if (smsData) {
+      user.updateSmsBacklogs(smsData);
+    }
+    let { data: whatsappData, error: whatsappError } = await supabase
+      .from("whatsapp_backlogs")
+      .select("*")
+      .single();
+    if (whatsappData) {
+      whatsappStore.updateWhatsappBacklogs(whatsappData);
+    }
+
     return navigateTo("/confirm");
   }
 };

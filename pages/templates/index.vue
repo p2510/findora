@@ -45,10 +45,10 @@
         </p>
         <!--List template-->
 
-        <SkeletonTemplateCard v-if="templates_Sms == null" />
-        <div class="space-y-4" v-else>
+        <SkeletonTemplateCard v-if="template.template_sms == null" />
+        <div class="space-y-4" v-if="template.template_sms !== null">
           <SkeletonNotFound
-            v-if="templates_Sms.length == 0"
+            v-if="template.template_sms.length == 0"
             title="Aucun template détecté"
             subtitle="actuellement"
             label-btn=" Créer votre premier template"
@@ -57,7 +57,7 @@
           />
           <ul v-else class="space-y-2 overflow-y-auto h-[75vh] pb-8 pr-3">
             <TemplateSmsCard
-              v-for="template in templates_Sms"
+              v-for="template in template.template_sms"
               :key="template.id"
               :id="template.id"
               :name="template.name"
@@ -74,12 +74,12 @@
         >
           Templates préfinis
         </p>
-        <SkeletonTemplateCard v-if="templates_Predicated == null" />
+        <SkeletonTemplateCard v-if="template.template_predicated == null" />
         <!--List template-->
         <ul class="space-y-2 overflow-y-scroll h-[75vh] pb-8 pr-3" v-else>
           <li
             class="rounded-xl p-4 bg-[#eeeff0]/50 hover:shadow-md transition duration-500 ease-in-out"
-            v-for="template in templates_Predicated"
+            v-for="template in template.template_predicated"
             :key="template.id"
           >
             <div class="flex justify-between items-center gap-2">
@@ -260,6 +260,7 @@
                 v-model="formDataSms.content"
                 class="hover:shadow-sm p-2 rounded-lg bg-white outline-none border-2 border-solid focus:rounded-lg transition duration-300 ease-in-out text-slate-800/80 w-full focus:border-[#f3c775]"
                 rows="7"
+                maxlength="160"
               ></textarea>
               <div v-if="errors.content.length" class="error">
                 {{ errors.content[0] }}
@@ -297,7 +298,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, onMounted } from "vue";
 definePageMeta({
   middleware: "auth",
   alias: "/templates",
@@ -305,18 +306,16 @@ definePageMeta({
 useHead({
   title: "Findora - Template",
 });
+import { useTemplate } from "@/stores/template";
+const template = useTemplate();
 const { errors, validateForm, handleServerErrors } = useFormValidationSms();
 const supabase = useSupabaseClient();
 const isOpen = ref(false); // open choice of template
-let isEmailTemplate = ref(false); //  Check if email selected
 let showFormModal = ref(false);
 const errorMessage = ref("");
 const isAlertOpen = ref(false);
 let closeErrorAlert = () => {
   isAlertOpen.value = false;
-};
-let showEmailForm = () => {
-  showFormModal.value = true;
 };
 
 let closeModal = () => {
@@ -381,7 +380,6 @@ let AddSms = async () => {
   }
 };
 
-const templates_Sms = ref(null);
 const status = ref("idle");
 const fetchTemplateSms = async () => {
   status.value = "pending";
@@ -389,28 +387,33 @@ const fetchTemplateSms = async () => {
   if (error) {
     status.value = "error";
   } else {
-    templates_Sms.value = data || [];
+    template.template_sms = data;
     status.value = "success";
   }
 };
 onMounted(() => {
-  fetchTemplateSms();
-  fetchTemplatePredicated();
+  if (template.template_sms == null) {
+    fetchTemplateSms();
+  }
+  if (template.template_predicated == null) {
+    fetchTemplatePredicated();
+  }
 });
+
 const deleteTemplate = async (id) => {
   const { error } = await supabase.from("templates").delete().eq("id", id);
   if (!error) {
     fetchTemplateSms();
   }
 };
-const templates_Predicated = ref(null);
+
 const fetchTemplatePredicated = async () => {
   const { data, error } = await supabase
     .from("templates_predicted")
     .select("*");
   if (error) {
   } else {
-    templates_Predicated.value = data || [];
+    template.template_predicated = data;
   }
 };
 let textContent = ref(null);

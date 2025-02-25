@@ -86,11 +86,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref } from "vue";
+import { useUser } from "@/stores/user";
+const users = useUser();
 const { errors, validateForm, handleServerErrors } = useFormValidationUser();
 const supabase = useSupabaseClient();
 const user = useSupabaseUser(); // Auth user
-let userId = ref(null); // UserId info
 
 let DataForms = ref({
   email: user.value?.email,
@@ -108,7 +109,7 @@ let updateEmail = async () => {
     const { data, error } = await supabase
       .from("users")
       .update({ email: DataForms.value.email })
-      .eq("id", userId.value)
+      .eq("id", users.info?.id)
       .select();
   }
 };
@@ -155,10 +156,6 @@ let submit = async () => {
     isRequestInProgress.value = false;
   }
 };
-onMounted(async () => {
-  let { data: users, error } = await supabase.from("users").select("id");
-  userId.value = users[0]?.id;
-});
 </script>
 <style scoped>
 .error {

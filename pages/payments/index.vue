@@ -22,7 +22,7 @@
           >
             Suivre les paiements
           </h2>
-          <AddPayment @submit="fetchPayments" />
+          <PaymentAdd @submit="fetchPayments" />
         </div>
       </template>
 
@@ -200,7 +200,7 @@
         </template>
 
         <template #reminder-data="{ row }">
-          <AddReminder
+          <ReminderAdd
             :payment-id="row.id"
             :payment-date="row.payment_date"
             :customer-id="row.customers?.id"
@@ -381,7 +381,7 @@
               class="w-full lg:w-48"
               v-model="formData.customers_id"
               placeholder="Choisir un client"
-              :options="customers"
+              :options="customerStore.customer"
               option-attribute="name"
               size="lg"
               color="black"
@@ -485,6 +485,12 @@ definePageMeta({
 useHead({
   title: "Findora - Paiement",
 });
+import { usePayment } from "@/stores/payment";
+import { useCustomer } from "@/stores/customer";
+import { useTemplate } from "@/stores/template";
+const paymentStore = usePayment();
+const customerStore = useCustomer();
+const templateStore = useTemplate();
 const supabase = useSupabaseClient();
 const { errors, validateForm, handleServerErrors } = useFormValidationPayment();
 let customers = ref([]);
@@ -533,49 +539,59 @@ const pageTo = computed(() => {
 });
 
 // payments
-const payments = ref([]);
 const status = ref("idle");
 const fetchPayments = async () => {
   status.value = "pending";
-  const { data, error } = await supabase.from("payments").select(`
+  const { data, error } = await supabase
+    .from("payments")
+    .select(
+      `
     id,created_at,amount,payment_date,status,date_of_issue,
     customers(
       id,name,phone,email,customer_type
     )
-  `).order("created_at", { ascending: false });
+  `
+    )
+    .order("created_at", { ascending: false });
   if (error) {
     status.value = "error";
   } else {
-    payments.value = data || [];
+    paymentStore.paymentCustomer = data;
     status.value = "success";
   }
 };
 onMounted(async () => {
-  fetchPayments();
-  const { data, error } = await supabase.from("customers").select("name,id");
-  if (error) {
-  } else {
-    customers.value = data || [];
+  if (paymentStore.paymentCustomer == null) {
+    fetchPayments();
+  }
+  if (customerStore.customer == null) {
+    customerStore.updatecustomers();
+  }
+  if (templateStore.template_sms == null) {
+    templateStore.fetchTemplateSms();
   }
 });
 
 // Filtered and Paginated Data
-const filteredPayments = computed(() =>
-  payments.value.filter(
-    (payment) =>
-      (search.value === "" ||
-        [
-          payment.customers?.name,
-          payment.amount,
-          payment.id,
-          payment.customers?.email,
-        ]
-          .join(" ")
-          .toLowerCase()
-          .includes(search.value.toLowerCase())) &&
-      (selectedType.value.length === 0 ||
-        selectedType.value.some((obj) => obj.value === payment.status))
-  )
+const filteredPayments = computed(
+  () =>
+    Array.isArray(paymentStore.paymentCustomer) // Vérifie que c'est un tableau
+      ? paymentStore.paymentCustomer.filter(
+          (payment) =>
+            (search.value === "" ||
+              [
+                payment.customers?.name,
+                payment.amount,
+                payment.id,
+                payment.customers?.email,
+              ]
+                .join(" ")
+                .toLowerCase()
+                .includes(search.value.toLowerCase())) &&
+            (selectedType.value.length === 0 ||
+              selectedType.value.some((obj) => obj.value === payment.status))
+        )
+      : [] // Retourne un tableau vide si `customer` est null ou non défini
 );
 
 const paginatedPayments = computed(() =>
@@ -615,7 +631,6 @@ const items = (row) => [
 
 // edit payment
 const isOpenEdit = ref(false);
-const customerId = ref(null);
 let paymentId = ref(null);
 const isAlertEditOpen = ref(false);
 const errorMessage = ref("");
@@ -667,13 +682,14 @@ const editPayment = async () => {
       isRequestInProgress.value = false;
       isAlertEditOpen.value = true;
     } else {
+      paymentStore.updatePaymentCustomer();
+      paymentStore.updatePayments();
       formData.value.payment_date = null;
       formData.value.date_of_issue = null;
       formData.value.customers_id = null;
       formData.value.amount = null;
       formData.value.status = "en-attente";
       isRequestInProgress.value = false;
-      fetchPayments();
       isOpenEdit.value = false;
     }
   } catch (err) {
@@ -691,7 +707,8 @@ const deletePayment = async (payment) => {
   const { error } = await supabase.from("payments").delete().eq("id", payment);
   if (!error) {
     isAlertDeleteOpen.value = true;
-    fetchPayments();
+    paymentStore.updatePaymentCustomer();
+    paymentStore.updatePayments();
   }
 };
 

@@ -15,7 +15,7 @@
           >
             <span> Programmer une relance</span>
           </h4>
-        
+
           <form class="grid grid-cols-12 gap-4" @submit.prevent="AddReminder">
             <div class="col-span-full space-y-[1px]">
               <label for="payment_date" class="text-gray-500 font-semibold"
@@ -44,7 +44,7 @@
                 class="w-full"
                 v-model="template_selected"
                 placeholder="Choisir un template"
-                :options="templates"
+                :options="template.template_sms"
                 option-attribute="name"
                 size="lg"
                 color="black"
@@ -123,8 +123,15 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
+import { useReminder } from "@/stores/reminder";
+import { useStat } from "@/stores/stat";
+const reminderStore = useReminder();
+const stat = useStat();
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
+import { useTemplate } from "@/stores/template";
+const template = useTemplate();
+
 const { errors, validateForm } = useFormValidationReminder();
 const isOpen = ref(false);
 const props = defineProps({
@@ -145,7 +152,7 @@ const props = defineProps({
     default: 0,
   },
 });
-const templates = ref([]);
+
 const template_selected = ref({
   content: "",
 });
@@ -165,16 +172,7 @@ watch(template_content, (newContent) => {
 
 const status = ref("idle");
 
-const fetchTemplateSms = async () => {
-  status.value = "pending";
-  const { data, error } = await supabase.from("templates").select("*");
-  if (error) {
-    status.value = "error";
-  } else {
-    templates.value = data || [];
-    status.value = "success";
-  }
-};
+
 
 // send reminder
 const isRequestInProgress = ref(false);
@@ -224,6 +222,9 @@ let AddReminder = async () => {
       isRequestInProgress.value = false;
       isOpen.value = false;
     } else {
+      reminderStore.updateReminders();
+      stat.fetchReminders()
+      template.fetchTemplateSms()
       // Réinitialisation des champs si la soumission a réussi
       const currentDate = new Date(); // Date d'aujourd'hui
       const sendDate = new Date(formData.value.send_date); // Date de send_date
@@ -249,7 +250,6 @@ let AddReminder = async () => {
 
 onMounted(() => {
   formData.value.send_date = props.paymentDate;
-  fetchTemplateSms();
 });
 </script>
 

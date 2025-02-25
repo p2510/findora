@@ -2,15 +2,16 @@
   <div class="mt-14 space-y-4 pr-4">
     <ReminderMetrics />
     <SkeletonNotFound
-      v-if="reminders.length == 0"
+      v-if="reminderStore.reminders?.length == 0"
       title="Aucune relance détectée"
       subtitle="actuellement"
-      label-btn=" Créer votre première relance"
+      label-btn=" Créer une nouvelle relance"
       to="/paiement"
       custom-css="text-xl lg:text-2xl xl:text-4xl "
     />
     <div v-else class="grid grid-cols-12 gap-2">
       <section
+      
         class="col-span-4 lg:col-span-4 2xl:col-span-3 bg-transparent border-[1px] border-slate-200 h-screen rounded-xl"
       >
         <div class="flex items-center justify-between p-3">
@@ -27,7 +28,7 @@
         <div>
           <ul class="p-2 space-y-2 overflow-y-scroll h-[75vh] pb-32">
             <ReminderItem
-              v-for="reminder in reminders"
+              v-for="reminder in reminderStore.reminders"
               :key="reminder.id"
               :date="reminder.send_date"
               :amount="reminder.amount"
@@ -142,18 +143,21 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
+import { useStat } from "@/stores/stat";
+const stat = useStat();
 definePageMeta({
   middleware: "auth",
   alias: "/relance",
 });
 useHead({
-  title: 'Findora - Relance',
-})
+  title: "Findora - Relance",
+});
+import { useReminder } from "@/stores/reminder";
+const reminderStore = useReminder();
 const supabase = useSupabaseClient();
 const status = ref("idle");
 let selectedReminderId = ref(null);
 
-const reminders = ref([]);
 const fetchReminders = async () => {
   status.value = "pending";
   const { data, error } = await supabase
@@ -174,7 +178,7 @@ const fetchReminders = async () => {
   if (error) {
     status.value = "error";
   } else {
-    reminders.value = data || [];
+    reminderStore.reminders = data;
     if (data.length > 0) {
       const index = data.findIndex((reminder) => reminder.id);
       selectedReminderId.value = index !== -1 ? data[index].id : null;
@@ -191,14 +195,21 @@ const selectedReminder = computed(() => {
     return null; // Si aucun rappel n'est sélectionné, retourner null
   }
   return (
-    reminders.value.find(
+    reminderStore.reminders.find(
       (reminder) => reminder.id === selectedReminderId.value
     ) || null
   );
 });
 let showMessage = ref(false);
 onMounted(async () => {
-  fetchReminders();
+  if (reminderStore.reminders == null) {
+    fetchReminders();
+  }
+  if (reminderStore.reminders.length > 0) {
+    const index = reminderStore.reminders.findIndex((reminder) => reminder.id);
+    selectedReminderId.value =
+      index !== -1 ? reminderStore.reminders[index].id : null;
+  }
 });
 
 // delete
@@ -208,7 +219,9 @@ let deleteReminder = async () => {
     .delete()
     .eq("id", selectedReminderId.value);
   if (!error) {
-    fetchReminders();
+    reminderStore.updateReminders();
+    stat.decrementReminder();
+    
   }
 };
 </script>

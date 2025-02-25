@@ -7,7 +7,7 @@
         searchable-placeholder="Trouver un client..."
         class="w-full lg:w-48"
         placeholder="Choisir un client"
-        :options="customers"
+        :options="customerStore.customer"
         option-attribute="name"
         multiple
         v-model="localCustomers"
@@ -22,8 +22,8 @@
           <q>{{ query }}</q> n'existe pas
         </template>
         <template #label>
-          <span v-if="localCustomers.length" class="truncate"
-            >{{ localCustomers.length }} Selectionné(s)</span
+          <span v-if="localCustomers?.length" class="truncate"
+            >{{ localCustomers?.length }} Selectionné(s)</span
           >
           <span v-else>Selection client</span>
         </template>
@@ -60,7 +60,8 @@
 
 <script setup>
 import { ref, onMounted, defineProps, defineEmits } from "vue";
-
+import { useCustomer } from "@/stores/customer";
+const customerStore = useCustomer();
 const { modelValue } = defineProps({
   modelValue: {
     type: Array,
@@ -82,11 +83,10 @@ watch(localCustomers, (newValue) => {
 const supabase = useSupabaseClient();
 const list_group = ref(null);
 const group_select = ref(null);
-const customers = ref([]);
 
 // Méthodes pour sélectionner des clients
 const selectAll = () => {
-  localCustomers.value = customers.value;
+  localCustomers.value = customerStore.customer;
   group_select.value = null;
 };
 
@@ -97,13 +97,6 @@ const selectByGroup = (customers, group) => {
 
 onMounted(async () => {
   try {
-    const { data, error } = await supabase
-      .from("customers")
-      .select("phone, name, id");
-    if (!error) {
-      customers.value = data || [];
-    }
-
     const { data: groups, error: groupsError } = await supabase
       .from("groups")
       .select("id, name");
@@ -124,6 +117,9 @@ onMounted(async () => {
     }
   } catch (err) {
     console.error(err);
+  }
+  if (customerStore.customer == null) {
+    customerStore.updatecustomers();
   }
 });
 </script>

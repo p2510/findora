@@ -27,57 +27,6 @@
           </ul>
         </div>
       </div>
-      <h5 class="flex col-span-full items-center">
-        <label class="text-gray-500 text-sm">Choisir un ou des canaux : </label>
-        <div class="flex">
-          <div class="pl-4" v-if="subscriptions == null">
-            <SkeletonButton />
-          </div>
-          <div
-            class="pl-4 flex gap-3"
-            v-else-if="subscriptions?.subscription_type === 'ultra'"
-          >
-            <UChip
-              color="amber"
-              size="xl"
-              v-for="{ name, selected } in channels"
-              :key="name"
-              :show="selected"
-            >
-              <img
-                @click="channels[0].selected = !channels[0].selected"
-                v-if="name == 'sms'"
-                src="~/assets/img/sms.png"
-                alt=""
-                class="w-10 hover:opacity-80 transition ease-in-out duration-300 cursor-pointer"
-              />
-
-              <img
-                @click="channels[1].selected = !channels[1].selected"
-                v-if="name == 'whatsapp'"
-                src="~/assets/img/whatsapp.png"
-                alt=""
-                class="w-10 hover:opacity-80 transition ease-in-out duration-300 cursor-pointer"
-              />
-            </UChip>
-          </div>
-          <div class="pl-4 flex gap-3" v-else>
-            <UChip color="amber" size="xl" :show="channels[0].selected">
-              <img
-                @click="channels[0].selected = !channels[0].selected"
-                src="~/assets/img/sms.png"
-                alt=""
-                class="w-10 hover:opacity-80 transition ease-in-out duration-300 cursor-pointer"
-              />
-            </UChip>
-            <img
-              src="~/assets/img/whatsapp.png"
-              alt=""
-              class="w-10 opacity-30"
-            />
-          </div>
-        </div>
-      </h5>
 
       <!-- Bouton de soumission -->
       <div class="col-span-full space-y-[1px] flex gap-4">
@@ -163,6 +112,8 @@
 import { sendSMS } from "@/utils/campaign/smsUtils";
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
+import { useUser } from "@/stores/user";
+const users = useUser();
 
 const { errors, validateForm, handleServerErrors } =
   useFormValidationCampaignNow();
@@ -191,30 +142,10 @@ const formData = ref({
   content: "",
   send_date: null,
 });
-const channels = ref([
-  {
-    name: "sms",
-    selected: false,
-  },
-  {
-    name: "whatsapp",
-    selected: false,
-  },
-]);
 
 let AddCampaign = async () => {
   isRequestInProgress.value = true;
-  // Vérification si au moins un canal est sélectionné
-  const isAnyChannelSelected = channels.value.some(
-    (channel) => channel.selected
-  );
-  if (!isAnyChannelSelected) {
-    errorMessage.value =
-      "Veuillez sélectionner au moins un canal pour envoyer la campagne. Il suffit de cliquer sur le canal ou plusieurs.";
-    isAlertOpen.value = true;
-    isRequestInProgress.value = false;
-    return;
-  }
+
   const validationErrors = validateForm({
     content: formData.value.content,
   });
@@ -232,8 +163,6 @@ let AddCampaign = async () => {
           phone: customer.phone,
           created_by: user.value.id,
           is_sent: true,
-          sms_channel: channels.value[0].selected,
-          whatsapp_channel: channels.value[1].selected,
         }))
       )
       .select();
@@ -248,72 +177,25 @@ let AddCampaign = async () => {
       isRequestInProgress.value = false;
       isOpen.value = false;
     } else {
-      let pendingRequests = 0;
-      // Envoi des WhatsApp si le canal WhatsApp est sélectionné
-      if (channels.value[1].selected) {
-        pendingRequests++;
-        // Configurer les options pour la requête POST
-        let formattedCustomers = formData.value.customers.map((customer) => ({
-          chatId: customer.phone.replace("+", "") + "@c.us",
-        }));
-        const { data, error } = await supabase
-          .from("whatsapp_backlogs")
-          .select()
-          .single();
-        if (data) {
-          try {
-            const response = await $fetch("/api/send-campaign-whatsapp", {
-              method: "POST",
-              body: {
-                instanceId: data.instance_id,
-                apiToken: data.api_token,
-                customers: formattedCustomers,
-                content: formData.value.content,
-              },
-            });
-
-            if (response.success) {
-              if (!channels.value[0].selected) {
-                isSuccessOpen.value = true;
-                formData.value.send_date = null;
-                formData.value.content = "";
-                formData.value.customers = [];
-              }
-            } else {
-              console.error("Erreur:", response.error);
-            }
-          } catch (error) {
-            console.error("Erreur lors de l'appel de l'API:", error);
-          } finally {
-            pendingRequests--;
-            if (pendingRequests === 0) isRequestInProgress.value = false;
-          }
-        }
-      }
-      // Envoi des SMS si le canal SMS est sélectionné
-      if (channels.value[0].selected) {
-        pendingRequests++;
-        await sendSMS(
-          sms_backlogs.value,
-          formData.value.customers,
-          formData.value.content,
-          user.value.id
-        )
-          .then((response) => {
-            isSuccessOpen.value = true;
-            formData.value.send_date = null;
-            formData.value.content = "";
-            formData.value.customers = [];
-          })
-          .catch((err) => {
-            console.log(err);
-            isRequestInProgress.value = false;
-          })
-          .finally(() => {
-            pendingRequests--;
-            if (pendingRequests === 0) isRequestInProgress.value = false;
-          });
-      }
+      await sendSMS(
+        users.sms_backlogs,
+        formData.value.customers,
+        formData.value.content,
+        user.value.id
+      )
+        .then((response) => {
+          isSuccessOpen.value = true;
+          formData.value.send_date = null;
+          formData.value.content = "";
+          formData.value.customers = [];
+        })
+        .catch((err) => {
+          console.log(err);
+          isRequestInProgress.value = false;
+        })
+        .finally(() => {
+          isRequestInProgress.value = false;
+        });
 
       isOpen.value = false;
     }
@@ -325,12 +207,6 @@ let AddCampaign = async () => {
 const scheduleCampaign = async () => {
   if (!formData.value.send_date) {
     errorMessage.value = "Veuillez sélectionner une date d'envoi.";
-    isAlertOpen.value = true;
-    return;
-  }
-  if (channels.value[1].selected) {
-    errorMessage.value =
-      "L'envoi programmé n'est pas disponible pour WhatsApp.";
     isAlertOpen.value = true;
     return;
   }
@@ -353,8 +229,6 @@ const scheduleCampaign = async () => {
           phone: customer.phone,
           created_by: user.value.id,
           is_sent: false,
-          sms_channel: true,
-          whatsapp_channel: false,
         }))
       )
       .select();
@@ -382,30 +256,6 @@ const scheduleCampaign = async () => {
     isRequestSchedule.value = false;
   }
 };
-let sms_backlogs = ref(null);
-let subscriptions = ref(null);
-onMounted(async () => {
-  const { data: subscriptionData, error: subscriptionError } = await supabase
-    .from("subscriptions")
-    .select("*")
-    .single();
-
-  if (subscriptionData) {
-    subscriptions.value = subscriptionData;
-  }
-  const { data: smsBacklogs, error: smsBacklogsError } = await supabase
-    .from("sms_backlogs")
-    .select(
-      `
-       client_id,client_secret,sender_name
-      `
-    )
-    .single();
-  if (smsBacklogsError) {
-  } else {
-    sms_backlogs.value = smsBacklogs;
-  }
-});
 </script>
 <style scoped>
 .error {

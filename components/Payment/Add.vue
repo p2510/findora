@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, defineEmits, onMounted } from "vue";
-
+import { usePayment } from "@/stores/payment";
+const paymentStore = usePayment();
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const { errors, validateForm, handleServerErrors } = useFormValidationPayment();
@@ -67,6 +68,8 @@ let AddPayment = async () => {
       isRequestInProgress.value = false;
       isOpen.value = false;
     } else {
+      paymentStore.updatePaymentCustomer();
+      paymentStore.updatePayments();
       // Réinitialisation des champs si la soumission a réussi
       formData.value.payment_date = null;
       formData.value.date_of_issue = null;

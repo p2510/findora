@@ -10,7 +10,7 @@
           searchable-placeholder="Choisir un groupe..."
           v-model="formDataGroup.group_id"
           placeholder="Choisir un groupe"
-          :options="groups"
+          :options="customerStore.groups"
           option-attribute="name"
           size="sm"
           color="black"
@@ -29,7 +29,6 @@
         color="black"
         :disabled="props.customers.length == 0"
         class="rounded-md basis-1/4 flex justify-center"
-
         >Intégrer</UButton
       >
     </form>
@@ -62,21 +61,15 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-
-let groups = ref([]);
+import { useCustomer } from "@/stores/customer";
+const customerStore = useCustomer();
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 let formDataGroup = ref({
   group_id: null,
 });
 let isRequestInProgress = ref(false);
-const fetchGroups = async () => {
-  const { data, error } = await supabase.from("groups").select("*");
-  if (error) {
-  } else {
-    groups.value = data || [];
-  }
-};
+
 const props = defineProps({
   customers: Array,
 });
@@ -125,7 +118,5 @@ let assignGroup = async () => {
     isRequestInProgress.value = false;
   }
 };
-onMounted(() => {
-  fetchGroups();
-});
+onMounted(() => {});
 </script>

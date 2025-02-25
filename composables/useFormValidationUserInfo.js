@@ -113,9 +113,16 @@ export function useFormValidationUserInfo() {
 
     return errors.value
   }
-
+  const handleServerErrors = (error) => {
+    if (error.code === '23505') {
+      errors.value.global.push(errorMessages.unique_constraint)
+    } else {
+      errors.value.global.push(errorMessages.generic_error)
+    }
+  }
   return {
     errors,
-    validateForm
+    validateForm,
+    handleServerErrors 
   }
 }

@@ -2,7 +2,7 @@
   <section
     class="flex justify-between items-center gap-3 w-full bg-slate-900 p-2 rounded-lg shadow-md"
   >
-    <div class="hidden  2xl:block 2xl:basis-1/4 w-full">
+    <div class="hidden 2xl:block 2xl:basis-1/4 w-full">
       <h3 class="text-white text-3xl">Vos paiements</h3>
       <span class="text-slate-300 text-sm"
         >Suivez les paiements de vos différents clients</span
@@ -20,8 +20,8 @@
         </span>
         <div class="flex flex-col justify-center">
           <p class="flex justify-between text-md">
-            <SkeletonText v-if="payments ==null" />
-            <span class="text-white" v-else>{{
+            <SkeletonText v-if="paymentStore.payments == null" />
+            <span class="text-white" v-if="paymentStore.payments !== null">{{
               totalPayments.toLocaleString("fr-FR")
             }}</span>
             <span class="font-semibold text-slate-500">F</span>
@@ -42,9 +42,9 @@
         </span>
         <div class="flex flex-col justify-center">
           <p class="flex justify-between text-md">
-            <SkeletonText v-if="payments ==null" />
+            <SkeletonText v-if="paymentStore.payments == null" />
 
-            <span class="text-white" v-else>{{
+            <span class="text-white" v-if="paymentStore.payments !== null">{{
               totalDue.toLocaleString("fr-FR")
             }}</span>
             <span class="font-semibold text-slate-500">F</span>
@@ -52,6 +52,7 @@
           <p class="flex justify-between gap-4 text-xs">
             <span class="text-white">Paiement échu</span>
             <span
+              v-if="paymentStore.payments"
               :class="{
                 'text-lime-500': (totalDue * 100) / totalPayments < 25,
                 'text-yellow-500':
@@ -72,9 +73,9 @@
         </span>
         <div class="flex flex-col justify-center">
           <p class="flex justify-between text-md">
-            <SkeletonText v-if="payments ==null" />
+            <SkeletonText v-if="paymentStore.payments == null" />
 
-            <span class="text-white" v-else>{{
+            <span class="text-white" v-if="paymentStore.payments !== null">{{
               totalPaid.toLocaleString("fr-FR")
             }}</span>
             <span class="font-semibold text-slate-500">F</span>
@@ -82,6 +83,7 @@
           <p class="flex justify-between gap-4 text-xs">
             <span class="text-white">Paiement non-échu</span>
             <span
+              v-if="paymentStore.payments"
               :class="{
                 'text-red-500': (totalPaid * 100) / totalPayments < 25,
                 'text-yellow-500':
@@ -105,9 +107,9 @@
         </span>
         <div class="flex flex-col justify-center">
           <p class="flex justify-between text-md">
-            <SkeletonText v-if="payments ==null" />
+            <SkeletonText v-if="paymentStore.payments == null" />
 
-            <span class="text-white" v-else>{{
+            <span class="text-white" v-if="paymentStore.payments !== null">{{
               totalValidated.toLocaleString("fr-FR")
             }}</span>
             <span class="font-semibold text-slate-500">F</span>
@@ -115,6 +117,7 @@
           <p class="flex justify-between gap-4 text-xs">
             <span class="text-white">Paiement validé</span>
             <span
+              v-if="paymentStore.payments"
               :class="{
                 'text-red-500': (totalValidated * 100) / totalPayments < 25,
                 'text-yellow-500':
@@ -132,37 +135,42 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
-const supabase = useSupabaseClient();
+import { computed, onMounted } from "vue";
+import { usePayment } from "@/stores/payment";
+const paymentStore = usePayment();
+const totalPayments = computed(() =>
+  Array.isArray(paymentStore.payments)
+    ? paymentStore.payments.reduce(
+        (sum, payment) => sum + (payment.amount || 0),
+        0
+      )
+    : 0
+);
+const totalPaid = computed(() =>
+  Array.isArray(paymentStore.payments)
+    ? paymentStore.payments
+        .filter((payment) => new Date(payment.payment_date) > new Date())
+        .reduce((sum, payment) => sum + (payment.amount || 0), 0)
+    : 0
+);
 
-let totalPayments = ref(0);
-let totalPaid = ref(0);
-let PercentagetotalPaid = ref(0);
-let totalDue = ref(0);
-let totalValidated = ref(0);
-let payments = ref(null);
-const fetchPayments = async () => {
-  const { data, error } = await supabase.from("payments").select("*");
-  if (error) {
-  } else {
-    payments.value = data || [];
-    totalPayments.value = payments.value.reduce(
-      (sum, payment) => sum + (payment.amount || 0),
-      0
-    );
-    totalPaid.value = payments.value
-      .filter((payment) => new Date(payment.payment_date) > new Date())
-      .reduce((sum, payment) => sum + (payment.amount || 0), 0);
-    totalDue.value = payments.value
-      .filter((payment) => new Date(payment.payment_date) <= new Date())
-      .reduce((sum, payment) => sum + (payment.amount || 0), 0);
-    totalValidated.value = payments.value
-      .filter((payment) => payment.status === "payé")
-      .reduce((sum, payment) => sum + (payment.amount || 0), 0);
-  }
-};
+const totalDue = computed(() =>
+  Array.isArray(paymentStore.payments)
+    ? paymentStore.payments
+        .filter((payment) => new Date(payment.payment_date) <= new Date())
+        .reduce((sum, payment) => sum + (payment.amount || 0), 0)
+    : 0
+);
+
+const totalValidated = computed(() =>
+  Array.isArray(paymentStore.payments)
+    ? paymentStore.payments
+        .filter((payment) => payment.status === "payé")
+        .reduce((sum, payment) => sum + (payment.amount || 0), 0)
+    : 0
+);
 
 onMounted(() => {
-  fetchPayments();
+  paymentStore.fetchPayments();
 });
 </script>

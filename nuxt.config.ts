@@ -1,8 +1,13 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  ssr: false,
   compatibilityDate: '2024-04-03',
   devtools: { enabled: true },
-  modules: ['@nuxtjs/supabase', "@nuxt/ui","maz-ui/nuxt"],
+  modules: ['@nuxtjs/supabase', "@nuxt/ui","maz-ui/nuxt",'@pinia/nuxt'],
+  pinia: {
+    storesDirs: ['./stores/**'],
+    
+  },
   supabase: {
     url: process.env.PROJECT_URL,
     key: process.env.SUPABASE_KEY,

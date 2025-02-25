@@ -1,0 +1,26 @@
+import { useStat } from "@/stores/stat";
+import { useUser } from "@/stores/user";
+import { useCustomer } from "@/stores/customer";
+import { usePayment } from "@/stores/payment";
+import { useReminder } from "@/stores/reminder";
+import { useGroup } from "@/stores/group";
+import { useTemplate } from "@/stores/template";
+import { useWhatsapp } from "@/stores/whatsapp";
+export const reset = () => {
+  const stat = useStat();
+  const user = useUser();
+  const customer = useCustomer();
+  const payment = usePayment();
+  const reminder = useReminder();
+  const group = useGroup();
+  const template = useTemplate();
+  const whatsapp = useWhatsapp();
+  stat.$reset();
+  user.$reset();
+  customer.$reset();
+  payment.$reset();
+  reminder.$reset();
+  group.$reset();
+  template.$reset();
+  whatsapp.$reset();
+};

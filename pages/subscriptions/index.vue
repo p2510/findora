@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="subscriptions?.is_partner" class="mt-14 space-y-4 pr-4">
+    <div v-if="users.subscription.is_partner" class="mt-14 space-y-4 pr-4">
       <h3 class="text-5xl text-center">
         <span> Vous êtes </span> <br />
         partenaire
@@ -16,7 +16,7 @@
       </p>
     </div>
     <div v-else class="mt-14 space-y-4 pr-4">
-      <div v-if="subscriptions?.subscription_type == 'free'">
+      <div v-if="users.subscription.subscription_type == 'free'">
         <PurchaseSubscriptionFree />
       </div>
       <div v-else>
@@ -44,9 +44,10 @@
               <PrimaryButton
                 @click="paid"
                 v-if="
-                  (subscriptions?.subscription_type === 'premium' || 'ultra') &&
-                  new Date(subscriptions?.start_at).setMonth(
-                    new Date(subscriptions?.start_at).getMonth() + 1
+                  (users.subscription.subscription_type == 'premium' ||
+                    'ultra') &&
+                  new Date(users.subscription.start_at).setMonth(
+                    new Date(users.subscription.start_at).getMonth() + 1
                   ) < new Date()
                 "
                 >Renouveller mon abonnement</PrimaryButton
@@ -209,23 +210,23 @@
 
         <section class="space-y-3" v-if="!check">
           <div class="flex gap-3 items-center">
-            <span v-if="subscriptions.subscription_type == 'premium'"
+            <span v-if="users.subscription.subscription_type == 'premium'"
               >Premium</span
             >
-            <span v-else-if="subscriptions.subscription_type == 'ultra'"
+            <span v-else-if="users.subscription.subscription_type == 'ultra'"
               >Ultra</span
             >
             <UBadge
               color="primary"
               variant="soft"
               size="lg"
-              v-if="subscriptions.subscription_type == 'premium'"
+              v-if="users.subscription.subscription_type == 'premium'"
               >6.500 F</UBadge
             ><UBadge
               color="primary"
               variant="soft"
               size="lg"
-              v-else-if="subscriptions.subscription_type == 'ultra'"
+              v-else-if="users.subscription.subscription_type == 'ultra'"
               >19.900 F</UBadge
             >
           </div>
@@ -237,9 +238,21 @@
         </section>
         <section class="space-y-3" v-else>
           <div class="flex gap-3 items-center">
-            <span>{{subscriptions.subscription_type}}</span>
-            <UBadge color="primary" variant="soft" size="lg"  v-if="subscriptions.subscription_type == 'premium'">6.500 F</UBadge>
-            <UBadge color="primary" variant="soft" size="lg"  v-else-if="subscriptions.subscription_type == 'ultra'">19.900 F</UBadge>
+            <span>{{ users.subscription.subscription_type }}</span>
+            <UBadge
+              color="primary"
+              variant="soft"
+              size="lg"
+              v-if="users.subscription.subscription_type == 'premium'"
+              >6.500 F</UBadge
+            >
+            <UBadge
+              color="primary"
+              variant="soft"
+              size="lg"
+              v-else-if="users.subscription.subscription_type == 'ultra'"
+              >19.900 F</UBadge
+            >
           </div>
           <div class="bg-[#1DC8FF] py-3">
             <div class="flex justify-center">
@@ -251,12 +264,12 @@
             <div class="flex justify-center">
               <div class="rounded-xl p-4 bg-white shadow-md">
                 <img
-                  v-if="subscriptions.subscription_type == 'premium'"
+                  v-if="users.subscription.subscription_type == 'premium'"
                   src="~/assets/img/wave/subscription_premium.png"
                   alt="Abonnement premium"
                 />
                 <img
-                  v-else-if="subscriptions.subscription_type == 'ultra'"
+                  v-else-if="users.subscription.subscription_type == 'ultra'"
                   src="~/assets/img/wave/subscription_ultra.png"
                   alt="Abonnement ultra"
                 />
@@ -291,19 +304,12 @@ definePageMeta({
 useHead({
   title: "Findora - Abonnement",
 });
+import { useUser } from "@/stores/user";
+const users = useUser();
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
-let subscriptions = ref(null);
 
 onMounted(async () => {
-  const { data, error } = await supabase
-    .from("subscriptions")
-    .select("*")
-    .single();
-
-  if (data) {
-    subscriptions.value = data;
-  }
   fetchPurchases();
 });
 const search = ref("");

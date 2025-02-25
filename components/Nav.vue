@@ -152,7 +152,7 @@
         >
           <PowerIcon class="size-8 flex justify-center" />
         </li>
-        <li v-if="subscriptions?.subscription_type === 'free'">
+        <li v-if="users.subscription.subscription_type === 'free'">
           <NuxtLink
             class="group relative px-4 py-3 bg-slate-800 hover:bg-slate-900 text-white rounded-lg font-medium text-sm hidden xl:grid overflow-hidden border border-white/10 shadow-lg"
             to="/abonnement"
@@ -198,9 +198,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
-import { useRoute } from "#app";
-let route = useRoute();
+import { ref, onMounted } from "vue";
+import { reset } from "@/utils/shared/resetStore";
 import {
   Squares2X2Icon,
   PowerIcon,
@@ -214,23 +213,16 @@ import {
   ChatBubbleLeftRightIcon,
   MegaphoneIcon,
 } from "@heroicons/vue/24/outline";
-
+import { useUser } from "@/stores/user";
+const users = useUser();
 const supabase = useSupabaseClient();
 
 let logout = async () => {
   let { error } = await supabase.auth.signOut();
   if (error) {
   } else {
+    reset();
     return navigateTo("/");
   }
 };
-let subscriptions = ref({});
-
-onMounted(async () => {
-  const { data, error } = await supabase.from("subscriptions").select("*");
-
-  if (data) {
-    subscriptions.value = data[0];
-  }
-});
 </script>

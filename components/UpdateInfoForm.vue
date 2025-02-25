@@ -108,10 +108,11 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
+import { useUser } from "@/stores/user";
+const users = useUser();
 const { errors, validateForm, handleServerErrors } =
   useFormValidationUserInfo();
 const supabase = useSupabaseClient();
-let user = ref([]); // User info
 
 let DataForms = ref({
   phone: "",
@@ -137,14 +138,14 @@ let submit = async () => {
     return;
   }
   try {
-    const { data: users, error } = await supabase
+    const { data: userData, error } = await supabase
       .from("users")
       .update({
         name: DataForms.value.name,
         domain: DataForms.value.domain,
         phone: DataForms.value.phone,
       })
-      .eq("id", user.value[0].id)
+      .eq("id", users.info?.id)
       .select();
     if (error) {
       if (error.code === "23505") {
@@ -159,13 +160,11 @@ let submit = async () => {
       isOpen.value = false;
     } else {
       // Réinitialisation des champs si la soumission a réussi
+      users.info.name = DataForms.value.name;
+      users.info.phone = DataForms.value.phone;
+      users.info.domain = DataForms.value.domain;
       isRequestInProgress.value = false;
       isOpen.value = false;
-      alert("Compte mise à jour");
-      user.value = users;
-      DataForms.value.name = users[0]?.name;
-      DataForms.value.phone = users[0]?.phone;
-      DataForms.value.domain = users[0]?.domain;
       emit("submit");
     }
   } catch {
@@ -175,11 +174,9 @@ let submit = async () => {
 };
 
 onMounted(async () => {
-  let { data: users, error } = await supabase.from("users").select("*");
-  user.value = users;
-  DataForms.value.name = users[0]?.name;
-  DataForms.value.phone = users[0]?.phone;
-  DataForms.value.domain = users[0]?.domain;
+  DataForms.value.name = users.info.name;
+  DataForms.value.phone = users.info.phone;
+  DataForms.value.domain = users.info.domain;
 });
 </script>
 <style scoped>

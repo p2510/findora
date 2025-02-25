@@ -16,7 +16,7 @@
         <span>Vos clients</span></NuxtLink
       >
     </div>
-    <div class="basis-1/2 items-center grid grid-cols-12 gap-4">
+    <div class="basis-1/2 items-center grid grid-cols-12 gap-4"  v-if="stat.count.reminders !== null">
       <div class="col-span-4 text-black"></div>
       <div class="col-span-4 border-b-2 border-yellow-700">
         <p class="text-sm text-slate-600">Relance en cours</p>
@@ -24,28 +24,22 @@
       </div>
       <div class="col-span-4 border-b-2 border-emerald-700">
         <p class="text-sm text-slate-600">Relance terminée</p>
-        <p class="text-3xl">{{ total - isWaiting.length }}</p>
+        <p class="text-3xl">
+          {{ stat.count.reminders?.length - isWaiting.length }}
+        </p>
       </div>
     </div>
   </section>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
-const supabase = useSupabaseClient();
-const reminders = ref([]);
-const total = ref(0);
+import {  computed } from "vue";
+import { useStat } from "@/stores/stat";
+const stat = useStat();
 let isWaiting = computed(() => {
-  return reminders.value.filter((reminder) => {
-    return !reminder?.is_sent;
-  });
-});
-onMounted(async () => {
-  const { data, error, count } = await supabase
-    .from("reminders")
-    .select("*", { count: "exact" });
-  reminders.value = data;
-  total.value = count;
+  return Array.isArray(stat.count?.reminders) // Vérifie si c'est un tableau
+    ? stat.count.reminders.filter((reminder) => !reminder?.is_sent)
+    : []; // Retourne un tableau vide si null ou undefined
 });
 </script>
 

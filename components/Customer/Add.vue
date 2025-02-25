@@ -1,6 +1,9 @@
 <script setup>
-import { ref, computed, defineEmits } from "vue";
-
+import { ref,  defineEmits } from "vue";
+import { useCustomer } from "@/stores/customer";
+import { useStat } from "@/stores/stat";
+const stat = useStat();
+const customerStore = useCustomer();
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const { errors, validateForm, handleServerErrors } = useFormValidation();
@@ -65,6 +68,10 @@ let AddCustomer = async () => {
       isOpen.value = false;
     } else {
       // Réinitialisation des champs si la soumission a réussi
+      customerStore.updatecustomers();
+      stat.incrementCustomer();
+      customerStore.incrementcustomerParticular(isEntreprise.value);
+
       formData.value.name = "";
       formData.value.email = "";
       formData.value.phone = "";

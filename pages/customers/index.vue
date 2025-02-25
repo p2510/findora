@@ -1,6 +1,7 @@
 <template>
   <div class="mt-14 space-y-4 pr-4">
     <CustomerMetrics />
+
     <UCard
       class="w-full"
       :ui="{
@@ -22,7 +23,7 @@
           >
             Gérer vos clients
           </h2>
-          <AddCustomer @submit="fetchCustomers" />
+          <CustomerAdd @submit="fetchCustomers" />
         </div>
       </template>
 
@@ -400,6 +401,10 @@ definePageMeta({
 useHead({
   title: "Findora - Mes clients",
 });
+import { useCustomer } from "@/stores/customer";
+const customerStore = useCustomer();
+import { useStat } from "@/stores/stat";
+const stat = useStat();
 const supabase = useSupabaseClient();
 const { errors, validateForm, handleServerErrors } = useFormValidation();
 
@@ -441,8 +446,8 @@ const pageTo = computed(() => {
   }
   return Math.min(page.value * pageCount.value, filteredCustomers.value.length);
 });
-// Customers
-const customers = ref([]);
+
+// callback function
 const status = ref("idle");
 const fetchCustomers = async () => {
   status.value = "pending";
@@ -453,10 +458,11 @@ const fetchCustomers = async () => {
   if (error) {
     status.value = "error";
   } else {
-    customers.value = data || [];
+    customerStore.customer = data;
     status.value = "success";
   }
 };
+// groups
 let groupedCustomers = ref([]);
 const fetchCustomersWithGroupNames = async () => {
   try {
@@ -500,22 +506,29 @@ const getCustomerGroupsById = (customerId) => {
   return customer ? customer.groups : [];
 };
 onMounted(() => {
-  fetchCustomers();
+  if (customerStore.customer == null) {
+    customerStore.updatecustomers();
+  }
   fetchCustomersWithGroupNames();
 });
 
 // Filtered and Paginated Data
-const filteredCustomers = computed(() =>
-  customers.value.filter(
-    (customer) =>
-      (search.value === "" ||
-        [customer.name, customer.phone, customer.email]
-          .join(" ")
-          .toLowerCase()
-          .includes(search.value.toLowerCase())) &&
-      (selectedType.value.length === 0 ||
-        selectedType.value.some((obj) => obj.value === customer.customer_type))
-  )
+const filteredCustomers = computed(
+  () =>
+    Array.isArray(customerStore.customer) // Vérifie que c'est un tableau
+      ? customerStore.customer.filter(
+          (customer) =>
+            (search.value === "" ||
+              [customer.name, customer.phone, customer.email]
+                .join(" ")
+                .toLowerCase()
+                .includes(search.value.toLowerCase())) &&
+            (selectedType.value.length === 0 ||
+              selectedType.value.some(
+                (obj) => obj.value === customer.customer_type
+              ))
+        )
+      : [] // Retourne un tableau vide si `customer` est null ou non défini
 );
 
 const paginatedCustomers = computed(() =>
@@ -626,7 +639,8 @@ const editCustomer = async () => {
       formData.value.phone = "";
       formData.value.address = "";
       isRequestInProgress.value = false;
-      fetchCustomers();
+      customerStore.updatecustomers();
+      customerStore.mixcustomerParticular(isEntreprise.value);
       isOpenEdit.value = false;
     }
   } catch (err) {
@@ -661,14 +675,19 @@ let closeDeleteAlert = () => {
   isAlertDeleteOpen.value = false;
 };
 const deleteCustomer = async (customer) => {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("customers")
     .delete()
-    .eq("id", customer);
+    .eq("id", customer)
+    .select()
+    .single();
 
   if (!error) {
     isAlertDeleteOpen.value = true;
-    fetchCustomers();
+    customerStore.updatecustomers();
+    customerStore.decrementcustomerParticular(data?.customer_type);
+    stat.decrementCustomer();
+    console.log(data);
   }
 };
 </script>
