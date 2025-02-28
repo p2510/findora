@@ -211,8 +211,7 @@ const supabase = useSupabaseClient();
 
 let logout = async () => {
   let { error } = await supabase.auth.signOut();
-  if (error) {
-  } else {
+  if (!error) {
     reset();
     return navigateTo("/");
   }

@@ -642,7 +642,7 @@ const userStore = useUser();
 let byYear = ref(false);
 let suscribe = async (plan, type) => {
   const url = "https://app.myfindora.com/api/subscription/create";
-  //const url = "http://localhost:3000/api/subscription/create";
+ // const url = "http://localhost:3000/api/subscription/create";
   try {
     const response = await fetch(url, {
       method: "POST",
@@ -660,6 +660,7 @@ let suscribe = async (plan, type) => {
       console.log(json.fetchResponse);
       const paystack = new window.PaystackPop();
       paystack.resumeTransaction(json.fetchResponse.data.access_code);
+
     } else {
       alert(
         "Nous sommes actuellement en maintenance. Veuillez réessayer plus tard."
