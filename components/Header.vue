@@ -56,15 +56,7 @@
         <span> Vous êtes partenaire Findora 🚀</span>
       </p>
 
-      <p class="text-xs lg:text-sm text-white">
-        <NuxtLink
-          v-if="new Date(users.sms_backlogs.valide_date) < new Date()"
-          to="/parametre#plus-de-sms"
-          class="text-[#f3c775] hover:text-[#f0cd8e] transition duration-500 ease-in-out"
-        >
-          Vos sms sont gelés depuis le {{ formatDate(smsInfo.valide_date) }}
-        </NuxtLink>
-      </p>
+   
     </div>
 
     <div class="flex justify-between gap-2 w-full" v-else>
@@ -117,14 +109,7 @@
           Votre abonnement {{ users.subscription.subscription_type }} est
           toujours actif.
         </span>
-        <NuxtLink
-          v-if="new Date(users.sms_backlogs.valide_date) < new Date()"
-          to="/parametre#plus-de-sms"
-          class="text-[#f3c775] hover:text-[#f0cd8e] transition duration-500 ease-in-out"
-        >
-          Mais vos sms sont gelés depuis le
-          {{ formatDate(users.sms_backlogs.valide_date) }}
-        </NuxtLink>
+  
       </p>
     </div>
     <div

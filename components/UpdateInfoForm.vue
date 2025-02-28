@@ -9,19 +9,24 @@
     <div
       class="col-span-full space-y-[1px] flex justify-between items-center pt-4"
     >
-      <label class="text-slate-800 basis-1/2">Numéro de téléphone</label>
-
-      <div class="basis-1/2">
-        <InputFiled
+      <div class="basis-full w-full flex justify-center">
+        <MazPhoneNumberInput
+          :translations="{
+            countrySelector: {
+              placeholder: 'Indicatif',
+              error: 'Choisir un pays',
+              searchPlaceholder: 'Trouver un pays',
+            },
+            phoneInput: {
+              placeholder: 'Numéro de téléphone',
+              example: 'Exemple:',
+            },
+          }"
+          countryCode="CI"
+          orientation="responsive"
           v-model="DataForms.phone"
-          type="text"
-          custom-class="p-2 hover:shadow-sm rounded-lg  w-full bg-red-500"
+          color="Warning"
         />
-        <div v-if="errors.phone.length" class="error">
-          <div v-for="(error, index) in errors.phone" :key="index">
-            {{ error }}
-          </div>
-        </div>
       </div>
     </div>
     <div
@@ -129,7 +134,6 @@ let closeErrorAlert = () => {
 let submit = async () => {
   isRequestInProgress.value = true;
   const validationErrors = validateForm({
-    phone: DataForms.value.phone,
     domain: DataForms.value.domain,
     name: DataForms.value.name,
   });

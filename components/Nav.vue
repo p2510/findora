@@ -22,11 +22,7 @@
             <BoltIcon class="size-5" />
           </template>
         </NavLink>
-        <NavLink to="/campagne" label="Campagne">
-          <template #icon>
-            <MegaphoneIcon class="size-5" />
-          </template>
-        </NavLink>
+
         <NavLink to="/templates" label="Templates">
           <template #icon>
             <InboxArrowDownIcon class="size-5" />
@@ -123,11 +119,7 @@
             <BoltIcon class="size-8 flex justify-center" />
           </template>
         </NavIcon>
-        <NavIcon to="/campagne">
-          <template #icon>
-            <MegaphoneIcon class="size-8 flex justify-center" />
-          </template>
-        </NavIcon>
+
         <NavIcon to="/templates">
           <template #icon>
             <InboxArrowDownIcon class="size-8 flex justify-center" />

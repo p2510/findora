@@ -13,39 +13,56 @@ export default defineEventHandler(async (event) => {
   const requestBody = await readBody(event);
   const { customers, content, token, user_id } = JSON.parse(requestBody);
 
-  // Fonction de vérification de l'abonnement
-  const isSubscriptionValid = (subscription_type, start_at) => {
-    const isValidSubscriptionType = subscription_type === "ultra";
-    const expirationDate = new Date(
-      new Date(start_at).setMonth(new Date(start_at).getMonth() + 1)
-    );
-    const isExpired = expirationDate.getTime() < new Date().getTime();
-    return isValidSubscriptionType && !isExpired;
-  };
-
+  // Vérification de l'abonnement de l'utilisateur
   let isValid = false;
 
-  // Vérification de l'abonnement dans la base de données
   try {
-    const { data, error } = await supabase
+    const { data: subscription, error } = await supabase
       .from("subscriptions")
-      .select("*")
+      .select("subscription_type, start_at, is_partner")
       .eq("user_id", user_id)
+      .order("start_at", { ascending: false })
+      .limit(1)
       .single();
-    if (data) {
-      if (isSubscriptionValid(data.subscription_type, data.start_at)) {
+
+    if (error) throw error;
+
+    if (subscription) {
+      // Si l'utilisateur est un partenaire, il peut envoyer la campagne
+      if (subscription.is_partner) {
         isValid = true;
+      } else {
+        // Vérification du type d'abonnement
+        const validTypes = ["ultra", "entreprise"];
+        if (validTypes.includes(subscription.subscription_type)) {
+          // Vérification de la date d'expiration
+          const expirationDate = new Date(subscription.start_at);
+          expirationDate.setMonth(expirationDate.getMonth() + 1);
+          const isExpired = expirationDate < new Date();
+
+          if (!isExpired) {
+            isValid = true;
+          }
+        }
       }
     }
   } catch (error) {
     return {
       success: false,
-      message: error,
-      data: data,
+      message: "Erreur lors de la vérification de l'abonnement.",
+      error,
     };
   }
 
-  if (isValid) {
+  if (!isValid) {
+    return {
+      success: false,
+      message: "Abonnement non valide ou expiré.",
+    };
+  }
+
+  // ✅ Si l'abonnement est valide, on enregistre la campagne
+  try {
     const { data, error } = await supabase
       .from("whatsapp_campaigns")
       .insert({
@@ -54,6 +71,10 @@ export default defineEventHandler(async (event) => {
         user_id: user_id,
       })
       .select();
+
+    if (error) throw error;
+
+    // Fonction pour formater le numéro de téléphone
     const formatPhoneNumber = (phoneNumber) => {
       if (!phoneNumber.startsWith("+")) return phoneNumber;
 
@@ -61,18 +82,15 @@ export default defineEventHandler(async (event) => {
       const remainingNumber = phoneNumber.slice(4);
 
       if (countryCode === "225") {
-        // Si Côte d'Ivoire, supprime les deux premiers chiffres du reste du numéro
         return countryCode + remainingNumber.slice(2);
       } else {
-        // Pour les autres pays, supprime uniquement le "+"
         return phoneNumber.slice(1);
       }
     };
-    // Requête pour créer un canal sur Whapi uniquement si isValid est vrai
-    const url = "https://gate.whapi.cloud/messages/text";
 
     // Fonction pour envoyer un message à chaque client
     const sendMessageToCustomer = async (customer) => {
+      const url = "https://gate.whapi.cloud/messages/text";
       const options = {
         method: "POST",
         headers: {
@@ -88,7 +106,6 @@ export default defineEventHandler(async (event) => {
       };
 
       try {
-        // Attente de la réponse de la requête fetch
         const response = await fetch(url, options);
         const jsonResponse = await response.json();
         console.log(
@@ -103,13 +120,13 @@ export default defineEventHandler(async (event) => {
       }
     };
 
-    // Fonction pour envoyer les messages avec une pause aléatoire
+    // Envoi des messages avec une pause aléatoire
     const sendMessagesWithPause = async (customers) => {
-      const messagesPerInterval = 10; // Envoi de 10 messages par intervalle
+      const messagesPerInterval = 10;
       const intervalBetweenMessages =
-        Math.floor(Math.random() * (3 - 1 + 1) + 1) * 1000; // Délai aléatoire entre 1 et 3 secondes
+        Math.floor(Math.random() * 3 + 1) * 1000;
       const intervalBetweenSeries =
-        Math.floor(Math.random() * (6 - 3 + 1) + 3) * 1000; // Délai entre séries de messages de 3 à 6 secondes
+        Math.floor(Math.random() * 4 + 3) * 1000;
 
       let i = 0;
       for (const customer of customers) {
@@ -117,38 +134,33 @@ export default defineEventHandler(async (event) => {
 
         i++;
 
-        // Si le nombre de messages envoyés dans l'intervalle est atteint, faire une pause
         if (i % messagesPerInterval === 0) {
           console.log(
-            `Pause de ${
-              intervalBetweenSeries / 1000
-            } secondes après une série de ${messagesPerInterval} messages.`
+            `Pause de ${intervalBetweenSeries / 1000} secondes après ${messagesPerInterval} messages.`
           );
           await new Promise((resolve) =>
             setTimeout(resolve, intervalBetweenSeries)
-          ); // Pause entre les séries de messages
+          );
         }
 
-        // Pause aléatoire entre chaque message
         await new Promise((resolve) =>
           setTimeout(resolve, intervalBetweenMessages)
         );
       }
     };
 
-    // Envoi des messages avec pauses aléatoires
     await sendMessagesWithPause(customers);
 
     return {
-      data: isValid,
+      
       success: true,
-      message: "Processus terminé.",
+      message: "Processus terminé avec succès.",
     };
-  } else {
-    // Si l'abonnement n'est pas valide, retourne une erreur
+  } catch (error) {
     return {
       success: false,
-      message: "Abonnement non valide",
+      message: "Erreur lors de l'envoi de la campagne.",
+      error,
     };
   }
 });

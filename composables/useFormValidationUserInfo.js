@@ -3,7 +3,6 @@ import { ref } from 'vue'
 // Messages d'erreur centralisés
 const errorMessages = {
   required_field: "Ce champ est requis. Veuillez le remplir.",
-  phone_format: "Le numéro de téléphone doit commencer par 01, 05 ou 07 et contenir 10 chiffres.",
   domain_format: "Le domaine doit être l'un des éléments de la liste.",
   name_format: "Le nom doit comporter uniquement des lettres et espaces.",
   generic_error: "Une erreur inattendue est survenue. Veuillez réessayer."
@@ -41,7 +40,6 @@ const validDomains = [
 // Hook de validation des formulaires
 export function useFormValidationUserInfo() {
   const errors = ref({
-    phone: [],
     domain: [],
     name: [],
     global: []
@@ -66,21 +64,12 @@ export function useFormValidationUserInfo() {
   // Valider l'ensemble du formulaire
   const validateForm = (formData) => {
     errors.value = {
-      phone: [],
       domain: [],
       name: [],
       global: []
     }
 
-    // Validation du numéro de téléphone
-    errors.value.phone = validateField(formData.phone, [
-      { type: 'required' },
-      {
-        type: 'pattern',
-        pattern: /^(01|05|07)[0-9]{8}$/,
-        message: errorMessages.phone_format
-      }
-    ])
+
 
     // Validation du domaine (doit être l'un des éléments de la liste)
     errors.value.domain = validateField(formData.domain, [
@@ -104,7 +93,6 @@ export function useFormValidationUserInfo() {
 
     // Validation globale (si nécessaire)
     if (
-      errors.value.phone.length ||
       errors.value.domain.length ||
       errors.value.name.length
     ) {

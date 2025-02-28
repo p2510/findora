@@ -1,5 +1,3 @@
-// utils/smsUtils.js
-
 export async function sendWhatsapp(
   instanceId,
   apiToken,

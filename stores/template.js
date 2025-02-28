@@ -6,30 +6,30 @@ export const useTemplate = defineStore(
   () => {
     const supabase = useSupabaseClient();
     const template_predicated = ref(null);
-    const template_sms = ref(null);
+    const template = ref(null);
 
     // getter
 
     // action
 
     // fetching data
-    const fetchTemplateSms = async () => {
+    const fetchTemplate= async () => {
       const { data, error } = await supabase.from("templates").select("*");
       if (data) {
-        template_sms.value = data;
+        template.value = data;
       }
     };
 
     // reset
     const $reset = () => {
       template_predicated.value = null;
-      template_sms.value = null;
+      template.value = null;
     };
 
     return {
       template_predicated,
-      template_sms,
-      fetchTemplateSms,
+      template,
+      fetchTemplate,
       $reset,
     };
   },

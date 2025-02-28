@@ -15,7 +15,7 @@
         de l'application.
       </p>
     </div>
-    <div v-else class="mt-14 space-y-4 pr-4">
+    <div v-else class="mt-4 space-y-4 pr-4">
       <div v-if="users.subscription.subscription_type == 'free'">
         <PurchaseSubscriptionFree />
       </div>
@@ -303,7 +303,14 @@ definePageMeta({
 });
 useHead({
   title: "Findora - Abonnement",
+  script: [
+    {
+      src: "https://js.paystack.co/v2/inline.js",
+    },
+  ],
 });
+
+
 import { useUser } from "@/stores/user";
 const users = useUser();
 const supabase = useSupabaseClient();
@@ -391,4 +398,5 @@ let validePaid = async () => {
     ])
     .select();
 };
+
 </script>

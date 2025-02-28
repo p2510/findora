@@ -157,8 +157,11 @@ let handleSubmit = async () => {
     errorMessage.value = "Veuillez choisir une date avant de programmer. ";
     return;
   }
+
   if (!isScheduled.value) {
     const url = "https://app.myfindora.com/api/whatsapp/send-message";
+    //const url = "http://localhost:3000/api/whatsapp/send-message";
+
     try {
       const response = await fetch(url, {
         method: "POST",
@@ -176,12 +179,14 @@ let handleSubmit = async () => {
       }
 
       const json = await response.json();
-      if (json && json.data) {
+
+      if (json && json.success) {
         isProgress.value = false;
         isSuccessOpen.value = true;
         successMessage.value = "Votre campagne a bien été envoyée.";
-      } else if (json && json.error) {
-        errorMessage.value = json.error;
+      } else {
+        isProgress.value = false;
+        errorMessage.value = json.message;
         isAlertOpen.value = true;
       }
     } catch (error) {

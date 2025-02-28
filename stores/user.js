@@ -18,25 +18,12 @@ export const useUser = defineStore(
       is_partner: null,
     });
 
-    const sms_backlogs = ref({
-      count: null,
-      application_id: null,
-      client_id: null,
-      client_secret: null,
-      sender_name: null,
-      valide_date: null,
-      is_active: null,
-    });
-
     // action
     const updateInfo = async (payload) => {
       info.value = { ...info.value, ...payload };
     };
     const updateSubscription = async (payload) => {
       subscription.value = { ...subscription.value, ...payload };
-    };
-    const updateSmsBacklogs = async (payload) => {
-      sms_backlogs.value = { ...sms_backlogs.value, ...payload };
     };
 
     const $reset = () => {
@@ -52,24 +39,13 @@ export const useUser = defineStore(
         start_at: null,
         is_partner: null,
       };
-      sms_backlogs.value = {
-        count: null,
-        application_id: null,
-        client_id: null,
-        client_secret: null,
-        sender_name: null,
-        valide_date: null,
-        is_active: null,
-      };
     };
 
     return {
       info,
       subscription,
-      sms_backlogs,
       updateInfo,
       updateSubscription,
-      updateSmsBacklogs,
       $reset,
     };
   },

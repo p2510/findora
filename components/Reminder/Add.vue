@@ -44,7 +44,7 @@
                 class="w-full"
                 v-model="template_selected"
                 placeholder="Choisir un template"
-                :options="template.template_sms"
+                :options="template.template"
                 option-attribute="name"
                 size="lg"
                 color="black"
@@ -125,6 +125,8 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { useReminder } from "@/stores/reminder";
 import { useStat } from "@/stores/stat";
+import { useWhatsapp } from "@/stores/whatsapp";
+const whatsappStore = useWhatsapp();
 const reminderStore = useReminder();
 const stat = useStat();
 const supabase = useSupabaseClient();
@@ -172,8 +174,6 @@ watch(template_content, (newContent) => {
 
 const status = ref("idle");
 
-
-
 // send reminder
 const isRequestInProgress = ref(false);
 const errorMessage = ref("");
@@ -199,6 +199,7 @@ let AddReminder = async () => {
   }
 
   try {
+    
     const { data, error } = await supabase
       .from("reminders")
       .insert([
@@ -208,6 +209,8 @@ let AddReminder = async () => {
           customers_id: props.customerId,
           payments_id: props.paymentId,
           created_by: user.value.id,
+          token: whatsappStore.whatsapp_backlogs.token,
+          phone: props.customerPhone,
         },
       ])
       .select();
@@ -223,8 +226,8 @@ let AddReminder = async () => {
       isOpen.value = false;
     } else {
       reminderStore.updateReminders();
-      stat.fetchReminders()
-      template.fetchTemplateSms()
+      stat.fetchReminders();
+      template.fetchTemplate();
       // Réinitialisation des champs si la soumission a réussi
       const currentDate = new Date(); // Date d'aujourd'hui
       const sendDate = new Date(formData.value.send_date); // Date de send_date
@@ -240,7 +243,6 @@ let AddReminder = async () => {
       formData.value.message = "";
       template_selected.value.content = "";
       isRequestInProgress.value = false;
-
       emit("submit");
     }
   } catch (err) {

@@ -120,63 +120,6 @@
               </div>
             </div>
           </div>
-
-          <div
-            class="flex items-center justify-between bg-white p-2 rounded-md"
-            v-if="user.subscription.is_partner"
-          >
-            <div class="flex flex-col">
-              <span class="text-slate-950">SMS restant(s)</span>
-              <span
-                class="bg-slate-950/5 text-sm h-2 w-4 rounded-full animate-pulse"
-                v-if="sms == null"
-              ></span>
-
-              <p class="text-slate-600 text-sm">
-                <i class="not-italic">{{ sms }}</i>
-                <span v-if="valideSms != null" class="not-italic text-xs">
-                  <i v-if="new Date(valideSms) > new Date()" class="not-italic">
-                    Valide jusqu'au {{ formatDate(valideSms) }}
-                  </i>
-                  <i v-else class="not-italic"> SMS gelé </i>
-                </span>
-              </p>
-            </div>
-            <NuxtLink
-              v-if="sms == 0"
-              to="/parametre#plus-de-sms"
-              class="text-slate-950 bg-[#f3c775]/70 hover:bg-[#f3c775] hover:shadow-sm transition duration-300 ease-in-out p-2 rounded-md text-sm"
-              >Acheter plus de SMS</NuxtLink
-            >
-            <NuxtLink
-              v-else-if="new Date(valideSms) < new Date()"
-              to="/parametre#plus-de-sms"
-              class="text-slate-950 bg-[#f3c775]/70 hover:bg-[#f3c775] hover:shadow-sm transition duration-300 ease-in-out p-2 rounded-md text-sm"
-              >Dégeler en achetant un pack</NuxtLink
-            >
-          </div>
-          <div
-            class="flex items-center justify-between bg-white p-2 rounded-md"
-            v-else
-          >
-            <div class="flex flex-col">
-              <span class="text-slate-950">SMS restant(s)</span>
-              <span
-                class="bg-slate-950/5 text-sm h-2 w-4 rounded-full animate-pulse"
-                v-if="sms == null"
-              ></span>
-
-              <p class="text-slate-600 text-sm">
-                <i class="not-italic">{{ sms }}</i>
-              </p>
-            </div>
-            <NuxtLink
-              v-if="sms == 0"
-              to="/parametre#plus-de-sms"
-              class="text-slate-950 bg-[#f3c775]/70 hover:bg-[#f3c775] hover:shadow-sm transition duration-300 ease-in-out p-2 rounded-md text-sm"
-              >Acheter plus de SMS</NuxtLink
-            >
-          </div>
         </div>
       </div>
     </section>
@@ -189,8 +132,6 @@ import { useUser } from "@/stores/user";
 import { usePayment } from "@/stores/payment";
 const user = useUser();
 const paymentStore = usePayment();
-let sms = ref(null);
-let valideSms = ref(null);
 const lastThreePayments = computed(() => {
   const filteredPayments = Array.isArray(paymentStore.paymentCustomer)
     ? paymentStore.paymentCustomer.filter(
@@ -223,31 +164,10 @@ function subscriptionExpired(startDate) {
   date.setDate(date.getDate() + 30);
   return date <= new Date();
 }
-async function checkSms() {
-  valideSms.value = user.sms_backlogs.valide_date;
-  const url = "https://app.myfindora.com/api/info-purchase";
-  try {
-    const response = await fetch(url, {
-      method: "POST",
-      body: JSON.stringify({
-        client_id: user.sms_backlogs.client_id,
-        client_secret: user.sms_backlogs.client_secret,
-      }),
-    });
-    if (!response.ok) {
-      throw new Error(`Response status: ${response.status}`);
-    }
 
-    const json = await response.json();
-    if (json) {
-      sms.value = json.data?.availableUnits;
-    }
-  } catch (error) {}
-}
 onMounted(async () => {
   if (paymentStore.paymentCustomer == null) {
     paymentStore.updatePaymentCustomer();
   }
-  checkSms();
 });
 </script>

@@ -41,14 +41,14 @@
         <p
           class="bg-white/80 px-6 py-2 w-full font-semibold text-slate-800/80 rounded-lg shadow-md"
         >
-          Vos templates SMS
+          Vos templates 
         </p>
         <!--List template-->
 
-        <SkeletonTemplateCard v-if="template.template_sms == null" />
-        <div class="space-y-4" v-if="template.template_sms !== null">
+        <SkeletonTemplateCard v-if="template.template == null" />
+        <div class="space-y-4" v-if="template.template !== null">
           <SkeletonNotFound
-            v-if="template.template_sms.length == 0"
+            v-if="template.template.length == 0"
             title="Aucun template détecté"
             subtitle="actuellement"
             label-btn=" Créer votre premier template"
@@ -56,8 +56,8 @@
             custom-css="text-lg lg:text-xl xl:text-3xl "
           />
           <ul v-else class="space-y-2 overflow-y-auto h-[75vh] pb-8 pr-3">
-            <TemplateSmsCard
-              v-for="template in template.template_sms"
+            <TemplateCard
+              v-for="template in template.template"
               :key="template.id"
               :id="template.id"
               :name="template.name"
@@ -120,116 +120,13 @@
       </div>
     </UModal>
     <UModal v-model="isOpen" prevent-close>
-      <!--<div class="p-4 space-y-6" v-if="!showFormModal">
-        <h4
-          class="text-slate-800 text-lg font-semibold pb-2 flex justify-between"
-        >
-          <span> Quel template souhaitez-vous créer ?</span>
-          <UButton
-            color="gray"
-            variant="ghost"
-            icon="i-heroicons-x-mark-20-solid"
-            class="-my-1"
-            @click="closeModal"
-          />
-        </h4>
-        <ul class="flex justify-between gap-4">
-          <li
-            :class="
-              !isEmailTemplate
-                ? 'basis-1/2 rounded-xl p-3 flex justify-between gap-2 bg-[#f3c775] items-center cursor-pointer'
-                : 'basis-1/2 rounded-xl p-3 flex justify-between gap-2 bg-slate-800/10 items-center cursor-pointer'
-            "
-            @click="isEmailTemplate = false"
-          >
-            <button class="flex justify-start gap-2 items-center">
-              <UIcon
-                name="i-heroicons-chat-bubble-bottom-center-text"
-                :class="
-                  !isEmailTemplate
-                    ? 'w-10 h-10 text-white'
-                    : 'w-10 h-10 text-slate-800'
-                "
-              />
-              <span
-                :class="
-                  !isEmailTemplate
-                    ? 'text-2xl text-white'
-                    : 'text-2xl text-slate-800'
-                "
-                >SMS
-              </span>
-            </button>
-            <span class="w-10 h-10 text-white" v-if="!isEmailTemplate">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                class="size-10"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-            </span>
-          </li>
-          <li
-            :class="
-              isEmailTemplate
-                ? 'basis-1/2 rounded-xl p-3 flex justify-between items-center gap-2 bg-[#f3c775]  cursor-pointer'
-                : 'basis-1/2 rounded-xl p-3 flex justify-between gap-2 bg-slate-800/10 items-center cursor-pointer'
-            "
-            @click="isEmailTemplate = true"
-          >
-            <button class="flex justify-start gap-2 items-center">
-              <UIcon
-                name="i-heroicons-envelope"
-                :class="
-                  isEmailTemplate
-                    ? 'w-10 h-10 text-white'
-                    : 'w-10 h-10 text-slate-800'
-                "
-              />
-              <span
-                :class="
-                  isEmailTemplate
-                    ? 'text-2xl text-white'
-                    : 'text-2xl text-slate-800'
-                "
-                >Email
-              </span>
-            </button>
-            <span v-if="isEmailTemplate" class="w-10 h-10 text-white">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                class="size-10"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-            </span>
-          </li>
-        </ul>
-        <button
-          @click="showEmailForm"
-          class="w-full text-white bg-blue-700 hover:bg-blue-800 rounded-full shadow-md text-xl px-3 py-4 transition-all duration-300 ease-in-out"
-        >
-          Continue
-        </button>
-      </div>-->
+    
       <div class="p-4">
         <div class="space-y-6">
           <h4
             class="text-slate-800 text-lg font-semibold pb-2 flex justify-between"
           >
-            <span> Création SMS template</span>
+            <span> Création  template</span>
             <UButton
               color="gray"
               variant="ghost"
@@ -238,7 +135,7 @@
               @click="closeModal"
             />
           </h4>
-          <form class="grid grid-cols-12 gap-4" @submit.prevent="AddSms">
+          <form class="grid grid-cols-12 gap-4" @submit.prevent="Add">
             <div class="col-span-full space-y-[1px]">
               <label for="name" class="text-gray-500 font-semibold"
                 >Nom de votre template</label
@@ -246,7 +143,7 @@
               <InputFiled
                 type="text"
                 custom-class="hover:shadow-sm p-2 rounded-lg"
-                v-model="formDataSms.name"
+                v-model="formData.name"
               />
               <div v-if="errors.name.length" class="error">
                 {{ errors.name[0] }}
@@ -257,7 +154,7 @@
                 >Contenu de votre template</label
               >
               <textarea
-                v-model="formDataSms.content"
+                v-model="formData.content"
                 class="hover:shadow-sm p-2 rounded-lg bg-white outline-none border-2 border-solid focus:rounded-lg transition duration-300 ease-in-out text-slate-800/80 w-full focus:border-[#f3c775]"
                 rows="7"
                 maxlength="160"
@@ -308,7 +205,7 @@ useHead({
 });
 import { useTemplate } from "@/stores/template";
 const template = useTemplate();
-const { errors, validateForm, handleServerErrors } = useFormValidationSms();
+const { errors, validateForm, handleServerErrors } = useFormValidationTemplate();
 const supabase = useSupabaseClient();
 const isOpen = ref(false); // open choice of template
 let showFormModal = ref(false);
@@ -327,15 +224,15 @@ let closeModal = () => {
 const user = useSupabaseUser();
 
 const isRequestInProgress = ref(false);
-let formDataSms = ref({
+let formData = ref({
   name: "",
   content: "",
 });
-let AddSms = async () => {
+let Add = async () => {
   isRequestInProgress.value = true;
   const validationErrors = validateForm({
-    name: formDataSms.value.name,
-    content: formDataSms.value.content,
+    name: formData.value.name,
+    content: formData.value.content,
   });
 
   if (validationErrors.global.length > 0) {
@@ -348,8 +245,8 @@ let AddSms = async () => {
       .from("templates")
       .insert([
         {
-          name: formDataSms.value.name,
-          content: formDataSms.value.content,
+          name: formData.value.name,
+          content: formData.value.content,
           created_by: user.value.id,
         },
       ])
@@ -367,11 +264,11 @@ let AddSms = async () => {
       isOpen.value = false;
     } else {
       // Réinitialisation des champs si la soumission a réussi
-      formDataSms.value.name = "";
-      formDataSms.value.content = "";
+      formData.value.name = "";
+      formData.value.content = "";
       isRequestInProgress.value = false;
       isOpen.value = false;
-      fetchTemplateSms();
+      fetchTemplate();
       emit("submit"); // Émettre un événement pour informer que le client a été créé
     }
   } catch (err) {
@@ -381,19 +278,19 @@ let AddSms = async () => {
 };
 
 const status = ref("idle");
-const fetchTemplateSms = async () => {
+const fetchTemplate= async () => {
   status.value = "pending";
   const { data, error } = await supabase.from("templates").select("*");
   if (error) {
     status.value = "error";
   } else {
-    template.template_sms = data;
+    template.template = data;
     status.value = "success";
   }
 };
 onMounted(() => {
-  if (template.template_sms == null) {
-    fetchTemplateSms();
+  if (template.template == null) {
+    fetchTemplate();
   }
   if (template.template_predicated == null) {
     fetchTemplatePredicated();
@@ -403,7 +300,7 @@ onMounted(() => {
 const deleteTemplate = async (id) => {
   const { error } = await supabase.from("templates").delete().eq("id", id);
   if (!error) {
-    fetchTemplateSms();
+    fetchTemplate();
   }
 };
 

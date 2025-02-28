@@ -567,8 +567,8 @@ onMounted(async () => {
   if (customerStore.customer == null) {
     customerStore.updatecustomers();
   }
-  if (templateStore.template_sms == null) {
-    templateStore.fetchTemplateSms();
+  if (templateStore.template == null) {
+    templateStore.fetchTemplate();
   }
 });
 

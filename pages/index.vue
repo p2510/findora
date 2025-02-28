@@ -136,13 +136,7 @@ let login = async () => {
     if (subscriptionData) {
       user.updateSubscription(subscriptionData);
     }
-    let { data: smsData, error: smsError } = await supabase
-      .from("sms_backlogs")
-      .select("*")
-      .single();
-    if (smsData) {
-      user.updateSmsBacklogs(smsData);
-    }
+  
     let { data: whatsappData, error: whatsappError } = await supabase
       .from("whatsapp_backlogs")
       .select("*")

@@ -10,7 +10,7 @@
     <p class="text-md w-3/4 text-slate-700">
       En Côte d'Ivoire, moins de
       <span class="font-semibold"> 5 % des clients et prospects </span> lisent
-      leurs e-mails. Les relances par SMS permettent d'aller plus rapidement.
+      leurs e-mails. Les relances par whatsapp permettent d'aller plus rapidement.
     </p>
   </div>
 </template>
