@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
 
   // Fonction de vérification de l'abonnement
   const isSubscriptionValid = (subscription_type, start_at) => {
-    const isValidSubscriptionType = subscription_type === "ultra";
+    const isValidSubscriptionType = subscription_type === "ultra" || subscription_type === "entreprise";
     const expirationDate = new Date(
       new Date(start_at).setMonth(new Date(start_at).getMonth() + 1)
     );
