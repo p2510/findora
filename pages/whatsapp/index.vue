@@ -13,12 +13,12 @@
         </h3>
         <p class="text-sm text-center text-slate-700">
           L'intégration de WhatsApp est uniquement disponible pour les comptes
-          Ultra.
+          Ultra ou Entreprise
         </p>
       </div>
       <div
         class="flex justify-center"
-        v-if="userStore.subscription.subscription_type == 'ultra'"
+        v-if="userStore.subscription.subscription_type == 'ultra' || userStore.subscription.subscription_type == 'entreprise'"
       >
         <transition name="slide-up" mode="out-in">
           <WhatsappStart
