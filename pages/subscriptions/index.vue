@@ -16,7 +16,15 @@
       </p>
     </div>
     <div v-else class="mt-4 space-y-4 pr-4">
-      <div v-if="users.subscription.subscription_type == 'free'">
+      <div
+        v-if="
+          users.subscription.subscription_type == 'free' ||
+          (users.subscription.status == 'cancel' &&
+            new Date(users.subscription.start_at).setMonth(
+              new Date(users.subscription.start_at).getMonth() + 1
+            ) > new Date())
+        "
+      >
         <PurchaseSubscriptionFree />
       </div>
       <div v-else>
@@ -41,17 +49,18 @@
               >
                 Mon abonnement
               </h2>
-              <PrimaryButton
-                @click="paid"
-                v-if="
-                  (users.subscription.subscription_type == 'premium' ||
-                    'ultra') &&
-                  new Date(users.subscription.start_at).setMonth(
-                    new Date(users.subscription.start_at).getMonth() + 1
-                  ) < new Date()
-                "
-                >Renouveller mon abonnement</PrimaryButton
+
+              <div
+                v-if="users.subscription.status == 'active'"
+                class="flex gap-2 items-center"
               >
+                <button
+                  @click="disableSubscription"
+                  class="text-xs text-slate-700 underline hover:text-slate-600 transition duration-200 ease-in-out"
+                >
+                  Suspendre mon abonnement
+                </button>
+              </div>
             </div>
           </template>
 
@@ -112,14 +121,7 @@
             </template>
             <template #status-data="{ row }">
               <UBadge
-                v-if="row.status == 'pending'"
-                size="sm"
-                label="En cours"
-                color="yellow"
-                variant="solid"
-              />
-              <UBadge
-                v-else-if="row.status == 'completed'"
+                v-if="row.status == 'active'"
                 size="sm"
                 label="Payer"
                 color="emerald"
@@ -179,119 +181,29 @@
         </UCard>
       </div>
     </div>
-    <UModal v-model="isOpen" prevent-close>
-      <UCard
-        :ui="{
-          ring: '',
-          divide: 'divide-y divide-gray-100 dark:divide-gray-800',
-        }"
+
+    <div v-if="isSuccessOpen">
+      <AlertModal
+        title="Abonnement"
+        type="success"
+        @close-alert="closeSuccessAlert"
       >
-        <template #header>
-          <div class="flex justify-between items-center">
-            <div>
-              <h3 class="font-semibold text-gray-800 text-md">
-                Renouveller votre abonnement
-              </h3>
-              <span class="text-sm text-slate-600">
-                Scannez pour effectuer le paiement directement.
-              </span>
-            </div>
-            <div>
-              <UButton
-                color="gray"
-                variant="ghost"
-                icon="i-heroicons-x-mark-20-solid"
-                class="-my-1"
-                @click="close"
-              />
-            </div>
-          </div>
+        <template #message>
+          <p>
+            {{ successMessage }}
+          </p>
         </template>
-
-        <section class="space-y-3" v-if="!check">
-          <div class="flex gap-3 items-center">
-            <span v-if="users.subscription.subscription_type == 'premium'"
-              >Premium</span
-            >
-            <span v-else-if="users.subscription.subscription_type == 'ultra'"
-              >Ultra</span
-            >
-            <UBadge
-              color="primary"
-              variant="soft"
-              size="lg"
-              v-if="users.subscription.subscription_type == 'premium'"
-              >6.500 F</UBadge
-            ><UBadge
-              color="primary"
-              variant="soft"
-              size="lg"
-              v-else-if="users.subscription.subscription_type == 'ultra'"
-              >19.900 F</UBadge
-            >
-          </div>
-          <div class="py-3 flex justify-center">
-            <PrimaryButton @click="validePaid"
-              >Cliquez pour effectuer le paiement</PrimaryButton
-            >
-          </div>
-        </section>
-        <section class="space-y-3" v-else>
-          <div class="flex gap-3 items-center">
-            <span>{{ users.subscription.subscription_type }}</span>
-            <UBadge
-              color="primary"
-              variant="soft"
-              size="lg"
-              v-if="users.subscription.subscription_type == 'premium'"
-              >6.500 F</UBadge
-            >
-            <UBadge
-              color="primary"
-              variant="soft"
-              size="lg"
-              v-else-if="users.subscription.subscription_type == 'ultra'"
-              >19.900 F</UBadge
-            >
-          </div>
-          <div class="bg-[#1DC8FF] py-3">
-            <div class="flex justify-center">
-              <img
-                src="~/assets/img/wave/payez-avec-wave-stacked.svg"
-                alt="icone wave"
-              />
-            </div>
-            <div class="flex justify-center">
-              <div class="rounded-xl p-4 bg-white shadow-md">
-                <img
-                  v-if="users.subscription.subscription_type == 'premium'"
-                  src="~/assets/img/wave/subscription_premium.png"
-                  alt="Abonnement premium"
-                />
-                <img
-                  v-else-if="users.subscription.subscription_type == 'ultra'"
-                  src="~/assets/img/wave/subscription_ultra.png"
-                  alt="Abonnement ultra"
-                />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <template #footer>
-          <div class="flex gap-2 items-center">
-            <UIcon
-              name="i-heroicons-information-circle"
-              class="w-5 h-5 text-emerald-600"
-            />
-            <span class="text-sm text-slate-600 w-full">
-              Une fois votre paiement effectué, il sera traité dans un délai
-              maximal d'une (1) heure.
-            </span>
-          </div>
+      </AlertModal>
+    </div>
+    <div v-if="isAlertOpen">
+      <AlertModal title="Erreur" type="error" @close-alert="closeErrorAlert">
+        <template #message>
+          <p>
+            {{ errorMessage }}
+          </p>
         </template>
-      </UCard>
-    </UModal>
+      </AlertModal>
+    </div>
   </div>
 </template>
 
@@ -309,7 +221,6 @@ useHead({
     },
   ],
 });
-
 
 import { useUser } from "@/stores/user";
 const users = useUser();
@@ -376,27 +287,46 @@ const fetchPurchases = async () => {
   }
 };
 
-let isOpen = ref(false);
-const check = ref(false);
-const close = () => {
-  isOpen.value = false;
-  check.value = false;
+const errorMessage = ref("");
+const successMessage = ref("");
+const isAlertOpen = ref(false);
+let closeErrorAlert = () => {
+  isAlertOpen.value = false;
 };
-let paid = async () => {
-  isOpen.value = true;
-};
-let validePaid = async () => {
-  check.value = true;
-  const { data, error } = await supabase
-    .from("subscriptions_purchase")
-    .insert([
-      {
-        type: subscriptions.value.subscription_type,
-        status: "pending",
-        user_id: user.value.id,
-      },
-    ])
-    .select();
+const isSuccessOpen = ref(false);
+let closeSuccessAlert = () => {
+  isSuccessOpen.value = false;
 };
 
+let disableSubscription = async () => {
+  const url = "https://app.myfindora.com/api/subscription/disable";
+  //const url = "http://localhost:3000/api/subscription/disable";
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      body: JSON.stringify({
+        user_id: users.info.uuid,
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(`Response status: ${response.status}`);
+    }
+
+    const json = await response.json();
+    if (json.fetchResponse) {
+      isSuccessOpen.value = true;
+      successMessage.value =
+        " Votre abonnement a été résilié et vous ne serez pas facturé à la prochaine échéance.";
+        users.updateSubscription({status:'cancel'})
+    } else {
+      errorMessage.value =
+        "Nous sommes actuellement en maintenance. Veuillez réessayer plus tard";
+      isAlertOpen.value = true;
+    }
+  } catch (err) {
+    errorMessage.value = err.message;
+    isAlertOpen.value = true;
+  }
+};
 </script>

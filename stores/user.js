@@ -16,6 +16,7 @@ export const useUser = defineStore(
       subscription_type: null,
       start_at: null,
       is_partner: null,
+      status: null,
     });
 
     // action
@@ -38,6 +39,7 @@ export const useUser = defineStore(
         subscription_type: null,
         start_at: null,
         is_partner: null,
+        status: null,
       };
     };
 

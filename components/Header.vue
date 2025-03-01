@@ -55,8 +55,6 @@
       <p class="text-xs lg:text-sm text-white">
         <span> Vous êtes partenaire Findora 🚀</span>
       </p>
-
-   
     </div>
 
     <div class="flex justify-between gap-2 w-full" v-else>
@@ -79,7 +77,8 @@
         class="text-xs lg:block w-full lg:text-sm text-center text-white"
         v-else-if="
           (users.subscription.subscription_type === 'premium' ||
-            users.subscription.subscription_type === 'ultra') &&
+            users.subscription.subscription_type === 'ultra' ||
+            users.subscription.subscription_type === 'entreprise') &&
           new Date(
             new Date(users.subscription.start_at).setMonth(
               new Date(users.subscription.start_at).getMonth() + 1
@@ -100,16 +99,12 @@
 
       <p
         class="text-xs lg:block w-full lg:text-sm text-center text-white"
-        v-else-if="
-          (users.subscription.subscription_type === 'premium' || 'ultra') &&
-          new Date(users.subscription.start_at) >= new Date()
-        "
+        v-else
       >
         <span>
           Votre abonnement {{ users.subscription.subscription_type }} est
           toujours actif.
         </span>
-  
       </p>
     </div>
     <div
@@ -249,14 +244,19 @@
                   ></path>
                 </svg>
                 <div>
-                  <p class="text-sm text-slate-950 text-left">Formulaire <span class="text-xs bg-[#f3c775] px-2 py-[1px] rounded-full text-slate-950 ">Coming soon</span></p>
+                  <p class="text-sm text-slate-950 text-left">
+                    Formulaire
+                    <span
+                      class="text-xs bg-[#f3c775] px-2 py-[1px] rounded-full text-slate-950"
+                      >Coming soon</span
+                    >
+                  </p>
                   <p class="text-xs text-slate-950/80">
                     Alternative à google form pour créer des formulaires
                   </p>
                 </div>
               </div>
             </MazBtn>
-            
           </div>
         </template>
       </MazDropdown>

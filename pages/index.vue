@@ -5,12 +5,13 @@
         class="col-span-full xl:col-span-6 flex flex-col items-center justify-center h-screen relative"
       >
         <h4 class="text-slate-900 text-4xl pb-2">
-          Un seul
           <span
             class="bg-clip-text text-transparent bg-gradient-to-r from-[#f3c775] to-[#5e4414]"
           >
-            endroit </span
-          >, plusieurs clients
+            Automatisez</span
+          >
+
+          , Suivre et Scaler
         </h4>
         <p class="text-slate-900/50 text-2xl font-normal">
           Connectez-vous maintenant !
@@ -136,7 +137,7 @@ let login = async () => {
     if (subscriptionData) {
       user.updateSubscription(subscriptionData);
     }
-  
+
     let { data: whatsappData, error: whatsappError } = await supabase
       .from("whatsapp_backlogs")
       .select("*")
