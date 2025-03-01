@@ -10,6 +10,7 @@ export const useUser = defineStore(
       email: null,
       domain: null,
       uuid: null,
+      currency: "XOF",
     });
 
     const subscription = ref({
@@ -34,6 +35,7 @@ export const useUser = defineStore(
         email: null,
         domain: null,
         uuid: null,
+        currency: "XOF",
       };
       subscription.value = {
         subscription_type: null,

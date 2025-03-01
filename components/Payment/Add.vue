@@ -1,7 +1,10 @@
 <script setup>
 import { ref, computed, defineEmits, onMounted } from "vue";
 import { usePayment } from "@/stores/payment";
+import { useUser } from "@/stores/user";
 const paymentStore = usePayment();
+const userStore = useUser();
+
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const { errors, validateForm, handleServerErrors } = useFormValidationPayment();
@@ -186,7 +189,7 @@ onMounted(async () => {
 
           <div class="col-span-6 space-y-[1px]">
             <label for="amount" class="text-gray-500 font-semibold"
-              >Montant en F CFA</label
+              >Montant en {{ userStore.info.currency }}</label
             >
             <InputFiled
               type="number"

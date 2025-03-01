@@ -22,9 +22,12 @@
           <p class="flex justify-between text-md">
             <SkeletonText v-if="paymentStore.payments == null" />
             <span class="text-white" v-if="paymentStore.payments !== null">{{
-              totalPayments.toLocaleString("fr-FR")
+              totalPayments.toLocaleString("fr-FR", {
+                style: "currency",
+                currency: userStore.info.currency,
+              })
             }}</span>
-            <span class="font-semibold text-slate-500">F</span>
+        
           </p>
           <p class="flex justify-between gap-4 text-xs">
             <span class="text-white">Tous les paiements</span>
@@ -45,9 +48,12 @@
             <SkeletonText v-if="paymentStore.payments == null" />
 
             <span class="text-white" v-if="paymentStore.payments !== null">{{
-              totalDue.toLocaleString("fr-FR")
+              totalDue.toLocaleString("fr-FR", {
+                style: "currency",
+                currency: userStore.info.currency,
+              })
             }}</span>
-            <span class="font-semibold text-slate-500">F</span>
+           
           </p>
           <p class="flex justify-between gap-4 text-xs">
             <span class="text-white">Paiement échu</span>
@@ -76,9 +82,13 @@
             <SkeletonText v-if="paymentStore.payments == null" />
 
             <span class="text-white" v-if="paymentStore.payments !== null">{{
-              totalPaid.toLocaleString("fr-FR")
+              totalPaid.toLocaleString("fr-FR", {
+                style: "currency",
+                currency: userStore.info.currency,
+              })
+           
             }}</span>
-            <span class="font-semibold text-slate-500">F</span>
+         
           </p>
           <p class="flex justify-between gap-4 text-xs">
             <span class="text-white">Paiement non-échu</span>
@@ -108,11 +118,13 @@
         <div class="flex flex-col justify-center">
           <p class="flex justify-between text-md">
             <SkeletonText v-if="paymentStore.payments == null" />
-
             <span class="text-white" v-if="paymentStore.payments !== null">{{
-              totalValidated.toLocaleString("fr-FR")
+              totalValidated.toLocaleString("fr-FR", {
+                style: "currency",
+                currency: userStore.info.currency,
+              })
             }}</span>
-            <span class="font-semibold text-slate-500">F</span>
+            
           </p>
           <p class="flex justify-between gap-4 text-xs">
             <span class="text-white">Paiement validé</span>
@@ -138,6 +150,8 @@
 import { computed, onMounted } from "vue";
 import { usePayment } from "@/stores/payment";
 const paymentStore = usePayment();
+import { useUser } from "@/stores/user";
+const userStore = useUser();
 const totalPayments = computed(() =>
   Array.isArray(paymentStore.payments)
     ? paymentStore.payments.reduce(

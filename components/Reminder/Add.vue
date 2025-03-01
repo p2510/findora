@@ -77,7 +77,6 @@
                 </ul>
               </div>
             </div>
-
             <div class="col-span-full space-y-[1px]">
               <UButton
                 :loading="isRequestInProgress"
@@ -126,12 +125,12 @@ import { ref, computed, onMounted, watch } from "vue";
 import { useReminder } from "@/stores/reminder";
 import { useStat } from "@/stores/stat";
 import { useWhatsapp } from "@/stores/whatsapp";
+import { useTemplate } from "@/stores/template";
 const whatsappStore = useWhatsapp();
 const reminderStore = useReminder();
 const stat = useStat();
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
-import { useTemplate } from "@/stores/template";
 const template = useTemplate();
 
 const { errors, validateForm } = useFormValidationReminder();
@@ -199,7 +198,6 @@ let AddReminder = async () => {
   }
 
   try {
-    
     const { data, error } = await supabase
       .from("reminders")
       .insert([

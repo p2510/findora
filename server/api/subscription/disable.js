@@ -26,17 +26,15 @@ export default defineEventHandler(async (event) => {
     code: "",
   };
   const { data: subscriptionData } = await supabase
-    .from("subscriptions_purchase")
+    .from("subscriptions")
     .select("*")
     .eq("user_id", user_id)
-    .eq('created',true)
-    .order("created_at", { ascending: false })
     .limit(1)
     .single();
 
   if (subscriptionData) {
     data.code = subscriptionData.subscription_code;
-    data.token = subscriptionData.email_token;
+    data.token = subscriptionData.token;
   }
 
   const options = {

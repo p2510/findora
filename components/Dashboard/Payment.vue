@@ -48,7 +48,13 @@
               <div class="flex items-center gap-2">
                 <span
                   class="text-slate-950 px-3 py-2 rounded-md bg-slate-800/5 text-sm lg:text-md font-semibold"
-                  >{{ payment.amount.toLocaleString("fr-FR") }} F</span
+                  >{{
+                    payment.amount.toLocaleString("fr-FR", {
+                      style: "currency",
+                      currency: user.info.currency,
+                    })
+                  }}
+                  </span
                 >
                 <NuxtLink
                   to="/paiement"

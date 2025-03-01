@@ -47,7 +47,10 @@
         </p>
         <div class="flex pt-3">
           <span class="text-slate-950 text-5xl">{{
-            formatAmount(totalPayments)
+            totalPayments.toLocaleString("fr-FR", {
+              style: "currency",
+              currency: userStore.info.currency,
+            })
           }}</span>
         </div>
         <div class="flex items-center text-slate-950 gap-2">
@@ -97,6 +100,8 @@
 <script setup>
 import { useStat } from "@/stores/stat";
 import { formatAmount } from "@/utils/shared/format";
+import { useUser } from "@/stores/user";
+const userStore = useUser();
 const stat = useStat();
 import { usePayment } from "@/stores/payment";
 const paymentStore = usePayment();

@@ -121,7 +121,7 @@
             </template>
             <template #status-data="{ row }">
               <UBadge
-                v-if="row.status == 'active'"
+                v-if="row.status == 'success'"
                 size="sm"
                 label="Payer"
                 color="emerald"

@@ -136,7 +136,7 @@
             >{{
               row.amount.toLocaleString("fr-FR", {
                 style: "currency",
-                currency: "XOF",
+                currency: userStore.info.currency,
               })
             }}
           </span>
@@ -398,7 +398,7 @@
 
           <div class="col-span-6 space-y-[1px]">
             <label for="amount" class="text-gray-500 font-semibold"
-              >Montant en F CFA</label
+              >Montant en {{ userStore.info.currency }}</label
             >
             <InputFiled
               type="number"
@@ -488,9 +488,11 @@ useHead({
 import { usePayment } from "@/stores/payment";
 import { useCustomer } from "@/stores/customer";
 import { useTemplate } from "@/stores/template";
+import { useUser } from "@/stores/user";
 const paymentStore = usePayment();
 const customerStore = useCustomer();
 const templateStore = useTemplate();
+const userStore = useUser();
 const supabase = useSupabaseClient();
 const { errors, validateForm, handleServerErrors } = useFormValidationPayment();
 let customers = ref([]);
