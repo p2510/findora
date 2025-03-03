@@ -85,7 +85,7 @@ export default defineEventHandler(async (event) => {
       ].includes(planCode)
         ? 1
         : 12;
-      let bonusDays = durationInMonths === 1 ? 30 : 365;
+      let bonusDays = durationInMonths === 1 ? 2 : 365;
       // Extension de validité de 30 jours
       const extendResponse = await fetch(
         `${baseUrl}/${createChannelJson.id}/extend`,
