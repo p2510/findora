@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
   } else if (plan == "ultra" && type == "year") {
     data.plan = "PLN_wpg2zdfsoedtoit";
   } else if (plan == "entreprise" && type == "month") {
-    data.plan = "PLN_qvutdrmyjni54nr";
+    data.plan = "PLN_eg0dv9p9fbhykmh";
   } else if (plan == "entreprise" && type == "year") {
     data.plan = "PLN_4jsz6eeelybzm3x";
   }
