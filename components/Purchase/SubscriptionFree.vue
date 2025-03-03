@@ -333,13 +333,13 @@
         <p class="text-center py-4 text-lg text-slate-600">Ultra</p>
         <p class="flex justify-center items-baseline gap-x-2" v-if="!byYear">
           <span class="text-5xl font-semibold tracking-tight text-gray-900"
-            >29.900F</span
+            >19.900F</span
           >
           <span class="text-base text-gray-500">/mois</span>
         </p>
         <p class="flex justify-center items-baseline gap-x-2" v-else>
           <span class="text-5xl font-semibold tracking-tight text-gray-900"
-            >269.000F</span
+            >191.000F</span
           >
           <span class="text-base text-gray-500">/an</span>
         </p>
@@ -486,13 +486,13 @@
         <p class="text-center py-4 text-lg text-slate-600">Entreprise</p>
         <p class="flex justify-center items-baseline gap-x-2" v-if="!byYear">
           <span class="text-5xl font-semibold tracking-tight text-gray-900"
-            >69.900F</span
+            >49.900F</span
           >
           <span class="text-base text-gray-500">/mois</span>
         </p>
         <p class="flex justify-center items-baseline gap-x-2" v-else>
           <span class="text-5xl font-semibold tracking-tight text-gray-900"
-            >621.900F</span
+            >470.000F</span
           >
           <span class="text-base text-gray-500">/an</span>
         </p>
