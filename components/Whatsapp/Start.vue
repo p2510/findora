@@ -73,16 +73,16 @@ const createChanel = async () => {
 
     const json = await response.json();
     if (json) {
-      if (json.fetchResponse) {
+      if (json.data.createChannel) {
         const { data, error } = await supabase
           .from("whatsapp_backlogs")
           .upsert({
             user_id: users.info.uuid,
-            chanel_id: json.fetchResponse.id,
-            expire_date: new Date(json.fetchResponse.activeTill),
-            token: json.fetchResponse.token,
+            chanel_id: json.data.createChannel.id,
+            expire_date: new Date(json.data.createChannel.activeTill),
+            token: json.data.createChannel.token,
             status: "active",
-            mode: "trial",
+            mode: "live",
             authorize: false,
           })
           .select();

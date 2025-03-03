@@ -4,7 +4,7 @@
       <h2 class="col-span-full text-4xl text-slate-900 pb-4">
         Gérer vos templates
       </h2>
-      <div class="col-span-3 space-y-4">
+      <div class="col-span-6 lg:col-span-3 space-y-4">
         <p
           class="bg-white/80 px-6 py-2 w-full font-semibold text-slate-800/80 rounded-lg shadow-md"
         >
@@ -37,7 +37,7 @@
           </li>
         </ul>
       </div>
-      <div class="col-span-4 space-y-4">
+      <div class="col-span-6 lg:col-span-4 space-y-4">
         <p
           class="bg-white/80 px-6 py-2 w-full font-semibold text-slate-800/80 rounded-lg shadow-md"
         >
@@ -68,7 +68,7 @@
           </ul>
         </div>
       </div>
-      <div class="col-span-4 space-y-4">
+      <div class="hidden lg:block lg:col-span-4 space-y-4">
         <p
           class="bg-white/80 px-6 py-2 w-full font-semibold text-slate-800/80 rounded-lg shadow-md"
         >

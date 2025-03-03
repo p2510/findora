@@ -98,7 +98,7 @@
       </p>
 
       <p
-        class="text-xs lg:block w-full lg:text-sm text-center text-white"
+        class="text-xs hidden lg:block w-full lg:text-sm text-center text-white"
         v-else
       >
         <span>
@@ -261,7 +261,7 @@
         </template>
       </MazDropdown>
 
-      <h4 class="flex gap-2 items-center tracking-tight pl-3">
+      <h4 class="hidden xl:flex gap-2 items-center tracking-tight pl-3">
         <img
           :src="
             'https://ui-avatars.com/api/?name=' +
@@ -273,7 +273,7 @@
         />
         <p class="flex flex-col justify-center">
           <span class="text-sm text-slate-50">{{ users.info.email }}</span>
-          <span class="text-sm text-slate-500 font-semibold">
+          <span class="text-xs text-slate-300 ">
             {{ formattedDate }}</span
           >
         </p>

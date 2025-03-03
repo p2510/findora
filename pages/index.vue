@@ -11,9 +11,9 @@
             Automatisez</span
           >
 
-          , Suivre et Scaler
+          , Suivez et Scalez
         </h4>
-        <p class="text-slate-900/50 text-2xl font-normal">
+        <p class="text-slate-900/80 text-md font-normal">
           Connectez-vous maintenant !
         </p>
         <form class="pt-10 w-2/3 space-y-4" @submit.prevent="login">
@@ -43,14 +43,6 @@
             </SubmitButton>
           </div>
         </form>
-        <div class="flex justify-center pt-10">
-          <a
-            href="https://airtable.com/app36NTV9VwhLj46v/pag7NOSoamHB30MJm/form"
-            target="_blank"
-            class="text-md text-slate-700 hover:text-slate-800 transition ease-in-out duration-300"
-            >Demander une démo</a
-          >
-        </div>
 
         <div v-if="isAlertOpen">
           <AlertModal

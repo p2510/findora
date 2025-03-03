@@ -31,7 +31,7 @@
         />
       </div>
       <div
-        class="col-span-full lg:col-span-3 bg-transparent border-[1px] border-slate-200 h-screen rounded-xl"
+        class="col-span-full lg:col-span-3 bg-transparent border-[1px] border-slate-200 h-full 2xl:h-screen rounded-xl"
       >
         <p class="text-center py-4 text-lg text-slate-600">Free</p>
         <p class="flex justify-center items-baseline gap-x-2" v-if="!byYear">
@@ -173,7 +173,7 @@
         </ul>
       </div>
       <div
-        class="col-span-full lg:col-span-3 bg-transparent border-[1px] border-orange-200 h-screen rounded-xl"
+        class="col-span-full lg:col-span-3 bg-transparent border-[1px] border-orange-200 h-full 2xl:h-screen rounded-xl"
       >
         <p class="text-center py-4 text-lg text-slate-600">Premium</p>
         <p class="flex justify-center items-baseline gap-x-2" v-if="!byYear">
@@ -328,7 +328,7 @@
         </div>
       </div>
       <div
-        class="col-span-full lg:col-span-3 bg-transparent border-[1px] border-orange-200 h-screen rounded-xl"
+        class="col-span-full lg:col-span-3 bg-transparent border-[1px] border-orange-200 h-full 2xl:h-screen rounded-xl"
       >
         <p class="text-center py-4 text-lg text-slate-600">Ultra</p>
         <p class="flex justify-center items-baseline gap-x-2" v-if="!byYear">
@@ -481,7 +481,7 @@
         </div>
       </div>
       <div
-        class="col-span-full lg:col-span-3 bg-transparent border-[1px] border-orange-200 h-screen rounded-xl"
+        class="col-span-full lg:col-span-3 bg-transparent border-[1px] border-orange-200 h-full 2xl:h-screen rounded-xl"
       >
         <p class="text-center py-4 text-lg text-slate-600">Entreprise</p>
         <p class="flex justify-center items-baseline gap-x-2" v-if="!byYear">
