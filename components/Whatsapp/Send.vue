@@ -196,20 +196,28 @@ let handleSubmit = async () => {
     }
   } else {
     try {
-      const { data, error } = await supabase
-        .from("whatsapp_campaigns_schedule")
-        .insert({
-          user_id: users.info.uuid,
-          customers: formData.value.customers,
+      const chunkArray = (array, size) => {
+        return Array.from(
+          { length: Math.ceil(array.length / size) },
+          (_, index) => array.slice(index * size, index * size + size)
+        );
+      };
+      const customerChunks = chunkArray(formData.value.customers, 10);
+      const insertPromises = customerChunks.map(async (chunk) => {
+        return supabase.from("whatsapp_campaigns_schedule").insert({
+          customers: chunk,
           content: formData.value.content,
+          user_id: users.info.uuid,
           token: whatsappStore.whatsapp_backlogs.token,
           send_date: formData.value.scheduleDate,
           is_sent: false,
-        })
-        .select();
+        });
+      });
+      const results = await Promise.all(insertPromises);
+      const errors = results.filter((result) => result.status === "rejected");
 
-      if (error) {
-        errorMessage.value = error.message;
+      if (errors.length > 0) {
+        errorMessage.value = "Certaines insertions ont échoué.";
         isAlertOpen.value = true;
         isRequestInProgress.value = false;
       } else {

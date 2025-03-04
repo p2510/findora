@@ -63,96 +63,34 @@ export default defineEventHandler(async (event) => {
 
   // ✅ Si l'abonnement est valide, on enregistre la campagne
   try {
-    const { data, error } = await supabase
-      .from("whatsapp_campaigns")
-      .insert({
-        customers: customers,
+    const chunkArray = (array, size) => {
+      return Array.from(
+        { length: Math.ceil(array.length / size) },
+        (_, index) => array.slice(index * size, index * size + size)
+      );
+    };
+    const customerChunks = chunkArray(customers, 15);
+    const insertPromises = customerChunks.map(async (chunk) => {
+      return supabase.from("whatsapp_campaigns").insert({
+        customers: chunk,
         content: content,
         user_id: user_id,
-      })
-      .select();
+        token: token,
+        is_sent: false,
+      });
+    });
 
-    if (error) throw error;
+    const results = await Promise.all(insertPromises);
+    const errors = results.filter((result) => result.status === "rejected");
 
-    // Fonction pour formater le numéro de téléphone
-    const formatPhoneNumber = (phoneNumber) => {
-      if (!phoneNumber.startsWith("+")) return phoneNumber;
-
-      const countryCode = phoneNumber.slice(1, 4);
-      const remainingNumber = phoneNumber.slice(4);
-
-      if (countryCode === "225") {
-        return countryCode + remainingNumber.slice(2);
-      } else {
-        return phoneNumber.slice(1);
-      }
-    };
-
-    // Fonction pour envoyer un message à chaque client
-    const sendMessageToCustomer = async (customer) => {
-      const url = "https://gate.whapi.cloud/messages/text";
-      const options = {
-        method: "POST",
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-          authorization: "Bearer " + token,
-        },
-        body: JSON.stringify({
-          typing_time: 0,
-          to: formatPhoneNumber(customer.phone),
-          body: content,
-        }),
+    if (errors.length > 0) {
+      return {
+        success: false,
+        message: "Certaines insertions ont échoué.",
+        errors,
       };
-
-      try {
-        const response = await fetch(url, options);
-        const jsonResponse = await response.json();
-        console.log(
-          `Message envoyé à ${customer.name} (${customer.phone}):`,
-          jsonResponse
-        );
-      } catch (err) {
-        console.error(
-          `Erreur lors de l'envoi du message à ${customer.name}:`,
-          err
-        );
-      }
-    };
-
-    // Envoi des messages avec une pause aléatoire
-    const sendMessagesWithPause = async (customers) => {
-      const messagesPerInterval = 10;
-      const intervalBetweenMessages =
-        Math.floor(Math.random() * 3 + 1) * 1000;
-      const intervalBetweenSeries =
-        Math.floor(Math.random() * 4 + 3) * 1000;
-
-      let i = 0;
-      for (const customer of customers) {
-        await sendMessageToCustomer(customer);
-
-        i++;
-
-        if (i % messagesPerInterval === 0) {
-          console.log(
-            `Pause de ${intervalBetweenSeries / 1000} secondes après ${messagesPerInterval} messages.`
-          );
-          await new Promise((resolve) =>
-            setTimeout(resolve, intervalBetweenSeries)
-          );
-        }
-
-        await new Promise((resolve) =>
-          setTimeout(resolve, intervalBetweenMessages)
-        );
-      }
-    };
-
-    await sendMessagesWithPause(customers);
-
+    }
     return {
-      
       success: true,
       message: "Processus terminé avec succès.",
     };
@@ -160,7 +98,7 @@ export default defineEventHandler(async (event) => {
     return {
       success: false,
       message: "Erreur lors de l'envoi de la campagne.",
-      error,
+      errur: error,
     };
   }
 });
