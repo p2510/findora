@@ -57,7 +57,8 @@ export default defineEventHandler(async (event) => {
     .from("whatsapp_campaigns")
     .select("*")
     .eq("is_sent", false)
-    .order("created_at", { ascending: true });
+    .order("created_at", { ascending: true })
+    .limit(2);
   if (error) {
     console.error("Erreur récupération campagnes:", error);
     return { success: false, message: "Erreur lors de la récupération." };
