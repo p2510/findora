@@ -58,7 +58,6 @@ export default defineEventHandler(async (event) => {
     .select("*")
     .eq("is_sent", false)
     .order("created_at", { ascending: true });
-
   if (error) {
     console.error("Erreur récupération campagnes:", error);
     return { success: false, message: "Erreur lors de la récupération." };
