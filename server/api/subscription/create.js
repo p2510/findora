@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const tokenPaystack =
-    "Bearer sk_test_e626c60330f6962effabd5ff195e583c6ede9904";
+    "Bearer sk_live_abf1627587617059ddebc19fc1ee61bf52ea0a3f";
   const url = "https://api.paystack.co/transaction/initialize";
   let data = {
     email: email,
