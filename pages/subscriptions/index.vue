@@ -25,8 +25,8 @@
             ) > new Date())
         "
       >
-        <PurchaseSubscriptionFreeTemp />
-        <!--<PurchaseSubscriptionFree />-->
+       
+        <PurchaseSubscriptionFree />
       </div>
       <div v-else>
         <UCard
