@@ -120,7 +120,7 @@
                     v-if="user.subscription.subscription_type == 'free'"
                     to="/abonnement"
                     class="text-slate-950 bg-[#f3c775]/70 hover:bg-[#f3c775] hover:shadow-sm transition duration-300 ease-in-out p-2 rounded-md text-sm"
-                    >Passer au premium</NuxtLink
+                    >Passer à l'ultra</NuxtLink
                   >
                 </div>
               </div>

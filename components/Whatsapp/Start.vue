@@ -56,8 +56,9 @@ let closeErrorAlert = () => {
 let step = ref(0);
 const createChanel = async () => {
   isProgress.value = true;
-  const url = "https://app.myfindora.com/api/whatsapp/create-chanel";
-  //const url = "http://localhost:3000/api/whatsapp/create-chanel";
+
+  //const url = "https://app.myfindora.com/api/whatsapp/create-chanel";
+  const url = "http://localhost:3000/api/whatsapp/create-chanel";
   try {
     const response = await fetch(url, {
       method: "POST",
@@ -82,7 +83,7 @@ const createChanel = async () => {
             expire_date: new Date(json.data.createChannel.activeTill),
             token: json.data.createChannel.token,
             status: "active",
-            mode: "live",
+            mode: json.data.createChannelJson.mode,
             authorize: false,
           })
           .select();

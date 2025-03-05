@@ -159,9 +159,9 @@ let handleSubmit = async () => {
   }
 
   if (!isScheduled.value) {
-    const url = "https://app.myfindora.com/api/whatsapp/send-message";
-    //const url = "http://localhost:3000/api/whatsapp/send-message";
-
+    //const url = "https://app.myfindora.com/api/whatsapp/send-message";
+    const url = "http://localhost:3000/api/whatsapp/send-message";
+    
     try {
       const response = await fetch(url, {
         method: "POST",

@@ -33,16 +33,11 @@ export default defineEventHandler(async (event) => {
         isValid = true;
       } else {
         // Vérification du type d'abonnement
-        const validTypes = ["ultra", "entreprise"];
-        if (validTypes.includes(subscription.subscription_type)) {
-          // Vérification de la date d'expiration
-          const expirationDate = new Date(subscription.start_at);
-          expirationDate.setMonth(expirationDate.getMonth() + 1);
-          const isExpired = expirationDate < new Date();
-
-          if (!isExpired) {
-            isValid = true;
-          }
+        const expirationDate = new Date(subscription.start_at);
+        expirationDate.setMonth(expirationDate.getMonth() + 1);
+        const isExpired = expirationDate < new Date();
+        if (!isExpired) {
+          isValid = true;
         }
       }
     }
@@ -57,7 +52,7 @@ export default defineEventHandler(async (event) => {
   if (!isValid) {
     return {
       success: false,
-      message: "Abonnement non valide ou expiré.",
+      message: "Abonnement expiré.",
     };
   }
 

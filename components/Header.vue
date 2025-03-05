@@ -63,12 +63,12 @@
         v-if="users.subscription.subscription_type === 'free'"
       >
         <span>
-          Allez plus loin avec Findora en passant au premium.
+          Allez plus loin avec Findora en passant au ultra.
           <NuxtLink
             to="/abonnement"
             class="text-[#f3c775] hover:text-[#f0cd8e] transition duration-500 ease-in-out"
           >
-            Découvrir l'offre premium
+            Découvrir l'offre ultra
           </NuxtLink>
         </span>
       </p>
@@ -248,7 +248,7 @@
                     Formulaire
                     <span
                       class="text-xs bg-[#f3c775] px-2 py-[1px] rounded-full text-slate-950"
-                      >Coming soon</span
+                      >Pour entreprise</span
                     >
                   </p>
                   <p class="text-xs text-slate-950/80">
@@ -273,9 +273,7 @@
         />
         <p class="flex flex-col justify-center">
           <span class="text-sm text-slate-50">{{ users.info.email }}</span>
-          <span class="text-xs text-slate-300 ">
-            {{ formattedDate }}</span
-          >
+          <span class="text-xs text-slate-300"> {{ formattedDate }}</span>
         </p>
       </h4>
     </div>

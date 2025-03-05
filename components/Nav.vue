@@ -58,9 +58,9 @@
             class="group relative px-4 py-3 bg-slate-800 hover:bg-slate-900 text-white rounded-lg font-medium text-sm grid overflow-hidden border border-white/10 shadow-lg"
             to="/abonnement"
             ><div class="grid gap-1 z-20">
-              <p>Passer au premium →</p>
+              <p>Passer à l'ultra →</p>
               <p class="text-[0.8125rem] text-gray-300">
-                Seulement 6.500f/mois
+                Seulement 19.900f/mois
               </p>
             </div>
             <div class="absolute h-full w-1/2 right-0 top-0 overflow-hidden">
@@ -149,9 +149,9 @@
             class="group relative px-4 py-3 bg-slate-800 hover:bg-slate-900 text-white rounded-lg font-medium text-sm hidden xl:grid overflow-hidden border border-white/10 shadow-lg"
             to="/abonnement"
             ><div class="grid gap-1 z-20">
-              <p>Passer au premium →</p>
+              <p>Passer à l'ultra →</p>
               <p class="text-[0.8125rem] text-gray-300">
-                Seulement 6.500f/mois
+                Seulement 19.900f/mois
               </p>
             </div>
             <div class="absolute h-full w-1/2 right-0 top-0 overflow-hidden">

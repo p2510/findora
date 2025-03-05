@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
   let isValid = false;
   let planCode = "unknown";
   let durationInMonths = 1;
-
+  let dataTest = null;
   // Vérification de l'abonnement dans la base de données
   try {
     const { data, error } = await supabase
@@ -35,6 +35,7 @@ export default defineEventHandler(async (event) => {
       .select("*")
       .eq("user_id", user_id)
       .single();
+    dataTest = data;
     if (data && isSubscriptionValid(data.subscription_type, data.start_at)) {
       isValid = true;
       planCode = data.plan_code;
@@ -42,7 +43,6 @@ export default defineEventHandler(async (event) => {
   } catch (error) {
     return { success: false, message: error, data: null };
   }
-
   if (isValid) {
     const tokenId =
       "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImExZDI2YWYyYmY4MjVmYjI5MzVjNWI3OTY3ZDA3YmYwZTMxZWIxYjcifQ.eyJwYXJ0bmVyIjp0cnVlLCJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vd2hhcGktYTcyMWYiLCJhdWQiOiJ3aGFwaS1hNzIxZiIsImF1dGhfdGltZSI6MTc0MDI0MjM1NCwidXNlcl9pZCI6IlQyTWlGanlkSnBlaGhIbWcyUWszTnFTMlFKOTIiLCJzdWIiOiJUMk1pRmp5ZEpwZWhoSG1nMlFrM05xUzJRSjkyIiwiaWF0IjoxNzQwMjQyMzU0LCJleHAiOjE4MDA3MjIzNTQsImVtYWlsIjoicG91cG9pbmFrYTAzQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7ImVtYWlsIjpbInBvdXBvaW5ha2EwM0BnbWFpbC5jb20iXX0sInNpZ25faW5fcHJvdmlkZXIiOiJwYXNzd29yZCJ9fQ.SeY-wcxw9lYuKOsgUN4Yyq4mSLq5WR_6K5hHh8kwjjUxG022yh21OaUmX2v4fY8S2lMZ4ndASEvHh-LAgV4Z38JGlC-vjmjciaznvur-XSrj7Vp2bOGYuGVstze_2KdQYXozQnR0HhafIUkI-JFSjy3dl2KYbiLGiVBw52-por8BcleeNfe1Sa75PbDrYI79Y3_ey7aOl3BiyrEKC-w7cJf9tCvOE-4cj8cLfIn6IkapygX6kpIdi3FFIkmk_XSNtfbJZhSnKC6KWRNA6V7zvN9JpkI3_bU5IzOWpEGzFele3Yq5tauPruS1uq6og6Yi265DqO0ZmHFGfz3B60ovXw";
@@ -109,6 +109,43 @@ export default defineEventHandler(async (event) => {
           createChannel: createChannelJson,
           modeChange: modeJson,
           validityExtend: extendJson,
+        },
+      };
+    } catch (err) {
+      console.error("Erreur lors des requêtes API:", err);
+      return {
+        success: false,
+        message: "Erreur lors des requêtes API",
+        error: err,
+      };
+    }
+  } else if (
+    (dataTest.subscription_type == "free") |
+    (dataTest.subscription_type == "premium")
+  ) {
+    const tokenId =
+      "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImExZDI2YWYyYmY4MjVmYjI5MzVjNWI3OTY3ZDA3YmYwZTMxZWIxYjcifQ.eyJwYXJ0bmVyIjp0cnVlLCJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vd2hhcGktYTcyMWYiLCJhdWQiOiJ3aGFwaS1hNzIxZiIsImF1dGhfdGltZSI6MTc0MDI0MjM1NCwidXNlcl9pZCI6IlQyTWlGanlkSnBlaGhIbWcyUWszTnFTMlFKOTIiLCJzdWIiOiJUMk1pRmp5ZEpwZWhoSG1nMlFrM05xUzJRSjkyIiwiaWF0IjoxNzQwMjQyMzU0LCJleHAiOjE4MDA3MjIzNTQsImVtYWlsIjoicG91cG9pbmFrYTAzQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7ImVtYWlsIjpbInBvdXBvaW5ha2EwM0BnbWFpbC5jb20iXX0sInNpZ25faW5fcHJvdmlkZXIiOiJwYXNzd29yZCJ9fQ.SeY-wcxw9lYuKOsgUN4Yyq4mSLq5WR_6K5hHh8kwjjUxG022yh21OaUmX2v4fY8S2lMZ4ndASEvHh-LAgV4Z38JGlC-vjmjciaznvur-XSrj7Vp2bOGYuGVstze_2KdQYXozQnR0HhafIUkI-JFSjy3dl2KYbiLGiVBw52-por8BcleeNfe1Sa75PbDrYI79Y3_ey7aOl3BiyrEKC-w7cJf9tCvOE-4cj8cLfIn6IkapygX6kpIdi3FFIkmk_XSNtfbJZhSnKC6KWRNA6V7zvN9JpkI3_bU5IzOWpEGzFele3Yq5tauPruS1uq6og6Yi265DqO0ZmHFGfz3B60ovXw";
+    const projectId = "ZPtUJ1HInzAiWGI6EOqs";
+    const baseUrl = "https://manager.whapi.cloud/channels";
+
+    try {
+      // Création du canal sur Whapi
+      const createChannelResponse = await fetch(`${baseUrl}`, {
+        method: "PUT",
+        headers: {
+          accept: "application/json",
+          "content-type": "application/json",
+          authorization: tokenId,
+        },
+        body: JSON.stringify({ name: user_id, projectId: projectId }),
+      });
+      const createChannelJson = await createChannelResponse.json();
+      console.log("Channel Created:", createChannelJson);
+      return {
+        success: true,
+        message: "Processus terminé.",
+        data: {
+          createChannel: createChannelJson,
         },
       };
     } catch (err) {

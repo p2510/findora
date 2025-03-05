@@ -31,7 +31,7 @@
         />
       </div>
       <div
-        class="col-span-full lg:col-span-3 bg-transparent border-[1px] border-slate-200 h-full 2xl:h-screen rounded-xl"
+        class="col-span-full lg:col-start-3 lg:col-end-6 bg-transparent border-[1px] border-slate-200 h-full 2xl:h-screen rounded-xl"
       >
         <p class="text-center py-4 text-lg text-slate-600">Free</p>
         <p class="flex justify-center items-baseline gap-x-2" v-if="!byYear">
@@ -46,7 +46,6 @@
           >
           <span class="text-base text-gray-500">/an</span>
         </p>
-
         <ul
           role="list"
           class="px-3 mt-8 space-y-3 text-sm/6 text-gray-600 sm:mt-10"
@@ -84,37 +83,35 @@
             Gestion jusqu'à 10 paiements
           </li>
 
-          <li class="flex gap-x-3 text-slate-400">
+          <li class="flex gap-x-3 ">
             <svg
-              class="h-6 w-5 flex-none text-slate-700"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
+              class="h-6 w-5 flex-none text-[#f3c775]"
               viewBox="0 0 20 20"
-              stroke-width="1.5"
-              stroke="currentColor"
+              fill="currentColor"
+              aria-hidden="true"
+              data-slot="icon"
             >
               <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M6 18 18 6M6 6l12 12"
+                fill-rule="evenodd"
+                d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
+                clip-rule="evenodd"
               />
             </svg>
             Relances automatiques
           </li>
 
-          <li class="flex gap-x-3 text-slate-400">
+          <li class="flex gap-x-3 ">
             <svg
-              class="h-6 w-5 flex-none text-slate-700"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
+              class="h-6 w-5 flex-none text-[#f3c775]"
               viewBox="0 0 20 20"
-              stroke-width="1.5"
-              stroke="currentColor"
+              fill="currentColor"
+              aria-hidden="true"
+              data-slot="icon"
             >
               <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M6 18 18 6M6 6l12 12"
+                fill-rule="evenodd"
+                d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
+                clip-rule="evenodd"
               />
             </svg>
             Automatisation whatsapp
@@ -172,6 +169,7 @@
           </li>
         </ul>
       </div>
+      <!--
       <div
         class="col-span-full lg:col-span-3 bg-transparent border-[1px] border-orange-200 h-full 2xl:h-screen rounded-xl"
       >
@@ -327,8 +325,9 @@
           </button>
         </div>
       </div>
+      -->
       <div
-        class="col-span-full lg:col-span-3 bg-transparent border-[1px] border-orange-200 h-full 2xl:h-screen rounded-xl"
+        class="col-span-full lg:col-start-6 lg:col-end-9 bg-transparent border-[1px] border-orange-200 h-full 2xl:h-screen rounded-xl"
       >
         <p class="text-center py-4 text-lg text-slate-600">Ultra</p>
         <p class="flex justify-center items-baseline gap-x-2" v-if="!byYear">
@@ -481,7 +480,7 @@
         </div>
       </div>
       <div
-        class="col-span-full lg:col-span-3 bg-transparent border-[1px] border-orange-200 h-full 2xl:h-screen rounded-xl"
+        class="col-span-full lg:col-start-9 lg:col-end-12 bg-transparent border-[1px] border-orange-200 h-full 2xl:h-screen rounded-xl"
       >
         <p class="text-center py-4 text-lg text-slate-600">Entreprise</p>
         <p class="flex justify-center items-baseline gap-x-2" v-if="!byYear">
