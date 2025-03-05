@@ -21,17 +21,17 @@ export default defineEventHandler(async (event) => {
     amount: 6500000,
   };
   if (plan == "premium" && type == "month") {
-    data.plan = "PLN_qqw2r92t6om9bkw";
+    data.plan = "PLN_n32s635by7a2lly";
   } else if (plan == "premium" && type == "year") {
-    data.plan = "PLN_72gqeqp5vci6bdn";
+    data.plan = "PLN_5v0p9di0tl2maw7";
   } else if (plan == "ultra" && type == "month") {
-    data.plan = "PLN_711tatz9b7jfh8l";
+    data.plan = "PLN_0irtzap489vwh1r";
   } else if (plan == "ultra" && type == "year") {
-    data.plan = "PLN_wpg2zdfsoedtoit";
+    data.plan = "PLN_hzcq7b85c58x53d";
   } else if (plan == "entreprise" && type == "month") {
-    data.plan = "PLN_eg0dv9p9fbhykmh";
+    data.plan = "PLN_ioz7ntf6kjjrb28";
   } else if (plan == "entreprise" && type == "year") {
-    data.plan = "PLN_4jsz6eeelybzm3x";
+    data.plan = "PLN_lcqstax96zw76iz";
   }
 
   const options = {
