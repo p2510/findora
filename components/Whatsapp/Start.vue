@@ -57,8 +57,8 @@ let step = ref(0);
 const createChanel = async () => {
   isProgress.value = true;
 
-  //const url = "https://app.myfindora.com/api/whatsapp/create-chanel";
-  const url = "http://localhost:3000/api/whatsapp/create-chanel";
+  const url = "https://app.myfindora.com/api/whatsapp/create-chanel";
+  //const url = "http://localhost:3000/api/whatsapp/create-chanel";
   try {
     const response = await fetch(url, {
       method: "POST",
