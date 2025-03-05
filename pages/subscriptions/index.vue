@@ -25,7 +25,8 @@
             ) > new Date())
         "
       >
-        <PurchaseSubscriptionFree />
+        <PurchaseSubscriptionFreeTemp />
+        <!--<PurchaseSubscriptionFree />-->
       </div>
       <div v-else>
         <UCard
@@ -64,7 +65,6 @@
             </div>
           </template>
 
-          <!-- Filters -->
           <div class="flex items-center justify-between gap-3 px-4 py-3">
             <div class="flex items-center justify-between gap-3 basis-1/2">
               <UInput
@@ -76,7 +76,7 @@
               />
             </div>
           </div>
-          <!-- Header and Action buttons -->
+
           <div class="flex justify-between items-center w-full px-4 py-3">
             <div class="flex items-center gap-1.5">
               <span class="text-sm leading-5">Ligne par page :</span>
@@ -89,8 +89,6 @@
               />
             </div>
           </div>
-
-          <!-- Table -->
 
           <UTable
             v-model="selectedRows"
@@ -146,7 +144,6 @@
             </template>
           </UTable>
 
-          <!-- Number of rows & Pagination -->
           <template #footer>
             <div class="flex flex-wrap justify-between items-center">
               <div>
@@ -318,7 +315,7 @@ let disableSubscription = async () => {
       isSuccessOpen.value = true;
       successMessage.value =
         " Votre abonnement a été résilié et vous ne serez pas facturé à la prochaine échéance.";
-        users.updateSubscription({status:'cancel'})
+      users.updateSubscription({ status: "cancel" });
     } else {
       errorMessage.value =
         "Nous sommes actuellement en maintenance. Veuillez réessayer plus tard";
