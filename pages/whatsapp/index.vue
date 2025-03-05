@@ -131,7 +131,7 @@ let nextStep = (n) => {
   step.value = n;
 };
 const currentDate = new Date();
-const expireDate = new Date(whatsappStore.whatsapp_backlogs.expire_date);
+const expireDate = new Date(whatsappStore.whatsapp_backlogs?.expire_date);
 
 const isExpired = expireDate < currentDate;
 </script>
