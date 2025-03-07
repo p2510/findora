@@ -75,6 +75,7 @@ const createChanel = async () => {
     const json = await response.json();
     if (json) {
       if (json.data.createChannel) {
+        console.log(json.data.createChannel)
         const { data, error } = await supabase
           .from("whatsapp_backlogs")
           .upsert({
@@ -83,11 +84,12 @@ const createChanel = async () => {
             expire_date: new Date(json.data.createChannel.activeTill),
             token: json.data.createChannel.token,
             status: "active",
-            mode: json.data.createChannelJson.mode,
+            mode: 'trial',
             authorize: false,
           })
           .select();
         if (data) {
+          console.log(data)
           whatsappStore.fetchWhatsapp();
           step.value = 1;
           isProgress.value = false;

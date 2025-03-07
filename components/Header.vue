@@ -44,9 +44,6 @@
           </text>
         </svg>
       </span>
-      <h3 class="font-medium text-xl text-slate-50 capitalize pl-3">
-        {{ props.name }}
-      </h3>
     </div>
     <div
       class="flex justify-center gap-2 w-full"
@@ -168,94 +165,25 @@
               </NuxtLink>
             </MazBtn>
             <MazBtn color="transparent" class="col-span-full">
-              <div class="flex gap-2 items-center w-full">
-                <svg
+              <NuxtLink to="/dashboard" class="flex gap-2 items-center w-full">
+                <img
+                  src="/public/image/scenario.png"
+                  alt=""
                   class="w-10 h-10"
-                  xmlns="http://www.w3.org/2000/svg"
-                  x="0px"
-                  y="0px"
-                  width="100"
-                  height="100"
-                  viewBox="0 0 48 48"
-                >
-                  <linearGradient
-                    id="00wCqH7f0ElurH3hbcIXXa_E4VmOrv6BZqd_gr1"
-                    x1="-208.197"
-                    x2="-180.197"
-                    y1="-150.795"
-                    y2="-122.795"
-                    gradientTransform="translate(215.243 161.751)"
-                    gradientUnits="userSpaceOnUse"
-                  >
-                    <stop offset="0" stop-color="#a235d4"></stop>
-                    <stop offset="1" stop-color="#831bb3"></stop>
-                  </linearGradient>
-                  <path
-                    fill="url(#00wCqH7f0ElurH3hbcIXXa_E4VmOrv6BZqd_gr1)"
-                    d="M39.004,13.999v27c0,1.105-0.895,2-2,2h-26	c-1.105,0-2-0.895-2-2v-34c0-1.104,0.895-2,2-2h19.002l1.997,7L39.004,13.999z"
-                  ></path>
-                  <path
-                    fill="#ce97e6"
-                    fill-rule="evenodd"
-                    d="M30.002,11.999l0.003-7	l8.999,8.999l-7.001,0.001L30.002,11.999z"
-                    clip-rule="evenodd"
-                  ></path>
-                  <path
-                    fill="#fff"
-                    fill-rule="evenodd"
-                    d="M21.001,21.999v2.001	h10.001v-2.001H21.001z"
-                    clip-rule="evenodd"
-                  ></path>
-                  <path
-                    fill="#fff"
-                    fill-rule="evenodd"
-                    d="M18.002,21.558	c0.795,0,1.44,0.647,1.44,1.441c0,0.795-0.645,1.441-1.44,1.441c-0.795,0-1.44-0.647-1.44-1.441	C16.562,22.205,17.207,21.558,18.002,21.558z"
-                    clip-rule="evenodd"
-                  ></path>
-                  <path
-                    fill="#fff"
-                    fill-rule="evenodd"
-                    d="M21.001,26.999v2.001	h10.001v-2.001H21.001z"
-                    clip-rule="evenodd"
-                  ></path>
-                  <path
-                    fill="#fff"
-                    fill-rule="evenodd"
-                    d="M18.002,26.558	c0.795,0,1.44,0.647,1.44,1.441c0,0.795-0.645,1.441-1.44,1.441c-0.795,0-1.44-0.647-1.44-1.441	C16.562,27.205,17.207,26.558,18.002,26.558z"
-                    clip-rule="evenodd"
-                  ></path>
-                  <path
-                    fill="#fff"
-                    fill-rule="evenodd"
-                    d="M21.001,31.999v2.001	h10.001v-2.001H21.001z"
-                    clip-rule="evenodd"
-                  ></path>
-                  <path
-                    fill="#fff"
-                    fill-rule="evenodd"
-                    d="M18.002,31.558	c0.795,0,1.44,0.647,1.44,1.441c0,0.795-0.645,1.441-1.44,1.441c-0.795,0-1.44-0.647-1.44-1.441	C16.562,32.205,17.207,31.558,18.002,31.558z"
-                    clip-rule="evenodd"
-                  ></path>
-                  <path
-                    fill="#ce97e6"
-                    fill-rule="evenodd"
-                    d="M32.002,9.998	c1.104,0,2.001,0.897,2.001,2.001s-0.897,2.001-2.001,2.001s-2.001-0.897-2.001-2.001S30.898,9.998,32.002,9.998z"
-                    clip-rule="evenodd"
-                  ></path>
-                </svg>
+                />
                 <div>
                   <p class="text-sm text-slate-950 text-left">
-                    Formulaire
+                    Scénario
                     <span
                       class="text-xs bg-[#f3c775] px-2 py-[1px] rounded-full text-slate-950"
                       >Pour entreprise</span
                     >
                   </p>
                   <p class="text-xs text-slate-950/80">
-                    Alternative à google form pour créer des formulaires
+                    Créez vos scénarios de relance et laissez faire le reste !
                   </p>
                 </div>
-              </div>
+              </NuxtLink>
             </MazBtn>
           </div>
         </template>
