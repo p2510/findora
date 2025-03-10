@@ -77,7 +77,7 @@
 
       <div v-if="isScheduled" class="col-span-full space-y-3">
         <label for="scheduleDate" class="text-gray-500"
-          >Choisissez la date et l'heure</label
+          >Choisissez la date </label
         >
         <input
           v-model="formData.scheduleDate"
