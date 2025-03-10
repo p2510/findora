@@ -12,7 +12,7 @@
           </span>
         </h3>
         <p class="text-sm text-center text-slate-700">
-          Restez connecté à vos clients grâce au réseau de plus de 2 milliards
+          Restez connecter à vos clients grâce au réseau de plus de 2 milliards
           d'utilisateurs.
         </p>
       </div>

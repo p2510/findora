@@ -568,6 +568,8 @@ const items = (row) => [
         formData.value.email = selectedCustomer.email;
         formData.value.phone = selectedCustomer.phone;
         formData.value.address = selectedCustomer.address;
+        oldIsEntreprise.value =
+          selectedCustomer.customer_type === "Particulier" ? false : true;
         isEntreprise.value =
           selectedCustomer.customer_type === "Particulier" ? false : true;
       },
@@ -599,6 +601,7 @@ const formData = ref({
 let closeEditAlert = () => {
   isAlertEditOpen.value = false;
 };
+let oldIsEntreprise = ref(false);
 const editCustomer = async () => {
   isRequestInProgress.value = true;
   const validationErrors = validateForm({
@@ -622,7 +625,8 @@ const editCustomer = async () => {
         customer_type: isEntreprise.value ? "Entreprise" : "Particulier",
       })
       .eq("id", customerId.value)
-      .select();
+      .select()
+      .single();
 
     if (error) {
       if (error.code === "23505") {
@@ -640,7 +644,10 @@ const editCustomer = async () => {
       formData.value.address = "";
       isRequestInProgress.value = false;
       customerStore.updatecustomers();
-      customerStore.mixcustomerParticular(isEntreprise.value);
+      if (oldIsEntreprise.value !== isEntreprise.value) {
+        customerStore.mixcustomerParticular(isEntreprise.value);
+      }
+
       isOpenEdit.value = false;
     }
   } catch (err) {
@@ -648,6 +655,7 @@ const editCustomer = async () => {
     isRequestInProgress.value = false;
   }
 };
+
 // delete groups
 const deleteGroups = async (customer_id, group_name) => {
   const { data, error: errorGroup } = await supabase

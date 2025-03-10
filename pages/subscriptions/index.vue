@@ -25,7 +25,6 @@
             ) > new Date())
         "
       >
-       
         <PurchaseSubscriptionFree />
       </div>
       <div v-else>
