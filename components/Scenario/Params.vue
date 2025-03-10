@@ -27,14 +27,7 @@
               {{ triggerStore.triggerDescription }}
             </p>
           </div>
-          <form>
-            <p class="text-sm text-slate-950">
-              Paramètre <span class="text-slate-500">Optionnel</span>
-            </p>
-            <section>
-              <ScenarioTriggerCustomer1 v-if="triggerStore.data.id === 1" />
-            </section>
-          </form>
+          <ScenarioTriggerCustomer1 v-if="triggerStore.data.id === 1" />
         </section>
       </div>
       <div

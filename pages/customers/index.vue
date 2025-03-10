@@ -23,7 +23,10 @@
           >
             Gérer vos clients
           </h2>
-          <CustomerAdd @submit="fetchCustomers" />
+          <div class="flex gap-2">
+            <CustomerAdd @submit="fetchCustomers" />
+            <CustomerImport @submit="fetchCustomers" />
+          </div>
         </div>
       </template>
 
@@ -65,8 +68,17 @@
             v-model="pageCount"
             :options="[3, 5, 10, 20, 30, 40]"
             class="me-2 w-20"
-            size="xs"
+            size="sm"
           />
+
+          <button
+            @click="deleteMultiple"
+            v-show="selectedRows.length > 0"
+            class="p-2 text-white bg-red-600 hover:bg-red-700 transition duration-300 ease-in-out rounded-md flex items-center gap-2"
+          >
+            <span class="text-xs">Supprimer</span>
+            <UIcon name="i-heroicons-archive-box-x-mark" class="w-4 h-4" />
+          </button>
         </div>
 
         <UButton
@@ -695,7 +707,23 @@ const deleteCustomer = async (customer) => {
     customerStore.updatecustomers();
     customerStore.decrementcustomerParticular(data?.customer_type);
     stat.decrementCustomer();
-    console.log(data);
+  }
+};
+const deleteMultiple = async () => {
+  const selectedIds = selectedRows.value.map((row) => row.id);
+  const { data, error } = await supabase
+    .from("customers")
+    .delete()
+    .in("id", selectedIds)
+    .select();
+  if (!error) {
+    isAlertDeleteOpen.value = true;
+    customerStore.updatecustomers();
+
+    data.forEach((customer) => {
+      customerStore.decrementcustomerParticular(customer?.customer_type);
+      stat.decrementCustomer();
+    });
   }
 };
 </script>

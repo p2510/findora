@@ -14,9 +14,9 @@ export const useStat = defineStore(
     // getter
 
     // action
-    const incrementCustomer = () => {
-      count.value.customerCount++;
-      count.value.currentMonthCount++;
+    const incrementCustomer = (incrementValue = 1) => {
+      count.value.customerCount += incrementValue;
+      count.value.currentMonthCount += incrementValue;
     };
     const decrementCustomer = () => {
       if (count.value.customerCount > 0) {

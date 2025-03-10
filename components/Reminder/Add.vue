@@ -19,7 +19,7 @@
           <form class="grid grid-cols-12 gap-4" @submit.prevent="AddReminder">
             <div class="col-span-full space-y-[1px]">
               <label for="payment_date" class="text-gray-500 font-semibold"
-                >Date et heure</label
+                >Date </label
               >
               <InputFiled
                 v-model="formData.send_date"
@@ -56,7 +56,7 @@
             </div>
             <div class="col-span-full space-y-[1px]">
               <label for="content" class="text-gray-500 font-semibold"
-                >Contenu de votre message (160 Caratères maximum)</label
+                >Contenu de votre message </label
               >
               <textarea
                 v-model="formData.message"

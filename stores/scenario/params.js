@@ -4,15 +4,23 @@ import { ref, computed } from "vue";
 export const useParams = defineStore(
   "params",
   () => {
-    const listOfParamsDate = ref([
-        {
-            
-        }
-    ]);
+    const paramsCustomer1 = ref({
+      created_at: {
+        condition: null,
+        value: null,
+      },
+      phone_is: {
+        condition: null,
+        value: null,
+      },
+    });
 
     // getter
 
     // action
+    const updateParamsCustomer1 = (payload) => {
+      paramsCustomer1.value = { ...paramsCustomer1.value, ...payload };
+    };
 
     // data
 
@@ -20,7 +28,10 @@ export const useParams = defineStore(
 
     const $reset = () => {};
 
-    return {};
+    return {
+      updateParamsCustomer1,
+      paramsCustomer1,
+    };
   },
   {
     persist: true,
