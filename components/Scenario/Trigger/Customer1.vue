@@ -132,6 +132,7 @@ const isRequestInProgress = ref(false);
 
 const confirm = () => {
   isRequestInProgress.value = true;
+  
   const validationErrors = validateForm({
     created_at: formData.value.created_at.value,
   });

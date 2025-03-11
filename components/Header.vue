@@ -122,7 +122,7 @@
         <template #dropdown>
           <div class="grid grid-cols-12 gap-3 pr-4">
             <MazBtn color="transparent" class="col-span-full">
-              <NuxtLink to="whatsapp" class="flex gap-2 items-center w-full">
+              <NuxtLink to="/whatsapp" class="flex gap-2 items-center w-full">
                 <svg
                   class="w-10 h-10"
                   xmlns="http://www.w3.org/2000/svg"

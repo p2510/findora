@@ -205,7 +205,7 @@ onMounted(async () => {
   if (reminderStore.reminders == null) {
     fetchReminders();
   }
-  if (reminderStore.reminders.length > 0) {
+  if (reminderStore.reminders?.length > 0) {
     const index = reminderStore.reminders.findIndex((reminder) => reminder.id);
     selectedReminderId.value =
       index !== -1 ? reminderStore.reminders[index].id : null;

@@ -57,6 +57,7 @@ export const useTrigger = defineStore(
         id: null,
         on: null,
       };
+      params.value.show = false;
     };
 
     return {

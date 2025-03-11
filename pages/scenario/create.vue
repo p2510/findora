@@ -23,25 +23,19 @@
           <circle cx="50%" cy="100%" r="4" fill="#2563eb" />
         </svg>
 
-        <!-- Action -->
-        <div
-          class="rounded-2xl bg-slate-100 p-3 border-[1.7px] border-solid border-blue-600/20 hover:border-blue-600 hover:shadow-md transition duration-300 ease-in-out cursor-pointer"
-        >
-          <div class="rounded-2xl bg-white">
-            <p class="text-slate-800 text-md p-2 bg-slate-200 rounded-t-2xl">
-              Action
-            </p>
-            <p
-              class="text-slate-800/80 text-sm px-2 py-4 bg-white rounded-b-2xl"
-            >
-              Le résultat après déclenchement. <br />
-              Clique pour choisir
-            </p>
-          </div>
-        </div>
+        <!-- Action/Message -->
+        <ScenarioAction />
       </div>
       <div class="col-span-4 pt-20">
         <ScenarioParams />
+      </div>
+      <div class="col-span-full flex justify-center items-center">
+        <button
+          v-if="triggerStore.triggerSelected && messageStore.content.length > 0"
+          class="text-white bg-blue-600 hover:bg-blue-600/70 rounded-md shadow-md text-md py-3 px-5 transition-all duration-300 ease-in-out"
+        >
+          Créer ce scénario
+        </button>
       </div>
     </section>
   </section>
@@ -57,7 +51,9 @@ useHead({
     "Findora scenario -  Créez vos scénarios de relance et laissez l'automatisation faire le reste ! ✨",
 });
 import { useTrigger } from "@/stores/scenario/trigger";
+import { useMessage } from "@/stores/scenario/message";
 const triggerStore = useTrigger();
+const messageStore = useMessage();
 </script>
 <style scoped>
 .bg-dotted-pattern {

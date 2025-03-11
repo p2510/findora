@@ -26,11 +26,23 @@ export const useParams = defineStore(
 
     // params
 
-    const $reset = () => {};
+    const $reset = () => {
+      paramsCustomer1.value = {
+        created_at: {
+          condition: null,
+          value: null,
+        },
+        phone_is: {
+          condition: null,
+          value: null,
+        },
+      };
+    };
 
     return {
       updateParamsCustomer1,
       paramsCustomer1,
+      $reset,
     };
   },
   {

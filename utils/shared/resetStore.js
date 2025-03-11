@@ -6,6 +6,9 @@ import { useReminder } from "@/stores/reminder";
 import { useGroup } from "@/stores/group";
 import { useTemplate } from "@/stores/template";
 import { useWhatsapp } from "@/stores/whatsapp";
+import { useTrigger } from "@/stores/scenario/trigger";
+import { useParams } from "@/stores/scenario/params";
+import { useMessage } from "@/stores/scenario/message";
 export const reset = () => {
   const stat = useStat();
   const user = useUser();
@@ -15,6 +18,10 @@ export const reset = () => {
   const group = useGroup();
   const template = useTemplate();
   const whatsapp = useWhatsapp();
+  const trigger = useTrigger();
+  const params = useParams();
+  const message = useMessage();
+
   stat.$reset();
   user.$reset();
   customer.$reset();
@@ -23,4 +30,7 @@ export const reset = () => {
   group.$reset();
   template.$reset();
   whatsapp.$reset();
+  trigger.$reset();
+  params.$reset();
+  message.$reset();
 };

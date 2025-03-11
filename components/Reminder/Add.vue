@@ -19,8 +19,8 @@
           <form class="grid grid-cols-12 gap-4" @submit.prevent="AddReminder">
             <div class="col-span-full space-y-[1px]">
               <label for="payment_date" class="text-gray-500 font-semibold"
-                >Date </label
-              >
+                >Date
+              </label>
               <InputFiled
                 v-model="formData.send_date"
                 type="date"
@@ -56,8 +56,8 @@
             </div>
             <div class="col-span-full space-y-[1px]">
               <label for="content" class="text-gray-500 font-semibold"
-                >Contenu de votre message </label
-              >
+                >Contenu de votre message
+              </label>
               <textarea
                 v-model="formData.message"
                 class="text-sm hover:shadow-sm p-2 rounded-lg bg-white outline-none border-2 border-solid focus:rounded-lg transition duration-300 ease-in-out text-slate-800/80 w-full focus:border-[#f3c775]"
@@ -171,8 +171,6 @@ watch(template_content, (newContent) => {
   formData.value.message = newContent; // dynamically update message when template changes
 });
 
-const status = ref("idle");
-
 // send reminder
 const isRequestInProgress = ref(false);
 const errorMessage = ref("");
@@ -198,6 +196,12 @@ let AddReminder = async () => {
   }
 
   try {
+    if (whatsappStore.whatsapp_backlogs == null) {
+      errorMessage.value =
+        "Vous devez d'abord connecter votre WhatsApp. Pour cela, cliquez sur le bouton Intégration, puis sélectionnez WhatsApp.";
+      isAlertOpen.value = true;
+      return;
+    }
     const { data, error } = await supabase
       .from("reminders")
       .insert([
