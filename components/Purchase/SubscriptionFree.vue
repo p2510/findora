@@ -640,8 +640,8 @@ import { useUser } from "@/stores/user";
 const userStore = useUser();
 let byYear = ref(false);
 let suscribe = async (plan, type) => {
-  //const url = "https://app.myfindora.com/api/subscription/create";
-  const url = "http://localhost:3000/api/subscription/create";
+  const url = "https://app.myfindora.com/api/subscription/create";
+  
   try {
     const response = await fetch(url, {
       method: "POST",

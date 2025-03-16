@@ -6,7 +6,7 @@ export async function sendWhatsapp(
   userId
 ) {
   const url = "https://app.myfindora.com/api/send-campaign-whatsapp";
-  //const url = "http://localhost:3000/api/send-campaign-whatsapp";
+ 
   try {
     const response = await fetch(url, {
       method: "POST",

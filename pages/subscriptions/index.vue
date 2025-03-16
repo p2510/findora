@@ -296,7 +296,7 @@ let closeSuccessAlert = () => {
 
 let disableSubscription = async () => {
   const url = "https://app.myfindora.com/api/subscription/disable";
-  //const url = "http://localhost:3000/api/subscription/disable";
+ 
 
   try {
     const response = await fetch(url, {
