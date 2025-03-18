@@ -32,8 +32,10 @@
       <div class="col-span-full flex justify-center items-center">
         <button
           v-if="triggerStore.triggerSelected && messageStore.content.length > 0"
+          @click="handle"
           class="text-white bg-blue-600 hover:bg-blue-600/70 rounded-md shadow-md text-md py-3 px-5 transition-all duration-300 ease-in-out"
         >
+    
           Créer ce scénario
         </button>
       </div>
@@ -51,9 +53,18 @@ useHead({
     "Findora scenario -  Créez vos scénarios de relance et laissez l'automatisation faire le reste ! ✨",
 });
 import { useTrigger } from "@/stores/scenario/trigger";
+import { useParams } from "@/stores/scenario/params";
 import { useMessage } from "@/stores/scenario/message";
 const triggerStore = useTrigger();
+const paramsStore = useParams();
 const messageStore = useMessage();
+let handle=()=>{
+  console.log(triggerStore.data.id)
+  console.log(triggerStore.triggerSelected)
+  console.log(messageStore.content)
+  console.log(paramsStore.paramsCustomer)
+
+}
 </script>
 <style scoped>
 .bg-dotted-pattern {

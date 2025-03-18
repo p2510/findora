@@ -41,36 +41,7 @@
         <div v-if="errors.created_at.length" class="error text-xs pl-2">
           {{ errors.created_at[0] }}
         </div>
-        <div class="grid grid-cols-12 gap-2 items-center p-2">
-          <label class="text-xs text-slate-700 col-span-3"> Le numéro </label>
-          <div class="col-span-5 flex justify-center w-full">
-            <USelectMenu
-              searchable
-              searchable-placeholder="Trouvez une condition"
-              class="w-full"
-              v-model="formData.phone_is.condition"
-              placeholder="Condition"
-              :options="[
-                { id: 0, name: 'Est différent de' },
-                { id: 1, name: 'Est égal à' },
-              ]"
-              option-attribute="name"
-              size="xs"
-              color="black"
-              variant="none"
-              :ui="{
-                base: 'hover:shadow-sm rounded-lg bg-white outline-none border-2 border-solid focus:rounded-lg transition duration-300 ease-in-out text-slate-800/80 w-full focus:border-blue-600',
-              }"
-            />
-          </div>
-          <div class="col-span-4 flex justify-center w-full">
-            <input
-              v-model="formData.phone_is.value"
-              type="text"
-              class="text-xs p-[4px] w-full rounded-md hover:shadow-sm bg-white outline-none border-2 border-solid focus:rounded-lg transition duration-300 ease-in-out text-slate-800/80 focus:border-blue-600"
-            />
-          </div>
-        </div>
+
 
         <div class="flex justify-center pt-4 gap-2">
           <UButton
@@ -114,15 +85,13 @@ import { useCustomer1 } from "@/composables/Scenario/useCustomer1";
 const { errors, validateForm } = useCustomer1();
 import { useParams } from "@/stores/scenario/params";
 const paramsStore = useParams();
-const { paramsCustomer1 } = paramsStore;
+const { paramsCustomer } = paramsStore;
 
 let formData = ref({
-  created_at: paramsCustomer1?.created_at
-    ? { ...paramsCustomer1.created_at }
+  created_at: paramsCustomer?.created_at
+    ? { ...paramsCustomer.created_at }
     : { condition: "", value: "" },
-  phone_is: paramsCustomer1?.phone_is
-    ? { ...paramsCustomer1.phone_is }
-    : { condition: "", value: "" },
+  
 });
 let isSuccessOpen = ref(false);
 let closeSuccessAlert = () => {
@@ -140,7 +109,7 @@ const confirm = () => {
     isRequestInProgress.value = false;
     return;
   }
-  paramsStore.updateParamsCustomer1(formData.value);
+  paramsStore.updateParamsCustomer(formData.value);
   isRequestInProgress.value = false;
   isSuccessOpen.value = true;
 };
@@ -149,11 +118,7 @@ const reset = () => {
     condition: null,
     value: null,
   };
-  formData.value.phone_is = {
-    condition: null,
-    value: null,
-  };
-  paramsStore.updateParamsCustomer1(formData.value);
+  paramsStore.updateParamsCustomer(formData.value);
 };
 </script>
 <style scoped>

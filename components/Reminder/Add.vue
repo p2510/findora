@@ -1,6 +1,8 @@
 <template>
   <div>
+
     <button
+  
       @click="isOpen = true"
       class="group flex items-center gap-1.5 w-full text-sm rounded-md text-white bg-slate-800 hover:bg-slate-700 transition ease-in-out duration-300 p-2"
     >
@@ -113,7 +115,7 @@
         @close-alert="closeSuccessAlert"
       >
         <template #message>
-          <p>Votre relance a été programmée avec succès .</p>
+          <p >Votre relance a été programmée avec succès .</p>
         </template>
       </AlertModal>
     </div>
@@ -200,6 +202,8 @@ let AddReminder = async () => {
       errorMessage.value =
         "Vous devez d'abord connecter votre WhatsApp. Pour cela, cliquez sur le bouton Intégration, puis sélectionnez WhatsApp.";
       isAlertOpen.value = true;
+      isRequestInProgress.value = false;
+
       return;
     }
     const { data, error } = await supabase
@@ -223,15 +227,14 @@ let AddReminder = async () => {
       } else {
         errorMessage.value = error.message;
       }
-      isAlertOpen.value = true; // Affichage de l'alerte
+      isAlertOpen.value = true; 
       isRequestInProgress.value = false;
       isOpen.value = false;
     } else {
       reminderStore.updateReminders();
       stat.fetchReminders();
       template.fetchTemplate();
-      // Réinitialisation des champs si la soumission a réussi
-      const currentDate = new Date(); // Date d'aujourd'hui
+      const currentDate = new Date(); 
       const sendDate = new Date(formData.value.send_date); // Date de send_date
       const currentDateInSeconds = currentDate.getTime() / 1000;
       const sendDateInSeconds = sendDate.getTime() / 1000;

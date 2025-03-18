@@ -30,8 +30,8 @@ export const useTrigger = defineStore(
     });
     const triggerDescription = computed(() => {
       if (data.value.id == 1) return "Lorsqu'un nouveau client est ajouté";
-      if (data.value.id == 2) return "Si le client ajouté est un particulier";
-      if (data.value.id == 3) return " Si le client ajouté est une entreprise";
+      if (data.value.id == 2) return "Lorsqu'un client particulier est ajouté ";
+      if (data.value.id == 3) return " Lorsqu'un client entreprise est ajouté  ";
       if (data.value.id == 4) return " Lorsqu'un nouveau paiement est ajouté";
       if (data.value.id == 5)
         return "Si le montant du paiement est supérieur à ";

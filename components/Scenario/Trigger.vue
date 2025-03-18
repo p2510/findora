@@ -67,7 +67,7 @@
                 @click="newTrigger(2, 'customer')"
                 class="text-sm text-left w-full gap-2 rounded-lg transition-all duration-200 ease-in-out py-3 pl-4 pr-10 text-slate-800 bg-blue-600/20 hover:bg-blue-600/40"
               >
-                Si le client ajouté est un particulier
+              Lorsqu'un client particulier est ajouté
               </button>
             </li>
             <li>
@@ -75,7 +75,7 @@
                 @click="newTrigger(3, 'customer')"
                 class="text-sm text-left w-full gap-2 rounded-lg transition-all duration-200 ease-in-out py-3 pl-4 pr-10 text-slate-800 bg-blue-600/20 hover:bg-blue-600/40"
               >
-                Si le client ajouté est une entreprise
+              Lorsqu'un client entreprise est ajouté
               </button>
             </li>
           </ul>

@@ -24,7 +24,7 @@
               new Date(users.subscription.start_at).getMonth() + 1
             ) > new Date())
         "
-      >
+      > 
         <PurchaseSubscriptionFree />
       </div>
       <div v-else>

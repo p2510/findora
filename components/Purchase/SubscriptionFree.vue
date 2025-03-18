@@ -64,7 +64,7 @@
                 clip-rule="evenodd"
               />
             </svg>
-            Gestion jusqu'à 10 clients
+            Gestion de clients illimités
           </li>
           <li class="flex gap-x-3">
             <svg
@@ -80,7 +80,7 @@
                 clip-rule="evenodd"
               />
             </svg>
-            Gestion jusqu'à 10 paiements
+            Gestion de paiements illimités
           </li>
 
           <li class="flex gap-x-3 ">
@@ -97,7 +97,7 @@
                 clip-rule="evenodd"
               />
             </svg>
-            Relances automatiques
+            Relances automatiques limités
           </li>
 
           <li class="flex gap-x-3 ">
@@ -114,7 +114,7 @@
                 clip-rule="evenodd"
               />
             </svg>
-            Automatisation whatsapp
+            Automatisation whatsapp limités
           </li>
           <li class="flex gap-x-3 text-slate-400">
             <svg
@@ -131,7 +131,7 @@
                 d="M6 18 18 6M6 6l12 12"
               />
             </svg>
-            Modules complémentaires
+            Intégrations complémentaires
           </li>
           <li class="flex gap-x-3 text-slate-400">
             <svg
@@ -427,7 +427,7 @@
                 d="M6 18 18 6M6 6l12 12"
               />
             </svg>
-            Modules complémentaires
+            Intégrations  complémentaires
           </li>
           <li class="flex gap-x-3">
             <svg
@@ -579,7 +579,7 @@
                 clip-rule="evenodd"
               />
             </svg>
-            Modules complémentaires
+            Intégrations complémentaires
           </li>
 
           <li class="flex gap-x-3">
