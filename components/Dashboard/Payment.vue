@@ -41,7 +41,7 @@
                     payment.customers.name
                   }}</span>
                   <span class="text-xs lg:text-sm text-slate-800/60"
-                    >+225 {{ payment.customers.phone }}</span
+                    >{{ payment.customers.phone }}</span
                   >
                 </p>
               </div>
