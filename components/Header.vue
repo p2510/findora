@@ -181,7 +181,7 @@
                     >
                   </p>
                   <p class="text-xs text-slate-950/80">
-                    Créez vos scénarios de relance et laissez faire le reste !
+                    Créez vos scénarios  et laissez faire le reste !
                   </p>
                 </div>
               </NuxtLink>

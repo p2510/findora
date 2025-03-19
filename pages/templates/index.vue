@@ -47,7 +47,8 @@
 
         <SkeletonTemplateCard v-if="template.template == null" />
         <div class="space-y-4" v-if="template.template !== null">
-          <SkeletonNotFound
+          <SkeletonNotFound 
+           @click="isOpen = true"
             v-if="template.template.length == 0"
             title="Aucun template détecté"
             subtitle="actuellement"

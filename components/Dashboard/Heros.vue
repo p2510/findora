@@ -14,7 +14,8 @@
           </p>
         </h4>
       </div>
-      <NuxtLink to="/whatsapp" class="animate-bounce text-slate-800 px-4 py-2 rounded-3xl  bg-[#f3c775] hover:bg-[#d6b77c]  hover:shadow-sm transition duration-300 ease-in-out">Connectez mon whatsapp</NuxtLink>
+      <a href="https://youtu.be/tFQJnCIQHxE" target='_blank' class="animate-bounce text-slate-800 px-4 py-2 rounded-3xl  bg-[#f3c775] hover:bg-[#d6b77c]  hover:shadow-sm transition duration-300 ease-in-out">
+        Connectez mon whatsapp</a>
     </div>
     <h2 class="text-4xl text-slate-950/80 tracking-tight ">
       Heureux de vous revoir ,
