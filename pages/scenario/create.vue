@@ -35,11 +35,32 @@
           @click="handle"
           class="text-white bg-blue-600 hover:bg-blue-600/70 rounded-md shadow-md text-md py-3 px-5 transition-all duration-300 ease-in-out"
         >
-    
           Créer ce scénario
         </button>
       </div>
     </section>
+    <!-- Alerte d'erreur -->
+    <div v-if="isAlertOpen">
+      <AlertModal title="Erreur" type="error" @close-alert="closeErrorAlert">
+        <template #message>
+          <p>
+            {{ errorMessage }}
+          </p>
+        </template>
+      </AlertModal>
+    </div>
+
+    <div v-if="isSuccessOpen">
+      <AlertModal
+        title="scénario crée"
+        type="success"
+        @close-alert="closeSuccessAlert"
+      >
+        <template #message>
+          <p>Votre scénario a été créé avec succès.</p>
+        </template>
+      </AlertModal>
+    </div>
   </section>
 </template>
 
@@ -50,21 +71,88 @@ definePageMeta({
 });
 useHead({
   title:
-    "Findora scenario -  Créez vos scénarios de relance et laissez l'automatisation faire le reste ! ✨",
+    "Findora scenario -  Créez vos scénarios d et laissez l'automatisation faire le reste ! ✨",
 });
 import { useTrigger } from "@/stores/scenario/trigger";
 import { useParams } from "@/stores/scenario/params";
 import { useMessage } from "@/stores/scenario/message";
+import { useWhatsapp } from "@/stores/whatsapp";
+
 const triggerStore = useTrigger();
 const paramsStore = useParams();
 const messageStore = useMessage();
-let handle=()=>{
-  console.log(triggerStore.data.id)
-  console.log(triggerStore.triggerSelected)
-  console.log(messageStore.content)
-  console.log(paramsStore.paramsCustomer)
+const whatsappStore = useWhatsapp();
 
-}
+const supabase = useSupabaseClient();
+const user = useSupabaseUser();
+
+const isRequestInProgress = ref(false);
+const errorMessage = ref("");
+const isAlertOpen = ref(false);
+let closeErrorAlert = () => {
+  isAlertOpen.value = false;
+};
+const isSuccessOpen = ref(false);
+let closeSuccessAlert = () => {
+  isSuccessOpen.value = false;
+};
+
+let handle = async () => {
+  isRequestInProgress.value = true;
+
+  console.log(triggerStore.data.id);
+  console.log(triggerStore.triggerSelected);
+  console.log(messageStore.content);
+  console.log(paramsStore.paramsCustomer);
+  
+  try {
+    if (whatsappStore.whatsapp_backlogs == null) {
+      errorMessage.value =
+        "Vous devez d'abord connecter votre WhatsApp. Pour cela, cliquez sur le bouton Intégration, puis sélectionnez WhatsApp.";
+      isAlertOpen.value = true;
+      isRequestInProgress.value = false;
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("scenarios")
+      .insert([
+        {
+          created_by: user.value.id,
+          trigger_id: triggerStore.data.id,
+          trigger_on: triggerStore.triggerSelected,
+          params:
+            triggerStore.triggerSelected === "customer"
+              ? paramsStore.paramsCustomer
+              : {},
+          message: messageStore.content,
+          is_active: true,
+        },
+      ])
+      .select();
+      
+
+    if (error) {
+      console.log( error)
+      if (error.code === "23505") {
+        errorMessage.value = "Une erreur est survenue";
+      } else {
+        errorMessage.value = error.message;
+      }
+      isAlertOpen.value = true;
+      isRequestInProgress.value = false;
+    } else {
+      isSuccessOpen.value = true;
+      isRequestInProgress.value = false;
+      triggerStore.$reset();
+      paramsStore.$reset();
+      messageStore.$reset();
+    }
+  } catch (err) {
+    console.log( err)
+    isRequestInProgress.value = false;
+  }
+};
 </script>
 <style scoped>
 .bg-dotted-pattern {

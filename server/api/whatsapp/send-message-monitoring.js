@@ -11,15 +11,26 @@ export default defineEventHandler(async (event) => {
   const formatPhoneNumber = (phoneNumber) => {
     if (!phoneNumber.startsWith("+")) return phoneNumber;
 
-    const countryCode = phoneNumber.slice(1, 4);
-    const remainingNumber = phoneNumber.slice(4);
+    const countryCode = phoneNumber.slice(1, 4); // "225"
+    const remainingNumber = phoneNumber.slice(4); // Numéro sans l'indicatif
 
     if (countryCode === "225") {
-      return countryCode + remainingNumber.slice(2);
+        // Vérifier si les deux premiers chiffres après 225 sont "01"
+        if (remainingNumber.startsWith("01")) {
+            return countryCode + remainingNumber; // On garde le numéro entier
+        }
+        // Vérifier si le troisième et le quatrième chiffre après 225 sont "00"
+        if (remainingNumber.length >= 4 && remainingNumber[2] === "0" && remainingNumber[3] === "0") {
+            return countryCode + remainingNumber; // On garde le numéro entier
+        }
+
+        return countryCode + remainingNumber.slice(2); // Sinon, on slice
     } else {
-      return phoneNumber.slice(1);
+        return phoneNumber.slice(1); // On enlève juste le "+"
     }
-  };
+};
+
+
 
   const sendMessageToCustomer = async (customer, content, token) => {
     const url = "https://gate.whapi.cloud/messages/text";
