@@ -166,7 +166,7 @@
             </MazBtn>
 
             <MazBtn color="transparent" class="col-span-full">
-              <NuxtLink to="/dashboard" class="flex gap-2 items-center w-full">
+              <NuxtLink to="/dashoard" class="flex gap-2 items-center w-full">
                 <img
                   src="/public/image/scenario.png"
                   alt=""

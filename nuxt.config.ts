@@ -3,7 +3,20 @@ export default defineNuxtConfig({
   ssr: false,
   compatibilityDate: '2024-04-03',
   devtools: { enabled: true },
-  modules: ['@nuxtjs/supabase', "@nuxt/ui","maz-ui/nuxt",'@pinia/nuxt'],
+  modules: [
+    '@nuxtjs/supabase',
+    "@nuxt/ui",
+    "maz-ui/nuxt",
+    '@pinia/nuxt',
+    "nuxt-module-hotjar",
+  ],
+  hotjar: {
+    hotjarId: 5242761,
+    scriptVersion: 6,
+
+    
+    debug: true
+  }
   pinia: {
     storesDirs: ['./stores/**'],
     
