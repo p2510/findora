@@ -13,9 +13,9 @@ export default defineNuxtConfig({
   hotjar: {
     hotjarId: 5242761,
     scriptVersion: 6,
-    debug: true
+    debug: false
   },
-  
+
   pinia: {
     storesDirs: ['./stores/**'],
     

@@ -24,6 +24,9 @@ const listRoute = ["/", "/confirm"];
 const shouldHideLayout = computed(() => listRoute.includes(route.path));
 onMounted(() => {
   initialize()
+  if (window.hj) {
+    window.hj("stateChange", route.path);
+  }
 })
 </script>
 <style></style>
