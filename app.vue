@@ -9,6 +9,8 @@
 <script setup>
 import { computed } from "vue";
 import { useRoute } from "#app";
+const { initialize } = useHotjar()
+
 useHead({
   script: [
     {
@@ -20,5 +22,8 @@ useHead({
 const route = useRoute();
 const listRoute = ["/", "/confirm"];
 const shouldHideLayout = computed(() => listRoute.includes(route.path));
+onMounted(() => {
+  initialize()
+})
 </script>
 <style></style>
