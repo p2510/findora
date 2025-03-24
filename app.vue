@@ -7,7 +7,7 @@
   </div>
 </template>
 <script setup>
-import { computed } from "vue";
+import { computed,watch } from "vue";
 import { useRoute } from "#app";
 const { initialize } = useHotjar()
 
