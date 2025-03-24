@@ -22,16 +22,12 @@ useHead({
 const route = useRoute();
 const listRoute = ["/", "/confirm"];
 const shouldHideLayout = computed(() => listRoute.includes(route.path));
+function onConsent() {
+  initialize()
+}
 onMounted(() => {
   initialize()
-  if (window.hj) {
-    window.hj("stateChange", route.path);
-  }
-  watch(route, (newRoute) => {
-  if (window.hj) {
-    window.hj("stateChange", newRoute.path);
-  }
-});
+  
 })
 
 </script>
