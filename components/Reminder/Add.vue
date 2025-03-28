@@ -1,8 +1,6 @@
 <template>
   <div>
-
     <button
-  
       @click="isOpen = true"
       class="group flex items-center gap-1.5 w-full text-sm rounded-md text-white bg-slate-800 hover:bg-slate-700 transition ease-in-out duration-300 p-2"
     >
@@ -21,7 +19,7 @@
           <form class="grid grid-cols-12 gap-4" @submit.prevent="AddReminder">
             <div class="col-span-full space-y-[1px]">
               <label for="payment_date" class="text-gray-500 font-semibold"
-                >Date
+                >Date d'envoi
               </label>
               <InputFiled
                 v-model="formData.send_date"
@@ -115,7 +113,7 @@
         @close-alert="closeSuccessAlert"
       >
         <template #message>
-          <p >Votre relance a été programmée avec succès .</p>
+          <p>Votre relance a été programmée avec succès .</p>
         </template>
       </AlertModal>
     </div>
@@ -198,6 +196,7 @@ let AddReminder = async () => {
   }
 
   try {
+
     if (whatsappStore.whatsapp_backlogs == null) {
       errorMessage.value =
         "Vous devez d'abord connecter votre WhatsApp. Pour cela, cliquez sur le bouton Intégration, puis sélectionnez WhatsApp.";
@@ -227,14 +226,14 @@ let AddReminder = async () => {
       } else {
         errorMessage.value = error.message;
       }
-      isAlertOpen.value = true; 
+      isAlertOpen.value = true;
       isRequestInProgress.value = false;
       isOpen.value = false;
     } else {
       reminderStore.updateReminders();
       stat.fetchReminders();
       template.fetchTemplate();
-      const currentDate = new Date(); 
+      const currentDate = new Date();
       const sendDate = new Date(formData.value.send_date); // Date de send_date
       const currentDateInSeconds = currentDate.getTime() / 1000;
       const sendDateInSeconds = sendDate.getTime() / 1000;

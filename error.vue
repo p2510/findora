@@ -14,7 +14,7 @@
           <p class="mt-4 text-gray-500">Nous ne trouvons pas cette page.</p>
   
           <NuxtLink
-            to="/"
+            to="/dashboard"
             class="mt-6 inline-block text-slate-700 hover:text-white bg-[#f3c775] hover:bg-[#99732c] rounded-md shadow-md text-md p-3 transition-all duration-300 ease-in-out"
           >
             Retourner

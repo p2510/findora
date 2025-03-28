@@ -159,14 +159,14 @@
                 <div>
                   <p class="text-sm text-slate-950 text-left">Whatsapp</p>
                   <p class="text-xs text-slate-950/80">
-                    Automatisez vos relances et campagnes via WhatsApp
+                    Automatisez vos relances et campagnes via WhatsApp.
                   </p>
                 </div>
               </NuxtLink>
             </MazBtn>
 
             <MazBtn color="transparent" class="col-span-full">
-              <NuxtLink to="/dashoard" class="flex gap-2 items-center w-full">
+              <NuxtLink to="/scenario" class="flex gap-2 items-center w-full">
                 <img
                   src="/public/image/scenario.png"
                   alt=""
@@ -176,12 +176,33 @@
                   <p class="text-sm text-slate-950 text-left">
                     Scénario
                     <span
+                      class=" text-xs bg-[#f3c775] px-2 py-[1px] rounded-full text-slate-950"
+                      >Pour entreprise</span
+                    >
+                  </p>
+                  <p class="text-xs text-slate-950/80">
+                    Créez vos scénarios  et laissez faire le reste.
+                  </p>
+                </div>
+              </NuxtLink>
+            </MazBtn>
+            <MazBtn color="transparent" class="col-span-full">
+              <NuxtLink to="/api/jeton" class="flex gap-2 items-center w-full">
+                <img
+                  src="/public/image/api.png"
+                  alt=""
+                  class="w-10 h-10"
+                />
+                <div >
+                  <p class="text-sm text-slate-950 text-left">
+                    APIs
+                    <span
                       class="text-xs bg-[#f3c775] px-2 py-[1px] rounded-full text-slate-950"
                       >Pour entreprise</span
                     >
                   </p>
                   <p class="text-xs text-slate-950/80">
-                    Créez vos scénarios  et laissez faire le reste !
+                    Intégrez à votre Saas ou avec vos propres solutions.
                   </p>
                 </div>
               </NuxtLink>

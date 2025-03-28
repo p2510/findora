@@ -6,7 +6,7 @@
 
 <script setup>
 definePageMeta({
-  middleware: "auth",
+  middleware: ["auth","is-entreprise"],
   alias: "/scenario/mes-scenarios",
 });
 useHead({

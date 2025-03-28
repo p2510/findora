@@ -44,6 +44,15 @@
           </div>
         </form>
 
+        <p class="text-slate-950/20 text-xs font-semibold pt-3">Ou</p>
+        <a
+          target="_blank"
+          href="https://myfindora.com/creer-un-compte"
+          class="text-slate-700 text-sm underline hover:text-slate-950 transition duration-300 ease-in-out"
+        >
+          Créer un compte
+        </a>
+
         <div v-if="isAlertOpen">
           <AlertModal
             title="Accès Incorrect"
@@ -107,38 +116,39 @@ let login = async () => {
         emailRedirectTo: "http://localhost:3000/confirm",
       },
     })
+    .then(async (res) => {
+      if (res.data?.user) {
+        let { data: userData, error: userError } = await supabase
+          .from("users")
+          .select("*")
+          .single();
+        if (userData) {
+          user.updateInfo(userData);
+        }
+        let { data: subscriptionData, error: subscriptionError } =
+          await supabase.from("subscriptions").select("*").single();
+        if (subscriptionData) {
+          user.updateSubscription(subscriptionData);
+        }
+        let { data: whatsappData, error: whatsappError } = await supabase
+          .from("whatsapp_backlogs")
+          .select("*");
+        if (whatsappData) {
+          if (whatsappData.length == 0) {
+            whatsappStore.$reset();
+          } else {
+            whatsappStore.updateWhatsappBacklogs(whatsappData[0]);
+          }
+        }
+        return navigateTo("/dashboard");
+      }
+    })
     .finally(() => {
       isRequestInProgress.value = false;
     });
   if (error?.code === "invalid_credentials") {
     errorMessage.value = "Identifiants de connexion invalides";
     isAlertOpen.value = true;
-  }
-  if (data?.user) {
-    let { data: userData, error: userError } = await supabase
-      .from("users")
-      .select("*")
-      .single();
-    if (userData) {
-      user.updateInfo(userData);
-    }
-    let { data: subscriptionData, error: subscriptionError } = await supabase
-      .from("subscriptions")
-      .select("*")
-      .single();
-    if (subscriptionData) {
-      user.updateSubscription(subscriptionData);
-    }
-
-    let { data: whatsappData, error: whatsappError } = await supabase
-      .from("whatsapp_backlogs")
-      .select("*")
-      .single();
-    if (whatsappData) {
-      whatsappStore.updateWhatsappBacklogs(whatsappData);
-    }
-
-    return navigateTo("/confirm");
   }
 };
 </script>
