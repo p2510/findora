@@ -164,7 +164,7 @@
                 </div>
               </NuxtLink>
             </MazBtn>
-
+<!--
             <MazBtn color="transparent" class="col-span-full">
               <NuxtLink
                 to="/agent/config"
@@ -185,7 +185,7 @@
                 </div>
               </NuxtLink>
             </MazBtn>
-
+-->
             <MazBtn color="transparent" class="col-span-full">
               <NuxtLink to="/api/jeton" class="flex gap-2 items-center w-full">
                 <img src="/public/image/api.png" alt="" class="w-10 h-10" />
