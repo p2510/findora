@@ -660,6 +660,8 @@ let suscribe = async (plan, type) => {
       const paystack = new window.PaystackPop();
       paystack.resumeTransaction(json.fetchResponse.data.access_code);
     } else {
+      console.log(json);
+      
       alert(
         "Nous sommes actuellement en maintenance. Veuillez réessayer plus tard."
       );

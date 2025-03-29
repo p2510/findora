@@ -188,70 +188,56 @@ let errorMessage = ref(null);
 let isRequestInProgress = ref(false);
 let login = async () => {
   isRequestInProgress.value = true;
-  try {
-    const { data, error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth
+    .signInWithPassword({
       email: DataForms.value.email,
       password: DataForms.value.password,
       options: {
         emailRedirectTo: "http://localhost:3000/confirm",
       },
-    });
-
-    if (error) {
-      if (error.message === "Invalid login credentials") {
-        errorMessage.value = "Identifiants de connexion invalides";
-      } else {
-        errorMessage.value = "Erreur de connexion : " + error.message;
-      }
-      isAlertOpen.value = true;
-      return;
-    }
-
-    if (data?.user) {
-      const userId = data.user.id;
-
-      const { data: userData } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", userId)
-        .single();
-
-      if (userData) {
-        user.updateInfo(userData);
-      }
-
-      const { data: subscriptionData } = await supabase
-        .from("subscriptions")
-        .select("*")
-        .eq("user_id", userId)
-        .single();
-
-      if (subscriptionData) {
-        user.updateSubscription(subscriptionData);
-      }
-
-      const { data: whatsappData } = await supabase
-        .from("whatsapp_backlogs")
-        .select("*")
-        .eq("user_id", userId);
-
-      if (whatsappData) {
-        if (whatsappData.length === 0) {
-          whatsappStore.$reset();
-        } else {
-          whatsappStore.updateWhatsappBacklogs(whatsappData[0]);
+    })
+    .then(async (res) => {
+      
+ 
+      if (res.data?.user) {
+        let { data: userData, error: userError } = await supabase
+          .from("users")
+          .select("*")
+          .single();
+        if (userData) {
+          user.updateInfo(userData);
         }
+        let { data: subscriptionData, error: subscriptionError } =
+          await supabase.from("subscriptions").select("*").single();
+        if (subscriptionData) {
+          user.updateSubscription(subscriptionData);
+        }
+        let { data: whatsappData, error: whatsappError } = await supabase
+          .from("whatsapp_backlogs")
+          .select("*");
+        if (whatsappData) {
+          if (whatsappData.length == 0) {
+            whatsappStore.$reset();
+          } else {
+            whatsappStore.updateWhatsappBacklogs(whatsappData[0]);
+          }
+        }
+        return navigateTo("/dashboard");
+      }else{
+        if (res.error?.code === "invalid_credentials") {
+        errorMessage.value = "Identifiants de connexion invalides";
+        isAlertOpen.value = true;
       }
-
-      navigateTo("/dashboard");
-    }
-  } catch (err) {
-    console.error("Erreur serveur :", err);
-    errorMessage.value = "Une erreur est survenue. Veuillez réessayer.";
-    isAlertOpen.value = true;
-  } finally {
-    isRequestInProgress.value = false;
-  }
+      }
+    })
+    .catch((err) => {
+     
+     
+    })
+    .finally(() => {
+      
+      isRequestInProgress.value = false;
+    });
 };
 </script>
 

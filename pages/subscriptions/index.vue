@@ -316,6 +316,7 @@ let disableSubscription = async () => {
         " Votre abonnement a été résilié et vous ne serez pas facturé à la prochaine échéance.";
       users.updateSubscription({ status: "cancel" });
     } else {
+      
       errorMessage.value =
         "Nous sommes actuellement en maintenance. Veuillez réessayer plus tard";
       isAlertOpen.value = true;
