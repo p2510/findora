@@ -164,19 +164,18 @@
                 </div>
               </NuxtLink>
             </MazBtn>
-<!--
+
             <MazBtn color="transparent" class="col-span-full">
-              <NuxtLink to="/agent/config" class="flex gap-2 items-center w-full">
-                <img
-                  src="/public/image/ia.png"
-                  alt=""
-                  class="w-10 h-10"
-                />
+              <NuxtLink
+                to="/agent/config"
+                class="flex gap-2 items-center w-full"
+              >
+                <img src="/public/image/ia.png" alt="" class="w-10 h-10" />
                 <div>
                   <p class="text-sm text-slate-950 text-left">
                     Agent IA
                     <span
-                      class=" text-xs bg-[#f3c775] px-2 py-[1px] rounded-full text-slate-950"
+                      class="text-xs bg-[#f3c775] px-2 py-[1px] rounded-full text-slate-950"
                       >Pour entreprise</span
                     >
                   </p>
@@ -186,15 +185,11 @@
                 </div>
               </NuxtLink>
             </MazBtn>
-            -->
+
             <MazBtn color="transparent" class="col-span-full">
               <NuxtLink to="/api/jeton" class="flex gap-2 items-center w-full">
-                <img
-                  src="/public/image/api.png"
-                  alt=""
-                  class="w-10 h-10"
-                />
-                <div >
+                <img src="/public/image/api.png" alt="" class="w-10 h-10" />
+                <div>
                   <p class="text-sm text-slate-950 text-left">
                     APIs
                     <span
@@ -208,7 +203,7 @@
                 </div>
               </NuxtLink>
             </MazBtn>
-       
+
             <MazBtn color="transparent" class="col-span-full">
               <NuxtLink to="/scenario" class="flex gap-2 items-center w-full">
                 <img
@@ -220,12 +215,12 @@
                   <p class="text-sm text-slate-950 text-left">
                     Scénario
                     <span
-                      class=" text-xs bg-[#f3c775] px-2 py-[1px] rounded-full text-slate-950"
+                      class="text-xs bg-[#f3c775] px-2 py-[1px] rounded-full text-slate-950"
                       >Pour entreprise</span
                     >
                   </p>
                   <p class="text-xs text-slate-950/80">
-                    Créez vos scénarios  et laissez faire le reste.
+                    Créez vos scénarios et laissez faire le reste.
                   </p>
                 </div>
               </NuxtLink>
