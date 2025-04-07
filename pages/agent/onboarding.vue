@@ -7,7 +7,7 @@
           Payez seulement pour ce que vous utilisez
         </h3>
         <p class="text-sm text-start text-slate-700">Crédit actuel</p>
-        <p class="text-3xl text-slate-800 pb-4">300</p>
+        <p class="text-3xl text-slate-800 pb-4">0</p>
         <p class="mb-6">
           <a
             target="_blank"
@@ -22,7 +22,7 @@
             color="warning"
             variant="soft"
             title="Facturation par conversation"
-            description="Chaque conversation est facturée à un crédit, indépendamment du nombre de messages échangés. Le coût d’un crédit est de 75 F CFA, soit environ 0,13 $. Merci de confirmer que l’adresse email utilisée pour l’achat est identique à celle de votre compte Findora. "
+            description="Chaque conversation est facturée à un crédit, indépendamment du nombre de messages échangés. Le coût d’un crédit est de 100 F CFA, soit environ 0,17 $. Merci de confirmer que l’adresse email utilisée pour l’achat est identique à celle de votre compte Findora. "
             icon="i-lucide:credit-card"
           />
         </div>
@@ -33,7 +33,7 @@
 
 <script setup>
 definePageMeta({
-  middleware:  ["auth","is-entreprise"],
+  middleware: ["auth", "is-entreprise"],
   alias: "/agent",
 });
 useHead({
