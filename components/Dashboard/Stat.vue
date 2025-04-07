@@ -9,11 +9,12 @@
         <p class="flex justify-between items-center text-sm text-white">
           <span>Mes clients</span>
 
-          <button
-            class="flex items-center justify-center rounded-full p-2 text-slate-800 bg-white"
+          <NuxtLink
+            to="/client"
+            class="flex items-center justify-center rounded-full p-2 text-slate-800 bg-white hover:scale-105 transition-all duration-300 ease-in-out"
           >
             <UIcon name="i-heroicons-arrow-up-right" />
-          </button>
+          </NuxtLink>
         </p>
         <div class="flex pt-3">
           <span class="text-white text-5xl">{{
@@ -39,11 +40,12 @@
         <p class="flex justify-between items-center text-sm text-slate-950">
           <span>Chiffre d'affaire</span>
 
-          <button
-            class="flex items-center justify-center rounded-full p-2 text-slate-950 bg-slate-800/20"
+          <NuxtLink
+            to="/paiement"
+            class="flex items-center justify-center rounded-full p-2 text-slate-950 bg-slate-800/20 hover:scale-105 transition-all duration-300 ease-in-out"
           >
             <UIcon name="i-heroicons-arrow-up-right" />
-          </button>
+          </NuxtLink>
         </p>
         <div class="flex pt-3">
           <span class="text-slate-950 text-5xl">{{
@@ -74,11 +76,12 @@
         <p class="flex justify-between items-center text-sm text-slate-950">
           <span>Relance automitisé</span>
 
-          <button
-            class="flex items-center justify-center rounded-full p-2 text-slate-950 bg-slate-800/20"
+          <NuxtLink
+            to="/relance"
+            class="flex items-center justify-center rounded-full p-2 text-slate-950 bg-slate-800/20 hover:scale-105 transition-all duration-300 ease-in-out"
           >
             <UIcon name="i-heroicons-arrow-up-right" />
-          </button>
+          </NuxtLink>
         </p>
         <div class="flex pt-3">
           <span class="text-slate-950 text-5xl">{{

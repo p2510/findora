@@ -9,6 +9,10 @@ import { useWhatsapp } from "@/stores/whatsapp";
 import { useTrigger } from "@/stores/scenario/trigger";
 import { useParams } from "@/stores/scenario/params";
 import { useMessage } from "@/stores/scenario/message";
+import { useAgentConfig } from "@/stores/agent/config";
+import { useAgentKnow } from "@/stores/agent/know";
+import { useChatStore } from "@/stores/agent/chat";
+
 export const reset = () => {
   const stat = useStat();
   const user = useUser();
@@ -21,6 +25,9 @@ export const reset = () => {
   const trigger = useTrigger();
   const params = useParams();
   const message = useMessage();
+  const agentConfig = useAgentConfig();
+  const agentKnow = useAgentKnow();
+  const chatStore = useChatStore();
 
   stat.$reset();
   user.$reset();
@@ -33,4 +40,7 @@ export const reset = () => {
   trigger.$reset();
   params.$reset();
   message.$reset();
+  agentConfig.$reset();
+  agentKnow.$reset();
+  chatStore.$reset();
 };

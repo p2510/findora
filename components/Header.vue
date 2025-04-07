@@ -164,12 +164,9 @@
                 </div>
               </NuxtLink>
             </MazBtn>
-<!--
+
             <MazBtn color="transparent" class="col-span-full">
-              <NuxtLink
-                to="/agent/config"
-                class="flex gap-2 items-center w-full"
-              >
+              <NuxtLink to="/agent" class="flex gap-2 items-center w-full">
                 <img src="/public/image/ia.png" alt="" class="w-10 h-10" />
                 <div>
                   <p class="text-sm text-slate-950 text-left">
@@ -185,7 +182,7 @@
                 </div>
               </NuxtLink>
             </MazBtn>
--->
+
             <MazBtn color="transparent" class="col-span-full">
               <NuxtLink to="/api/jeton" class="flex gap-2 items-center w-full">
                 <img src="/public/image/api.png" alt="" class="w-10 h-10" />
@@ -203,7 +200,7 @@
                 </div>
               </NuxtLink>
             </MazBtn>
-
+            <!--
             <MazBtn color="transparent" class="col-span-full">
               <NuxtLink to="/scenario" class="flex gap-2 items-center w-full">
                 <img
@@ -225,6 +222,7 @@
                 </div>
               </NuxtLink>
             </MazBtn>
+            -->
           </div>
         </template>
       </MazDropdown>

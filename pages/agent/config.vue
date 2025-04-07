@@ -1,21 +1,24 @@
 <template>
   <section class="mt-14">
-    <ApiNav />
+    <AgentNav />
+    <div class="2xl:h-screen">
+      <div class="2xl:h-3/4 2xl:overflow-y-scroll">
+        <AgentConfigInfo />
+        <AgentConfigKnow />
+      </div>
+    </div>
   </section>
 </template>
 
 <script setup>
-import { onMounted } from "vue";
+import { ref } from "vue";
 definePageMeta({
-  middleware: ["auth"],
+  middleware:  ["auth","is-entreprise"],
   alias: "/agent/config",
 });
 useHead({
   title:
-    "Findora Agent IA Whatsapp - Économisez des heures avec notre agent IA intelligent.",
+    "Findora Agent  - Économisez des heures avec notre agent IA Whatsapp intelligent.",
 });
-
-
-
 
 </script>

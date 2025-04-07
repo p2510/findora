@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
         message: "Token d'accès introuvable.",
       };
     }
-
+ 
     // Insérer le token dans la table api_keys avec l'ID de l'utilisateur connecté
     const { data, error } = await supabase
       .from("api_keys")

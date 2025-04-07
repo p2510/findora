@@ -14,10 +14,17 @@ watch(
 </script>
 
 <template>
-  <div class="grid grid-cols-12 relative primary-font">
+  <div
+    class="grid grid-cols-12 relative primary-font"
+    :class="{ 'overflow-hidden h-screen': routeName === 'agent/chat' }"
+  >
     <Header class="col-span-12 fixed z-40" :name="routeName" />
+    
     <main
-      class="relative 2xl:fixed isolate col-span-12 hidden sm:grid grid-cols-12 gap-2 w-full mt-14 bg-gradient-to-r from-white to-[#eeeff0]/30"
+      :class="[
+        'relative isolate col-span-12 hidden sm:grid grid-cols-12 gap-2 w-full mt-14 bg-gradient-to-r from-white to-[#eeeff0]/30',
+        routeName !== '/agent/chat' ? '2xl:fixed' : '',
+      ]"
     >
       <div
         class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
@@ -47,9 +54,14 @@ watch(
           "
         />
       </div>
+
       <Nav
-        class="2xl:sticky 2xl:top-0 col-span-full xl:col-span-2 w-full xl:h-screen flex justify-center mt-8 xl:mt-0"
+        :class="[
+          'col-span-full xl:col-span-2 w-full xl:h-screen flex justify-center mt-8 xl:mt-0',
+          routeName !== '/agent/chat' ? '2xl:sticky 2xl:top-0' : '',
+        ]"
       />
+      
       <NuxtPage
         class="relative col-span-full xl:col-span-10 w-full px-4 xl:px-3"
       />
@@ -64,7 +76,8 @@ watch(
         <p class="text-center text-md text-slate-700">
           Findora n'est pe encore
           <span class="font-semibold">disponible </span>
-          sur téléphone. Vous pouvez vous connecter sur votre tablette ou ordinateur
+          sur téléphone. Vous pouvez vous connecter sur votre tablette ou
+          ordinateur
         </p>
       </div>
     </div>

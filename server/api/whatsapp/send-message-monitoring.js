@@ -31,7 +31,6 @@ export default defineEventHandler(async (event) => {
 };
 
 
-
   const sendMessageToCustomer = async (customer, content, token) => {
     const url = "https://gate.whapi.cloud/messages/text";
     const options = {

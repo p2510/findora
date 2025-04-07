@@ -28,7 +28,7 @@
         <span v-else-if="step == 1"> Connecter mon whatsapp</span>
       </transition>
     </button>
-    <UModal v-model="showModal">
+    <UModal v-model="showModal" :dismissible="false">
       <section class="flex justify-center py-4">
         <div class="bg-white p-6 text-center space-y-4">
           <h3 class="text-center text-md pt-3 text-slate-800">
@@ -95,7 +95,7 @@ let closeErrorAlert = () => {
 const qrCode = async () => {
   isProgress.value = true;
   const url = "https://app.myfindora.com/api/whatsapp/qr-code";
-  
+
   try {
     const response = await fetch(url, {
       method: "POST",
