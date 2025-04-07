@@ -83,7 +83,7 @@
             Gestion de paiements illimités
           </li>
 
-          <li class="flex gap-x-3 ">
+          <li class="flex gap-x-3">
             <svg
               class="h-6 w-5 flex-none text-[#f3c775]"
               viewBox="0 0 20 20"
@@ -100,7 +100,7 @@
             Relances automatiques limités
           </li>
 
-          <li class="flex gap-x-3 ">
+          <li class="flex gap-x-3">
             <svg
               class="h-6 w-5 flex-none text-[#f3c775]"
               viewBox="0 0 20 20"
@@ -166,6 +166,23 @@
               />
             </svg>
             Création et gestion de groupes
+          </li>
+          <li class="flex gap-x-3 text-slate-400">
+            <svg
+              class="h-6 w-5 flex-none text-slate-700"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 20 20"
+              stroke-width="1.5"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M6 18 18 6M6 6l12 12"
+              />
+            </svg>
+            0 Crédit Agent IA
           </li>
         </ul>
       </div>
@@ -427,7 +444,7 @@
                 d="M6 18 18 6M6 6l12 12"
               />
             </svg>
-            Intégrations  complémentaires
+            Intégrations complémentaires
           </li>
           <li class="flex gap-x-3">
             <svg
@@ -460,6 +477,23 @@
               />
             </svg>
             Création et gestion de groupes
+          </li>
+          <li class="flex gap-x-3 text-slate-400">
+            <svg
+              class="h-6 w-5 flex-none text-slate-700"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 20 20"
+              stroke-width="1.5"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M6 18 18 6M6 6l12 12"
+              />
+            </svg>
+            0 Crédit Agent IA
           </li>
         </ul>
         <div class="flex justify-center mt-6">
@@ -614,6 +648,22 @@
             </svg>
             Création et gestion de groupes
           </li>
+          <li class="flex gap-x-3">
+            <svg
+              class="h-6 w-5 flex-none text-[#f3c775]"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+              data-slot="icon"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            100 Crédits Agent IA 
+          </li>
         </ul>
         <div class="flex justify-center mt-6">
           <button
@@ -641,7 +691,7 @@ const userStore = useUser();
 let byYear = ref(false);
 let suscribe = async (plan, type) => {
   const url = "https://app.myfindora.com/api/subscription/create";
-  
+
   try {
     const response = await fetch(url, {
       method: "POST",
@@ -661,7 +711,7 @@ let suscribe = async (plan, type) => {
       paystack.resumeTransaction(json.fetchResponse.data.access_code);
     } else {
       console.log(json);
-      
+
       alert(
         "Nous sommes actuellement en maintenance. Veuillez réessayer plus tard."
       );

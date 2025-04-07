@@ -7,7 +7,7 @@
           Payez seulement pour ce que vous utilisez
         </h3>
         <p class="text-sm text-start text-slate-700">Crédit actuel</p>
-        <p class="text-3xl text-slate-800 pb-4">0</p>
+        <p class="text-3xl text-slate-800 pb-4">{{userStore.subscription.max_limit}}</p>
         <p class="mb-6">
           <a
             target="_blank"
@@ -32,6 +32,8 @@
 </template>
 
 <script setup>
+import { useUser } from "@/stores/user";
+const userStore = useUser();
 definePageMeta({
   middleware: ["auth", "is-entreprise"],
   alias: "/agent",

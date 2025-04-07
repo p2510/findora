@@ -18,6 +18,7 @@ export const useUser = defineStore(
       start_at: null,
       is_partner: null,
       status: null,
+      max_limit: 0,
     });
 
     // action
@@ -42,6 +43,7 @@ export const useUser = defineStore(
         start_at: null,
         is_partner: null,
         status: null,
+        max_limit: 0,
       };
     };
 
