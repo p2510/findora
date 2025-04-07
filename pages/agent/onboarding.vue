@@ -22,7 +22,7 @@
             color="warning"
             variant="soft"
             title="Facturation par conversation"
-            description="Chaque conversation est facturée à un crédit, indépendamment du nombre de messages échangés. Le coût d’un crédit est de 100 F CFA, soit environ 0,17 $. Merci de confirmer que l’adresse email utilisée pour l’achat est identique à celle de votre compte Findora. "
+            description="Chaque conversation est facturée à un crédit, indépendamment du nombre de messages échangés. Le coût d’un crédit est de 200 F CFA, soit environ 0,35 $. Merci de confirmer que l’adresse email utilisée pour l’achat est identique à celle de votre compte Findora. "
             icon="i-lucide:credit-card"
           />
         </div>
