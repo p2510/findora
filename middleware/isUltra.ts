@@ -5,10 +5,10 @@ export default defineNuxtRouteMiddleware(async (to, _from) => {
     .select("subscription_type")
     .single();
   if (subscriptionData) {
-    if (subscriptionData?.subscription_type !== "entreprise") {
-      return navigateTo("/acces-interdit/entreprise");
+    if (subscriptionData?.subscription_type !== "entreprise" && subscriptionData?.subscription_type !== "ultra") {
+      return navigateTo("/acces-interdit/ultra");
     }
   } else {
-    return navigateTo("/acces-interdit/entreprise");
+    return navigateTo("/acces-interdit/ultra");
   }
 });

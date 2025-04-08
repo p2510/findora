@@ -46,7 +46,7 @@
         />
       </div>
       <div class="mt-5 flex justify-center">
-        <button v-if="!apiKey" @click="generateApiKey" >
+        <button v-if="!apiKey" @click="generateApiKey">
           <span
             class="text-center flex items-center justify-center w-full gap-2 rounded-lg transition-all duration-200 ease-in-out py-3 pl-4 pr-10 text-white bg-gray-900 hover:bg-gray-800"
           >
@@ -55,7 +55,6 @@
               :class="isGenerate ? 'animate-pulse' : ''"
               >Générer une clé API</i
             >
-            
           </span>
         </button>
         <button v-if="apiKey" @click="revokeApiKey">
@@ -110,7 +109,7 @@ import { onMounted } from "vue";
 import { useUser } from "@/stores/user";
 const users = useUser();
 definePageMeta({
-  middleware: ["auth","is-entreprise"],
+  middleware: ["auth", "is-ultra"],
   alias: "/api/jeton",
 });
 useHead({
@@ -193,7 +192,6 @@ const revokeApiKey = async () => {
 onMounted(async () => {
   const { data, error } = await supabase.from("api_keys").select("*").single();
   if (data) {
-    
     apiKey.value = data?.key;
   }
 });

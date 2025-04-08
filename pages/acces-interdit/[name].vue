@@ -10,10 +10,15 @@
           <UIcon name="i-heroicons-exclamation-triangle" class="w-12 h-12" />
         </div>
         <h2 class="text-2xl font-semibold mb-2">Accès réservé</h2>
-        <p class="text-gray-600 mb-6">
+        <p class="text-gray-600 mb-6" v-if="name == 'entreprise'">
           Cette fonctionnalité est uniquement disponible pour les
-          <strong>comptes entreprise</strong>. Passez à un compte entreprise
-          pour débloquer cette option.
+          <strong>les abonnements entreprise</strong>. Passez à un abonnement
+          entreprise pour débloquer cette option.
+        </p>
+        <p class="text-gray-600 mb-6" v-else-if="name == 'ultra'">
+          Cette fonctionnalité est uniquement disponible pour les
+          <strong>les abonnements entreprise ou ultra</strong>. Passez à un
+          abonnement entreprise ou ultra pour débloquer cette option.
         </p>
         <NuxtLink
           to="/dashboard"
@@ -111,9 +116,9 @@
 <script setup>
 definePageMeta({
   middleware: ["auth"],
-  alias: "/acces-interdit",
 });
-
+const route = useRoute();
+const name = route.params.name;
 </script>
 <style scoped>
 @keyframes fadeIn {

@@ -169,11 +169,13 @@
               <NuxtLink to="/agent" class="flex gap-2 items-center w-full">
                 <img src="/public/image/ia.png" alt="" class="w-10 h-10" />
                 <div>
-                  <p class="text-sm text-slate-950 text-left">
-                    Agent IA
+                  <p
+                    class="text-sm text-slate-950 text-left flex items-center justify-between"
+                  >
+                    <span> Agent IA</span>
                     <span
                       class="text-xs bg-[#f3c775] px-2 py-[1px] rounded-full text-slate-950"
-                      >Pour entreprise</span
+                      >Uniquement entreprise</span
                     >
                   </p>
                   <p class="text-xs text-slate-950/80">
@@ -187,11 +189,13 @@
               <NuxtLink to="/api/jeton" class="flex gap-2 items-center w-full">
                 <img src="/public/image/api.png" alt="" class="w-10 h-10" />
                 <div>
-                  <p class="text-sm text-slate-950 text-left">
-                    APIs
+                  <p
+                    class="text-sm text-slate-950 text-left flex items-center justify-between"
+                  >
+                    <span> APIs</span>
                     <span
                       class="text-xs bg-[#f3c775] px-2 py-[1px] rounded-full text-slate-950"
-                      >Pour entreprise</span
+                      >Entreprise ou Ultra</span
                     >
                   </p>
                   <p class="text-xs text-slate-950/80">

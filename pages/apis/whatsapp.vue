@@ -1,5 +1,5 @@
 <template>
-  <section class="mt-14 h-5/6  overflow-y-auto">
+  <section class="mt-14 h-5/6 overflow-y-auto">
     <ApiNav class="" />
     <section class="space-y-4 grid grid-cols-12 items-bottom gap-4 pt-8">
       <div class="col-span-8 space-y-4 overflow-y-auto">
@@ -284,7 +284,7 @@
 <script setup>
 import MazAccordion from "maz-ui/components/MazAccordion";
 definePageMeta({
-  middleware: ["auth","is-entreprise"],
+  middleware: ["auth", "is-ultra"],
 
   alias: "/api/whatsapp",
 });
