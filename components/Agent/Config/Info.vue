@@ -1,16 +1,21 @@
 <template>
   <div class="flex justify-center">
     <section class="mt-8 p-5 w-full">
-      <h3 class="text-lg pb-5 text-slate-950 flex justify-between">
+      <h3
+        class="text-lg pb-5 text-slate-950 dark:text-white flex justify-between"
+      >
         <p class="flex gap-2 items-center">
           <span
             class="text-white flex items-center justify-center rounded-full px-3 py-[2px] bg-[#21a150]"
-            >1</span
           >
+            1
+          </span>
           <span class="font-[500]">Information Agent</span>
         </p>
         <p class="flex gap-2 items-center" v-if="configStore.config?.name">
-          <span class="text-sm text-slate-600">Status de l'agent</span>
+          <span class="text-sm text-slate-600 dark:text-slate-300"
+            >Status de l'agent</span
+          >
           <UToggle
             v-model="active"
             size="2xl"
@@ -23,20 +28,26 @@
       <form @submit.prevent="saveAgentConfig" class="grid grid-cols-12">
         <div class="col-span-full flex flex-col gap-6">
           <div class="w-1/4">
-            <label class="text-md text-slate-800">Nom d'agent</label>
-            <p class="text-xs text-slate-600 pb-2">Le nom de votre agent</p>
+            <label class="text-md text-slate-800 dark:text-white"
+              >Nom d'agent</label
+            >
+            <p class="text-xs text-slate-600 dark:text-slate-300 pb-2">
+              Le nom de votre agent
+            </p>
             <input
               v-model="agentName"
               type="text"
-              class="rounded-md text-sm p-2 bg-transparent outline-none border-[1.5px] border-solid focus:rounded-lg transition duration-300 ease-in-out text-slate-950 w-full focus:border-[#f3c775]"
+              class="rounded-md text-sm p-2 bg-transparent outline-none border-[1.5px] border-solid focus:rounded-lg transition duration-300 ease-in-out text-slate-950 dark:text-white w-full focus:border-[#f3c775] dark:bg-slate-700 dark:border-slate-600 dark:focus:border-[#f3c775]"
               required
             />
           </div>
 
           <!-- Sélection de la Personnalité -->
           <div>
-            <label class="text-md text-slate-800">Personnalité</label>
-            <p class="text-xs text-slate-600 pb-2">
+            <label class="text-md text-slate-800 dark:text-white"
+              >Personnalité</label
+            >
+            <p class="text-xs text-slate-600 dark:text-slate-300 pb-2">
               La personnalité de votre agent
             </p>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -47,8 +58,8 @@
                 class="cursor-pointer p-4 rounded-lg border transition-all duration-300 ease-in-out flex flex-col items-center hover:shadow-md"
                 :class="
                   selectedPersonality === personality.name
-                    ? 'bg-[#f3c775]/20 text-slate-950 border-[#dfac4f]'
-                    : 'bg-white opacity-80 border-gray-300'
+                    ? 'bg-[#f3c775]/20 text-slate-950 dark:text-white border-[#dfac4f]'
+                    : 'bg-white opacity-80 border-gray-300 dark:bg-slate-700 dark:border-slate-600 dark:text-white'
                 "
               >
                 <UIcon :name="personality.icon" class="w-8 h-8 mb-2" />
@@ -62,8 +73,10 @@
 
           <!-- Sélection de l'Objectif -->
           <div>
-            <label class="text-md text-slate-800">Objectif</label>
-            <p class="text-xs text-slate-600 pb-2">
+            <label class="text-md text-slate-800 dark:text-white"
+              >Objectif</label
+            >
+            <p class="text-xs text-slate-600 dark:text-slate-300 pb-2">
               Définissez le rôle principal de votre agent.
             </p>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -74,8 +87,8 @@
                 class="cursor-pointer p-4 rounded-lg border transition-all duration-300 ease-in-out flex flex-col items-center hover:shadow-md"
                 :class="
                   selectedGoal === goal.name
-                    ? 'bg-[#f3c775]/20 text-slate-950 border-[#dfac4f]'
-                    : 'bg-white opacity-80 border-gray-300'
+                    ? 'bg-[#f3c775]/20 text-slate-950 dark:text-white border-[#dfac4f]'
+                    : 'bg-white opacity-80 border-gray-300 dark:bg-slate-700 dark:border-slate-600 dark:text-white'
                 "
               >
                 <UIcon :name="goal.icon" class="w-8 h-8 mb-2" />
@@ -102,6 +115,7 @@
         </div>
       </form>
     </section>
+
     <div v-if="isAlertOpen">
       <AlertModal
         title="Informations incorrectes"
@@ -301,7 +315,7 @@ watch(active, async (oldValue, newValue) => {
       }
     } catch (err) {
       errorMessage.value =
-        "Une erreur s'est produite lors de l'enregistrement." + err;
+        "Une erreur s'est produite lors de l'enregistrement.";
       isAlertOpen.value = true;
     }
   }

@@ -15,7 +15,6 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { reset } from "@/utils/shared/resetStore";
-import { useUser } from "@/stores/user";
 import { useSupabaseClient } from "#imports";
 
 const supabase = useSupabaseClient();
@@ -30,8 +29,12 @@ const logout = async () => {
     const { error: logoutError } = await supabase.auth.signOut();
 
     if (logoutError) {
+      console.log("pas good");
+
       error.value = logoutError;
       return;
+    } else {
+      console.log("good");
     }
 
     // Réinitialiser le store et rediriger vers la page d'accueil

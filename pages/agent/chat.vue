@@ -2,16 +2,14 @@
   <section class="mt-14">
     <AgentNav />
     <div class="h-screen">
-      <div
-        class="2xl:h-3/4  grid grid-cols-12 pt-10 h-full"
-      >
+      <div class="sm:h-4/6 2xl:h-3/4 grid grid-cols-12 pt-10 h-full">
         <!-- Liste des conversations -->
         <div
-          class="col-span-4 2xl:col-span-3 h-full rounded-3xl px-5 pb-3 space-y-2 bg-transparent overflow-y-auto relative"
+          class="hidden md:block col-span-4 2xl:col-span-3 h-full rounded-3xl px-5 pb-3 space-y-2 bg-transparent overflow-y-auto relative dark:bg-slate-800 dark:text-white"
         >
           <div class="flex justify-center sticky top-0 z-10 shadow-sm mb-4">
             <ul
-              class="flex justify-center gap-4 items-center bg-slate-800 rounded-lg py-2 px-4 w-full"
+              class="flex justify-center gap-4 items-center bg-slate-800 rounded-lg py-2 px-4 w-full dark:bg-slate-700"
             >
               <!-- Bouton Tout -->
               <li
@@ -41,7 +39,7 @@
             </ul>
           </div>
 
-          <ol class="flex flex-col gap-2 divide-y-[1px]">
+          <ol class="flex flex-col gap-2 divide-y-[1px] dark:divide-slate-600">
             <li
               v-for="conversation in chatStore.filteredConversations"
               :key="conversation.id"
@@ -49,12 +47,12 @@
               class="cursor-pointer"
               :class="[
                 chatStore.selectedConversation?.id === conversation.id
-                  ? 'transition-all duration-200 bg-slate-100 scale-[1.02]'
+                  ? 'transition-all duration-200 bg-slate-100 scale-[1.02] dark:bg-slate-600'
                   : '',
               ]"
             >
               <div class="px-5 py-3 space-y-2">
-                <p class="flex justify-start items-center text-sm text-white">
+                <p class="flex justify-start items-center text-sm">
                   <img
                     :src="
                       'https://ui-avatars.com/api/?name=' +
@@ -64,25 +62,28 @@
                     alt=""
                     class="w-8 h-8 rounded-full"
                   />
-                  <span class="px-3 py-[2px] text-slate-950 rounded-full">
+                  <span
+                    class="px-3 py-[2px] text-slate-950 rounded-full dark:text-white"
+                  >
                     {{ conversation.name }}
                   </span>
                 </p>
                 <p
                   v-if="conversation.last_response"
-                  class="text-slate-700 text-xs"
+                  class="text-slate-700 text-xs dark:text-slate-300"
                 >
                   {{ chatStore.truncateText(conversation.last_response) }}
                 </p>
-                <p v-else class="text-slate-700 text-xs">
+                <p v-else class="text-slate-700 text-xs dark:text-slate-300">
                   {{ chatStore.truncateText(conversation.last_content) }}
                 </p>
 
                 <div
                   class="flex items-center justify-between text-white gap-2 pt-4"
                 >
-                  <span class="text-sm px-3 py-[2px] rounded-full inline">
-                  </span>
+                  <span
+                    class="text-sm px-3 py-[2px] rounded-full inline"
+                  ></span>
                   <span
                     class="text-blue-700 text-xs px-3 py-[2px] rounded-full inline"
                   >
@@ -106,11 +107,11 @@
         <!-- Zone d'affichage des messages -->
         <div
           v-if="chatStore.selectedConversation"
-          class="col-span-8 2xl:col-start-4 2xl:col-end-10 bg-transparent p-5"
+          class="hidden md:block col-span-8 2xl:col-start-4 2xl:col-end-10 bg-transparent p-5 dark:bg-slate-800 dark:text-white"
         >
           <h2 class="text-lg flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
-              <p class="rounded-full bg-slate-200 p-2 mr-2">
+              <p class="rounded-full bg-slate-200 p-2 mr-2 dark:bg-slate-600">
                 <img
                   src="/public/image/user.svg"
                   alt="User Avatar"
@@ -121,7 +122,7 @@
                 <span class="text-sm">
                   {{ chatStore.selectedConversation.name }}</span
                 >
-                <span class="text-sm text-slate-600"
+                <span class="text-sm text-slate-600 dark:text-slate-400"
                   >+{{ chatStore.selectedConversation.phone }}</span
                 >
               </p>
@@ -129,7 +130,7 @@
 
             <!-- Date et Statut -->
             <div class="flex items-center gap-2">
-              <span class="text-sm text-slate-600">{{
+              <span class="text-sm text-slate-600 dark:text-slate-400">{{
                 chatStore.formatDate(
                   chatStore.selectedConversation.last_message_at
                 )
@@ -153,6 +154,7 @@
               </span>
             </div>
           </h2>
+
           <div
             class="space-y-2 overflow-y-auto h-96 p-4 rounded-2xl"
             style="
@@ -167,7 +169,7 @@
             >
               <!-- Message utilisateur (aligné à gauche) -->
               <div class="flex justify-start items-start">
-                <p class="rounded-full bg-white p-2 mr-2">
+                <p class="rounded-full bg-white p-2 mr-2 dark:bg-slate-600">
                   <img
                     src="/public/image/user.svg"
                     alt="User Avatar"
@@ -176,11 +178,11 @@
                 </p>
                 <div class="flex flex-col gap-[2px] w-3/4">
                   <div
-                    class="p-3 rounded-lg bg-white text-slate-900 rounded-tl-none"
+                    class="p-3 rounded-lg bg-white text-slate-900 rounded-tl-none dark:bg-slate-700 dark:text-white"
                   >
                     <p class="text-sm">{{ message.content }}</p>
                   </div>
-                  <span class="text-slate-600 text-xs">{{
+                  <span class="text-slate-600 text-xs dark:text-slate-400">{{
                     chatStore.formatTime(message.created_at)
                   }}</span>
                 </div>
@@ -190,12 +192,12 @@
               <div v-if="message.response" class="flex justify-end items-start">
                 <div class="flex flex-col gap-[2px] w-3/4">
                   <div
-                    class="p-3 rounded-lg bg-blue-700 text-white rounded-tr-none"
+                    class="p-3 rounded-lg bg-blue-700 text-white rounded-tr-none dark:bg-blue-800"
                   >
                     <p class="text-sm">{{ message.response }}</p>
                   </div>
                   <p class="text-right">
-                    <span class="text-slate-600 text-xs">{{
+                    <span class="text-slate-600 text-xs dark:text-slate-400">{{
                       chatStore.formatTime(message.created_at)
                     }}</span>
                   </p>
@@ -212,32 +214,60 @@
         </div>
 
         <!-- Panel d'informations à droite -->
-        <div v-if="chatStore.selectedConversation" class="hidden 2xl:block 2xl:col-span-3 p-5">
-          <div class="bg-slate-100 rounded-xl p-5">
-            <h3 class="text-sm 2xl:text-md mb-4">Détails conversations</h3>
+        <div
+          v-if="chatStore.selectedConversation"
+          class="hidden 2xl:block 2xl:col-span-3 p-5 dark:bg-slate-800 dark:text-white"
+        >
+          <div class="bg-slate-100 rounded-xl p-5 dark:bg-slate-700">
+            <h3 class="text-sm 2xl:text-md mb-4 dark:text-white">
+              Détails conversations
+            </h3>
+
             <!-- Stats de la conversation -->
             <div class="space-y-4 mb-6">
               <div class="flex items-center justify-between">
-                <span class="text-xs 2xl:text-sm text-slate-700">Messages client</span>
-                <span class="text-xs 2xl:text-sm text-slate-800">{{
-                  chatStore.messages.length
-                }}</span>
+                <span
+                  class="text-xs 2xl:text-sm text-slate-700 dark:text-slate-400"
+                >
+                  Messages contact
+                </span>
+                <span
+                  class="text-xs 2xl:text-sm text-slate-800 dark:text-slate-300"
+                >
+                  {{ chatStore.messages.length }}
+                </span>
               </div>
               <div class="flex items-center justify-between">
-                <span class="text-xs 2xl:text-sm text-slate-700">Premier contact</span>
-                <span class="text-xs 2xl:text-sm text-slate-800">{{
-                  chatStore.messages.length
-                    ? chatStore.formatDate(chatStore.messages[0]?.created_at)
-                    : "N/A"
-                }}</span>
+                <span
+                  class="text-xs 2xl:text-sm text-slate-700 dark:text-slate-400"
+                >
+                  Premier échange
+                </span>
+                <span
+                  class="text-xs 2xl:text-sm text-slate-800 dark:text-slate-300"
+                >
+                  {{
+                    chatStore.messages.length
+                      ? chatStore.formatDate(chatStore.messages[0]?.created_at)
+                      : "N/A"
+                  }}
+                </span>
               </div>
               <div class="flex items-center justify-between">
-                <span class="text-xs 2xl:text-sm text-slate-700">Dernier contact</span>
-                <span class="text-xs 2xl:text-sm text-slate-800">{{
-                  chatStore.formatDateHuman(
-                    chatStore.selectedConversation.last_message_at
-                  )
-                }}</span>
+                <span
+                  class="text-xs 2xl:text-sm text-slate-700 dark:text-slate-400"
+                >
+                  Dernier contact
+                </span>
+                <span
+                  class="text-xs 2xl:text-sm text-slate-800 dark:text-slate-300"
+                >
+                  {{
+                    chatStore.formatDateHuman(
+                      chatStore.selectedConversation.last_message_at
+                    )
+                  }}
+                </span>
               </div>
             </div>
 
@@ -248,8 +278,8 @@
                 class="text-white bg-blue-600 hover:bg-blue-700 transition-all duration-300 ease-in-out w-full py-2 rounded-lg flex items-center justify-center gap-2"
               >
                 <UIcon name="i-heroicons-phone" class="w-4 h-4 text-white" />
-                Appeler</a
-              >
+                Appeler
+              </a>
               <button
                 @click="handleTakeOver"
                 :disabled="
@@ -281,7 +311,7 @@ import { onMounted } from "vue";
 import { useChatStore } from "@/stores/agent/chat";
 
 definePageMeta({
-  middleware:  ["auth","is-entreprise"],
+  middleware: ["auth", "is-entreprise"],
   alias: "/agent/chat",
 });
 

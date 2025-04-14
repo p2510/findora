@@ -1,4 +1,4 @@
-// plugins/pinia.client.ts
+// plugins/pinia.contact.ts
 import { defineNuxtPlugin } from "#app";
 import { createPinia } from "pinia";
 import piniaPluginPersistedstate from "pinia-plugin-persistedstate";

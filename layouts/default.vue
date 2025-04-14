@@ -15,23 +15,20 @@ watch(
 
 <template>
   <div
-    class="grid grid-cols-12 relative primary-font"
+    class="grid grid-cols-12 relative primary-font "
     :class="{ 'overflow-hidden h-screen': routeName === 'agent/chat' }"
   >
     <Header class="col-span-12 fixed z-40" :name="routeName" />
-    
+
     <main
-      :class="[
-        'relative isolate col-span-12 hidden sm:grid grid-cols-12 gap-2 w-full mt-14 bg-gradient-to-r from-white to-[#eeeff0]/30',
-        routeName !== '/agent/chat' ? '2xl:fixed' : '',
-      ]"
+      class="fixed isolate col-span-12 hidden sm:grid grid-cols-12 gap-2 w-full mt-8 dark:bg-transparent bg-gradient-to-r from-white dark:from-slate-800 dark:to-slate-950 to-[#eeeff0]/30 fox"
     >
       <div
         class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
         aria-hidden="true"
       >
         <div
-          class="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-white to-orange-200/70 opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
+          class="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] dark:bg-transparent bg-gradient-to-tr from-white to-orange-200/70 opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
           style="
             clip-path: polygon(
               74.1% 44.1%,
@@ -56,16 +53,14 @@ watch(
       </div>
 
       <Nav
-        :class="[
-          'col-span-full xl:col-span-2 w-full xl:h-screen flex justify-center mt-8 xl:mt-0',
-          routeName !== '/agent/chat' ? '2xl:sticky 2xl:top-0' : '',
-        ]"
+        class="col-span-full fixed z-30 xl:relative xl:col-span-3 2xl:col-span-2 w-full xl:h-screen inline-flex justify-center xl:flex xl:justify-start mt-8 xl:mt-0 pl-2 "
       />
-      
+
       <NuxtPage
-        class="relative col-span-full xl:col-span-10 w-full px-4 xl:px-3"
+        class="relative col-span-full xl:col-span-9 2xl:col-span-10 w-full px-4 xl:px-3 mt-36 xl:mt-20"
       />
     </main>
+
     <div
       class="col-span-12 block sm:hidden w-full mt-40 bg-gradient-to-r from-white to-[#eeeff0]/30 p-6"
     >

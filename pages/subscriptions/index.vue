@@ -8,7 +8,7 @@
           class="bg-clip-text text-transparent bg-gradient-to-r from-[#f3c775] to-[#5e4414]"
         >
           Findora
-        </span>
+        </span>  
       </h3>
       <p class="text-center text-sm text-slate-600 pt-6">
         Les partenaires Findora sont exemptés des abonnements pour l'utilisation
@@ -96,7 +96,7 @@
             :loading="status === 'pending'"
             sort-asc-icon="i-heroicons-arrow-up"
             sort-desc-icon="i-heroicons-arrow-down"
-            class="w-full h-80 overflow-y-scroll"
+            class="w-full sm:h-36 md:h-40 lg:h-44 xl:h-80 overflow-y-scroll"
             :ui="{
               td: { base: 'max-w-[0] truncate' },
               default: { checkbox: { color: 'gray' } },

@@ -1,8 +1,8 @@
 <template>
-  <section class="mt-14 h-5/6 overflow-y-auto">
+  <section class="mt-14 h-screen overflow-y-auto">
     <ApiNav class="" />
     <section class="space-y-4 grid grid-cols-12 items-bottom gap-4 pt-8">
-      <div class="col-span-8 space-y-4 overflow-y-auto">
+      <div class="col-span-full 2xl:col-span-8 space-y-4 overflow-y-auto">
         <MazAccordion class="w-full" @click="showExemple = 1">
           <template #title-1>
             <div class="flex items-center gap-3">
@@ -10,10 +10,10 @@
                 >POST</span
               >
               <h5>
-                <p class="text-sm lg:text-md text-slate-950">
+                <p class="text-sm lg:text-md text-slate-100">
                   Envoyer un message à un ou plusieurs numéros
                 </p>
-                <p class="text-xs lg:text-sm text-slate-600">
+                <p class="text-xs lg:text-sm text-slate-400">
                   Permet d'envoyer un message à un ou plusieurs numéros de
                   téléphone à la fois.
                 </p>
@@ -23,42 +23,40 @@
           <template #content-1>
             <div class="space-y-3">
               <ul>
-                <li class="">
-                  <p class="text-slate-700 text-md font-medium">URL</p>
-                  <p class="text-slate-700 text-sm">
+                <li>
+                  <p class="text-slate-200 text-md font-medium">URL</p>
+                  <p class="text-slate-200 text-sm">
                     https://api.myfindora.com/api/message/send
                   </p>
                 </li>
               </ul>
               <ul>
-                <li class="">
-                  <p class="text-slate-700 text-md font-medium">Body</p>
+                <li>
+                  <p class="text-slate-200 text-md font-medium">Body</p>
                 </li>
-
                 <ol class="flex gap-3">
-                  <li class="text-slate-700 text-xs">phone : Array</li>
-                  <li class="text-slate-700 text-xs">message : String</li>
+                  <li class="text-slate-200 text-xs">phone : Array</li>
+                  <li class="text-slate-200 text-xs">message : String</li>
                 </ol>
               </ul>
               <ul>
-                <li class="">
-                  <p class="text-slate-700 text-md font-medium">Réponse</p>
+                <li>
+                  <p class="text-slate-200 text-md font-medium">Réponse</p>
                 </li>
-
                 <ol class="flex gap-3">
-                  <li class="text-slate-700 text-xs flex items-center gap-2">
+                  <li class="text-slate-200 text-xs flex items-center gap-2">
                     <i class="w-2 h-2 rounded-full bg-emerald-700"></i> 200 :
                     Succès
                   </li>
-                  <li class="text-slate-700 text-xs flex items-center gap-2">
+                  <li class="text-slate-200 text-xs flex items-center gap-2">
                     <i class="w-2 h-2 rounded-full bg-red-700"></i> 400 :
                     Mauvais body
                   </li>
-                  <li class="text-slate-700 text-xs flex items-center gap-2">
+                  <li class="text-slate-200 text-xs flex items-center gap-2">
                     <i class="w-2 h-2 rounded-full bg-red-700"></i> 401 :
                     Authentification
                   </li>
-                  <li class="text-slate-700 text-xs flex items-center gap-2">
+                  <li class="text-slate-200 text-xs flex items-center gap-2">
                     <i class="w-2 h-2 rounded-full bg-red-700"></i> 500 : Erreur
                     du serveur
                   </li>
@@ -67,6 +65,7 @@
             </div>
           </template>
         </MazAccordion>
+
         <MazAccordion class="w-full" @click="showExemple = 2">
           <template #title-1>
             <div class="flex items-center gap-3">
@@ -74,10 +73,10 @@
                 >POST</span
               >
               <h5>
-                <p class="text-sm lg:text-md text-slate-950">
+                <p class="text-sm lg:text-md text-slate-100">
                   Programmer un ou plusieurs messages
                 </p>
-                <p class="text-xs lg:text-sm text-slate-600">
+                <p class="text-xs lg:text-sm text-slate-400">
                   Permet de planifier l'envoi d'un message à une date
                   ultérieure.
                 </p>
@@ -87,43 +86,41 @@
           <template #content-1>
             <div class="space-y-3">
               <ul>
-                <li class="">
-                  <p class="text-slate-700 text-md font-medium">URL</p>
-                  <p class="text-slate-700 text-sm">
+                <li>
+                  <p class="text-slate-200 text-md font-medium">URL</p>
+                  <p class="text-slate-200 text-sm">
                     https://api.myfindora.com/api/message/send-schedule
                   </p>
                 </li>
               </ul>
               <ul>
-                <li class="">
-                  <p class="text-slate-700 text-md font-medium">Body</p>
+                <li>
+                  <p class="text-slate-200 text-md font-medium">Body</p>
                 </li>
-
                 <ol class="flex gap-3">
-                  <li class="text-slate-700 text-xs">phone : Array</li>
-                  <li class="text-slate-700 text-xs">message : String</li>
-                  <li class="text-slate-700 text-xs">send_at : Date</li>
+                  <li class="text-slate-200 text-xs">phone : Array</li>
+                  <li class="text-slate-200 text-xs">message : String</li>
+                  <li class="text-slate-200 text-xs">send_at : Date</li>
                 </ol>
               </ul>
               <ul>
-                <li class="">
-                  <p class="text-slate-700 text-md font-medium">Réponse</p>
+                <li>
+                  <p class="text-slate-200 text-md font-medium">Réponse</p>
                 </li>
-
                 <ol class="flex gap-3">
-                  <li class="text-slate-700 text-xs flex items-center gap-2">
+                  <li class="text-slate-200 text-xs flex items-center gap-2">
                     <i class="w-2 h-2 rounded-full bg-emerald-700"></i> 200 :
                     Succès
                   </li>
-                  <li class="text-slate-700 text-xs flex items-center gap-2">
+                  <li class="text-slate-200 text-xs flex items-center gap-2">
                     <i class="w-2 h-2 rounded-full bg-red-700"></i> 400 :
                     Mauvais body
                   </li>
-                  <li class="text-slate-700 text-xs flex items-center gap-2">
+                  <li class="text-slate-200 text-xs flex items-center gap-2">
                     <i class="w-2 h-2 rounded-full bg-red-700"></i> 401 :
                     Authentification
                   </li>
-                  <li class="text-slate-700 text-xs flex items-center gap-2">
+                  <li class="text-slate-200 text-xs flex items-center gap-2">
                     <i class="w-2 h-2 rounded-full bg-red-700"></i> 500 : Erreur
                     du serveur
                   </li>
@@ -132,6 +129,7 @@
             </div>
           </template>
         </MazAccordion>
+
         <MazAccordion class="w-full" @click="showExemple = 3">
           <template #title-1>
             <div class="flex items-center gap-3">
@@ -139,10 +137,10 @@
                 >GET</span
               >
               <h5>
-                <p class="text-sm lg:text-md text-slate-950">
+                <p class="text-sm lg:text-md text-slate-100">
                   Récupérer les messages programmés
                 </p>
-                <p class="text-xs lg:text-sm text-slate-600">
+                <p class="text-xs lg:text-sm text-slate-400">
                   Permet de récupérer tous les messages programmés pour une date
                   ultérieure.
                 </p>
@@ -152,41 +150,39 @@
           <template #content-1>
             <div class="space-y-3">
               <ul>
-                <li class="">
-                  <p class="text-slate-700 text-md font-medium">URL</p>
-                  <p class="text-slate-700 text-sm">
+                <li>
+                  <p class="text-slate-200 text-md font-medium">URL</p>
+                  <p class="text-slate-200 text-sm">
                     https://api.myfindora.com/api/message/get-schedule
                   </p>
                 </li>
               </ul>
               <ul>
-                <li class="">
-                  <p class="text-slate-700 text-md font-medium">Body</p>
+                <li>
+                  <p class="text-slate-200 text-md font-medium">Body</p>
                 </li>
-
                 <ol class="flex gap-3">
-                  <li class="text-slate-700 text-xs">Aucun</li>
+                  <li class="text-slate-200 text-xs">Aucun</li>
                 </ol>
               </ul>
               <ul>
-                <li class="">
-                  <p class="text-slate-700 text-md font-medium">Réponse</p>
+                <li>
+                  <p class="text-slate-200 text-md font-medium">Réponse</p>
                 </li>
-
                 <ol class="flex gap-3">
-                  <li class="text-slate-700 text-xs flex items-center gap-2">
+                  <li class="text-slate-200 text-xs flex items-center gap-2">
                     <i class="w-2 h-2 rounded-full bg-emerald-700"></i> 200 :
                     Succès
                   </li>
-                  <li class="text-slate-700 text-xs flex items-center gap-2">
+                  <li class="text-slate-200 text-xs flex items-center gap-2">
                     <i class="w-2 h-2 rounded-full bg-red-700"></i> 400 :
                     Mauvais body
                   </li>
-                  <li class="text-slate-700 text-xs flex items-center gap-2">
+                  <li class="text-slate-200 text-xs flex items-center gap-2">
                     <i class="w-2 h-2 rounded-full bg-red-700"></i> 401 :
                     Authentification
                   </li>
-                  <li class="text-slate-700 text-xs flex items-center gap-2">
+                  <li class="text-slate-200 text-xs flex items-center gap-2">
                     <i class="w-2 h-2 rounded-full bg-red-700"></i> 500 : Erreur
                     du serveur
                   </li>
@@ -195,6 +191,7 @@
             </div>
           </template>
         </MazAccordion>
+
         <MazAccordion class="w-full" @click="showExemple = 4">
           <template #title-1>
             <div class="flex items-center gap-3">
@@ -202,10 +199,10 @@
                 >DELETE</span
               >
               <h5>
-                <p class="text-sm lg:text-md text-slate-950">
+                <p class="text-sm lg:text-md text-slate-100">
                   Supprimer un message programmé
                 </p>
-                <p class="text-xs lg:text-sm text-slate-600">
+                <p class="text-xs lg:text-sm text-slate-400">
                   Permet de supprimer un message programmé pour une date
                   ultérieure.
                 </p>
@@ -215,41 +212,39 @@
           <template #content-1>
             <div class="space-y-3">
               <ul>
-                <li class="">
-                  <p class="text-slate-700 text-md font-medium">URL</p>
-                  <p class="text-slate-700 text-sm">
+                <li>
+                  <p class="text-slate-200 text-md font-medium">URL</p>
+                  <p class="text-slate-200 text-sm">
                     https://api.myfindora.com/api/message/delete-schedule
                   </p>
                 </li>
               </ul>
               <ul>
-                <li class="">
-                  <p class="text-slate-700 text-md font-medium">Body</p>
+                <li>
+                  <p class="text-slate-200 text-md font-medium">Body</p>
                 </li>
-
                 <ol class="flex gap-3">
-                  <li class="text-slate-700 text-xs">id : Number</li>
+                  <li class="text-slate-200 text-xs">id : Number</li>
                 </ol>
               </ul>
               <ul>
-                <li class="">
-                  <p class="text-slate-700 text-md font-medium">Réponse</p>
+                <li>
+                  <p class="text-slate-200 text-md font-medium">Réponse</p>
                 </li>
-
                 <ol class="flex gap-3">
-                  <li class="text-slate-700 text-xs flex items-center gap-2">
+                  <li class="text-slate-200 text-xs flex items-center gap-2">
                     <i class="w-2 h-2 rounded-full bg-emerald-700"></i> 200 :
                     Succès
                   </li>
-                  <li class="text-slate-700 text-xs flex items-center gap-2">
+                  <li class="text-slate-200 text-xs flex items-center gap-2">
                     <i class="w-2 h-2 rounded-full bg-red-700"></i> 400 :
                     Mauvais body
                   </li>
-                  <li class="text-slate-700 text-xs flex items-center gap-2">
+                  <li class="text-slate-200 text-xs flex items-center gap-2">
                     <i class="w-2 h-2 rounded-full bg-red-700"></i> 401 :
                     Authentification
                   </li>
-                  <li class="text-slate-700 text-xs flex items-center gap-2">
+                  <li class="text-slate-200 text-xs flex items-center gap-2">
                     <i class="w-2 h-2 rounded-full bg-red-700"></i> 500 : Erreur
                     du serveur
                   </li>
@@ -259,7 +254,7 @@
           </template>
         </MazAccordion>
       </div>
-      <div class="col-span-4">
+      <div class="col-span-full 2xl:col-span-4">
         <section
           class="bg-gradient-to-br from-slate-300/5 to-slate-300/20 mt-8 p-5 rounded-2xl"
         >

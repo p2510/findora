@@ -29,23 +29,9 @@ export const useCustomer = defineStore(
         customer.value = data;
       }
     };
-    const decrementcustomerParticular = (payload) => {
-      if (customerParticular.value > 0 && payload == "Particulier") {
-        customerParticular.value--;
-      }
-    };
-    const incrementcustomerParticular = (payload) => {
-      if (!payload) {
-        customerParticular.value++;
-      }
-    };
-    const mixcustomerParticular = (payload) => {
-      if (!payload) {
-        customerParticular.value++;
-      } else {
-        customerParticular.value--;
-      }
-    };
+  
+  
+ 
 
     // fetching data
     const fetchCustomers = async () => {
@@ -84,9 +70,6 @@ export const useCustomer = defineStore(
       groupCount,
       fetchCustomers,
       fetchGroups,
-      decrementcustomerParticular,
-      incrementcustomerParticular,
-      mixcustomerParticular,
       updateGroup,
       updatecustomers,
       $reset,

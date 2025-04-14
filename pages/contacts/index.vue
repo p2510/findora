@@ -18,51 +18,54 @@
     >
       <template #header>
         <div class="flex justify-between items-center">
-          <h2
-            class="font-semibold text-xl text-gray-900 dark:text-white leading-tight"
-          >
-            Gérer vos clients
+          <h2 class="flex flex-col gap-[2px]">
+            <span
+              class="font-semibold text-lg text-neutral-800 dark:text-white leading-tight"
+              >Gérez vos contacts</span
+            >
+            <span v-if="customerStore?.customer" class="text-gray-500 text-xs"
+              >{{ customerStore?.customer.length }} contact(s)</span
+            >
           </h2>
           <div class="flex gap-2">
             <CustomerAdd @submit="fetchCustomers" />
-            <CustomerImport @submit="fetchCustomers" />
           </div>
         </div>
       </template>
 
-      <!-- Filters -->
-      <div class="flex items-center justify-between gap-3 px-4 py-3">
+      <!-- Filtres -->
+      <div class="flex items-center justify-between gap-3 px-4 py-3 ">
         <div class="flex items-center justify-between gap-3 basis-1/2">
           <UInput
             v-model="search"
             icon="i-heroicons-magnifying-glass-20-solid"
-            placeholder="Recherche par nom, téléphone, ou email..."
-            class="border-[#f3c775] border-[1px] rounded-lg basis-1/2"
+            placeholder="Rechercher par nom, téléphone ou e-mail..."
+            class="border-[#ffbd59] border-[1px] rounded-lg basis-1/2"
             variant="none"
           />
           <USelectMenu
             v-model="selectedType"
             :options="customerTypes"
             multiple
-            placeholder="Type de client"
+            placeholder="Type de contact"
             variant="none"
-            class="w-40 border-[#f3c775] border-[1px] rounded-lg basis-1/2"
+            class="w-40 border-[#ffbd59] border-[1px] rounded-lg basis-1/2"
           >
             <template #label>
               <span v-if="selectedType.length" class="truncate"
-                >{{ selectedType.length }} Selectionné(s)</span
+                >{{ selectedType.length }} sélectionné(s)</span
               >
-              <span v-else>Type de client</span>
+              <span v-else>Type de contact</span>
             </template>
           </USelectMenu>
         </div>
 
         <AssignGroup class="basis-1/2" :customers="selectedRows" />
       </div>
-      <!-- Header and Action buttons -->
+      <!-- En-tête et boutons d'action -->
       <div class="flex justify-between items-center w-full px-4 py-3">
         <div class="flex items-center gap-1.5">
-          <span class="text-sm leading-5">Ligne par page :</span>
+          <span class="text-sm leading-5">Lignes par page :</span>
 
           <USelect
             v-model="pageCount"
@@ -93,7 +96,6 @@
       </div>
 
       <!-- Table -->
-
       <UTable
         v-model="selectedRows"
         :rows="paginatedCustomers"
@@ -101,15 +103,15 @@
         :loading="status === 'pending'"
         sort-asc-icon="i-heroicons-arrow-up"
         sort-desc-icon="i-heroicons-arrow-down"
-        class="w-full h-80 overflow-y-scroll"
+        class="w-full sm:h-36 md:h-40 lg:h-44 xl:h-80 overflow-y-scroll"
         :ui="{
-          td: { base: 'max-w-[0] truncate' },
+          td: { base: 'max-w-[0] truncate ' },
           default: { checkbox: { color: 'gray' } },
         }"
         @select="select"
         :empty-state="{
           icon: 'i-heroicons-circle-stack-20-solid',
-          label: 'Oups , Aucun client trouvé',
+          label: 'Oups, Aucun contact trouvé',
         }"
       >
         <template #customer_type-data="{ row }">
@@ -140,12 +142,12 @@
         </template>
       </UTable>
 
-      <!-- Number of rows & Pagination -->
+      <!-- Nombre de lignes et pagination -->
       <template #footer>
         <div class="flex flex-wrap justify-between items-center">
           <div>
             <span class="text-sm leading-5">
-              Affichage
+              Affichage de
               <span class="font-medium">{{ pageFrom }}</span>
               à
               <span class="font-medium">{{ pageTo }}</span>
@@ -177,39 +179,44 @@
       <div class="p-4 space-y-5">
         <div class="flex justify-between items-center">
           <div>
-            <h3 class="font-semibold text-gray-700 text-xl">
+            <h3 class="font-semibold text-slate-800 text-md">
               {{ selectedCustomer.name }}
             </h3>
-            <h5 class="font-semibold text-gray-500 text-md">
+            <h5 class="text-slate-800/80 text-sm">
               {{ selectedCustomer?.email }}
             </h5>
           </div>
           <div class="flex items-center gap-2">
             <UIcon
               name="i-heroicons-phone-arrow-up-right"
-              class="text-gray-700 w-5 h-5"
+              class="text-gray-700 w-4 h-4"
             />
-            <span class="font-semibold text-gray-700 text-md">
+            <span class="text-slate-800 text-sm">
               {{ selectedCustomer.phone }}</span
             >
           </div>
           <UBadge
             color="amber"
-            variant="soft"
-            class="text-md"
+            variant="outline"
+            class="text-sm"
             :icon="
               selectedCustomer.customer_type == 'Particulier'
                 ? 'i-heroicons-users'
                 : 'i-heroicons-building-office-2'
             "
-            >{{ selectedCustomer.customer_type }}</UBadge
           >
+            {{
+              selectedCustomer.customer_type == "Particulier"
+                ? "Particulier"
+                : "Entreprise"
+            }}
+          </UBadge>
         </div>
         <div class="flex justify-between items-center">
-          <div class="flex gap-2 items-center">
+          <div class="flex gap-3 items-center">
             <UBadge
               color="emerald"
-              variant="soft"
+              variant="solid"
               v-for="item in selectedCustomer.groups"
               :key="item.id"
               class="text-sm flex items-center justify-between"
@@ -218,20 +225,22 @@
               <UIcon
                 @click="deleteGroups(selectedCustomer.id, item)"
                 name="i-heroicons-x-mark"
-                class="cursor-pointer text-slate-800 w-3 h-3 hover:opacity-80 transition ease-in-out duration-300"
-            /></UBadge>
+                class="cursor-pointer text-white w-3 h-3 hover:opacity-80 transition ease-in-out duration-300"
+              />
+            </UBadge>
           </div>
 
-          <div class="flex items-center gap-2">
-            <UIcon name="i-heroicons-map-pin" class="text-gray-800 w-5 h-5" />
-            <span class="text-gray-800 text-md">
+          <div v-if="selectedCustomer?.address" class="flex items-center gap-2">
+            <UIcon name="i-heroicons-map-pin" class="text-gray-800 w-4 h-4" />
+            <span class="text-slate-800/80 text-sm">
               {{ selectedCustomer?.address }}</span
             >
           </div>
         </div>
       </div>
     </UModal>
-    <!--Edit customer-->
+
+    <!-- Modifier un contact -->
     <USlideover v-model="isOpenEdit">
       <UCard
         class="flex flex-col flex-1"
@@ -255,33 +264,36 @@
 
           <div class="space-y-[1px]">
             <h5>
-              <UBadge color="gray" variant="soft" size="lg" v-if="!isEntreprise"
-                >Particulier</UBadge
+              <UBadge
+                color="gray"
+                variant="soft"
+                size="lg"
+                v-if="!isEntreprise"
               >
-              <UBadge color="amber" variant="soft" size="lg" v-else
-                >Entreprise</UBadge
-              >
+                Particulier
+              </UBadge>
+              <UBadge color="amber" variant="soft" size="lg" v-else>
+                Entreprise
+              </UBadge>
             </h5>
-            <span class="text-gray-500 text-sm" v-if="!isEntreprise"
-              >Vous êtes sur le point de modifier un client de type
-              particulier.</span
-            >
-            <span class="text-gray-500 text-sm" v-else
-              >Vous êtes sur le point de modifier un client de type
-              entreprise.</span
-            >
+            <span class="text-gray-500 text-sm" v-if="!isEntreprise">
+              Vous allez modifier un contact particulier.
+            </span>
+            <span class="text-gray-500 text-sm" v-else>
+              Vous allez modifier un contact entreprise.
+            </span>
           </div>
         </template>
 
         <form class="grid grid-cols-12 gap-4" @submit.prevent="editCustomer">
           <div class="col-span-full flex items-center justify-center gap-4">
             <p>
-              <span class="text-gray-500 text-sm" v-if="!isEntreprise"
-                >Activer pour passer à un client de type entreprise</span
-              >
-              <span class="text-gray-500 text-sm" v-else
-                >Activer pour passer à un client de type particulier</span
-              >
+              <span class="text-gray-500 text-sm" v-if="!isEntreprise">
+                Activez pour passer à un contact entreprise
+              </span>
+              <span class="text-gray-500 text-sm" v-else>
+                Activez pour passer à un contact particulier
+              </span>
             </p>
             <UToggle
               v-model="isEntreprise"
@@ -294,14 +306,15 @@
           <div class="col-span-full space-y-[1px]">
             <label
               for="name"
-              class="text-gray-500 font-semibold"
+              class="text-gray-500 text-sm"
               v-if="!isEntreprise"
-              >Nom & prénom
+            >
+              Nom et Prénom
             </label>
-            <label for="name" class="text-gray-500 font-semibold" v-else
-              >Nom d'entreprise
+            <label for="name" class="text-gray-500 text-sm" v-else>
+              Nom de l'entreprise
             </label>
-            <InputFiled
+            <InputFieldSimple
               type="text"
               autofocus
               custom-class="hover:shadow-sm p-2 rounded-lg"
@@ -313,8 +326,8 @@
           </div>
 
           <div class="col-span-full space-y-[1px]">
-            <label for="email" class="text-gray-500 font-semibold">Email</label>
-            <InputFiled
+            <label for="email" class="text-gray-500 text-sm">Email</label>
+            <InputFieldSimple
               type="email"
               custom-class="hover:shadow-sm p-2 rounded-lg"
               v-model="formData.email"
@@ -324,20 +337,20 @@
             </div>
           </div>
           <div class="col-span-full space-y-[1px]">
-            <label for="phone" class="text-gray-500 font-semibold"
-              >Numéro de téléphone</label
-            >
+            <label for="phone" class="text-gray-500 text-sm">
+              Numéro de téléphone
+            </label>
             <MazPhoneNumberInput
               block
               :translations="{
                 countrySelector: {
-                  placeholder: 'Indicatif',
-                  error: 'Choisir un pays',
-                  searchPlaceholder: 'Trouver un pays',
+                  placeholder: 'Code du pays',
+                  error: 'Sélectionnez un pays',
+                  searchPlaceholder: 'Trouvez un pays',
                 },
                 phoneInput: {
                   placeholder: 'Numéro de téléphone',
-                  example: 'Exemple:',
+                  example: 'Exemple :',
                 },
               }"
               countryCode="CI"
@@ -350,10 +363,8 @@
             </div>
           </div>
           <div class="col-span-full space-y-[1px]">
-            <label for="adress" class="text-gray-500 font-semibold"
-              >Adresse</label
-            >
-            <InputFiled
+            <label for="address" class="text-gray-500 text-sm">Adresse</label>
+            <InputFieldSimple
               type="text"
               custom-class="hover:shadow-sm p-2 rounded-lg"
               v-model="formData.address"
@@ -365,15 +376,16 @@
               type="submit"
               size="lg"
               variant="solid"
-              color="yellow"
-              >Mettre à jour ce client</UButton
+              color="amber"
             >
+              Mettre à jour ce contact
+            </UButton>
           </div>
         </form>
       </UCard>
     </USlideover>
 
-    <!--Alert message-->
+    <!-- Message d'alerte -->
     <div v-if="isAlertDeleteOpen">
       <AlertModal
         title="Client supprimé"
@@ -382,8 +394,8 @@
       >
         <template #message>
           <p>
-            La suppression du client a été effectuée avec
-            <span class="font-semibold">succès</span>.
+            Le contact a été <span class="font-semibold">supprimé</span> avec
+            succès.
           </p>
         </template>
       </AlertModal>
@@ -408,10 +420,10 @@
 import { ref, computed, onMounted } from "vue";
 definePageMeta({
   middleware: "auth",
-  alias: "/client",
+  alias: "/contacts",
 });
 useHead({
-  title: "Findora - Mes clients",
+  title: "Gérez vos contacts WhatsApp avec Findora – Ultra simple et rapide !",
 });
 import { useCustomer } from "@/stores/customer";
 const customerStore = useCustomer();
@@ -421,7 +433,7 @@ const supabase = useSupabaseClient();
 const { errors, validateForm, handleServerErrors } = useFormValidation();
 
 let selectedRows = ref([]);
-// Table Columns
+// Colonnes du tableau
 const columns = [
   { key: "id", label: "ID", sortable: false },
   { key: "name", label: "Nom", sortable: true },
@@ -436,7 +448,7 @@ const columnsTable = computed(() =>
   columns.filter((column) => selectedColumns.value.includes(column))
 );
 
-// Filters and Search
+// Filtres et recherche
 const search = ref("");
 const selectedType = ref([]);
 const customerTypes = [
@@ -459,7 +471,7 @@ const pageTo = computed(() => {
   return Math.min(page.value * pageCount.value, filteredCustomers.value.length);
 });
 
-// callback function
+// fonction de rappel
 const status = ref("idle");
 const fetchCustomers = async () => {
   status.value = "pending";
@@ -474,11 +486,11 @@ const fetchCustomers = async () => {
     status.value = "success";
   }
 };
-// groups
+// groupes
 let groupedCustomers = ref([]);
 const fetchCustomersWithGroupNames = async () => {
   try {
-    // Requête avec jointure pour récupérer les noms des groupes associés à chaque client
+    // Requête avec jointure pour récupérer les noms des groupes associés à chaque contact
     const { data, error } = await supabase.from("groups_customers").select(`
         customers_id,
         groups(name)
@@ -499,7 +511,7 @@ const fetchCustomersWithGroupNames = async () => {
         };
       }
 
-      // Ajouter le nom du groupe au client
+      // Ajouter le nom du groupe au contact
       acc[customerId].groups.push(item.groups.name);
       return acc;
     }, {});
@@ -524,7 +536,7 @@ onMounted(() => {
   fetchCustomersWithGroupNames();
 });
 
-// Filtered and Paginated Data
+// Données filtrées et paginées
 const filteredCustomers = computed(
   () =>
     Array.isArray(customerStore.customer) // Vérifie que c'est un tableau
@@ -554,7 +566,7 @@ const selectedCustomer = ref([]);
 const items = (row) => [
   [
     {
-      label: "Voir ce client",
+      label: "Voir",
       icon: "i-heroicons-eye-20-solid",
       click: () => {
         isOpenShow.value = true;
@@ -563,7 +575,7 @@ const items = (row) => [
         );
         const customerGroups = getCustomerGroupsById(selectedCustomer.value.id);
 
-        // Assigner les groupes du client à selectedCustomer ou une autre variable si nécessaire
+        // Assigner les groupes du contact à selectedCustomer ou une autre variable si nécessaire
         selectedCustomer.value.groups = customerGroups;
       },
     },
@@ -594,9 +606,9 @@ const items = (row) => [
   ],
 ];
 
-//show Customer
+// afficher le contact
 
-// edit customer
+// modifier un contact
 const isOpenEdit = ref(false);
 let customerId = ref(null);
 const isAlertEditOpen = ref(false);
@@ -642,7 +654,7 @@ const editCustomer = async () => {
 
     if (error) {
       if (error.code === "23505") {
-        errorMessage.value = "Ce client existe déjà avec cet adresse E-mail.";
+        errorMessage.value = "Ce contact existe déjà avec cet email.";
       } else {
         handleServerErrors(error);
         errorMessage.value = error.message;
@@ -656,9 +668,7 @@ const editCustomer = async () => {
       formData.value.address = "";
       isRequestInProgress.value = false;
       customerStore.updatecustomers();
-      if (oldIsEntreprise.value !== isEntreprise.value) {
-        customerStore.mixcustomerParticular(isEntreprise.value);
-      }
+      console.log(customerStore.customer);
 
       isOpenEdit.value = false;
     }
@@ -668,7 +678,7 @@ const editCustomer = async () => {
   }
 };
 
-// delete groups
+// supprimer des groupes
 const deleteGroups = async (customer_id, group_name) => {
   const { data, error: errorGroup } = await supabase
     .from("groups")
@@ -689,7 +699,7 @@ const deleteGroups = async (customer_id, group_name) => {
     }
   }
 };
-// delete customer
+// supprimer un contact
 const isAlertDeleteOpen = ref(false);
 let closeDeleteAlert = () => {
   isAlertDeleteOpen.value = false;
@@ -705,7 +715,6 @@ const deleteCustomer = async (customer) => {
   if (!error) {
     isAlertDeleteOpen.value = true;
     customerStore.updatecustomers();
-    customerStore.decrementcustomerParticular(data?.customer_type);
     stat.decrementCustomer();
   }
 };

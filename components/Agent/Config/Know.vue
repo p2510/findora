@@ -1,19 +1,24 @@
 <template>
   <div class="flex justify-center">
-    <section class="mt-8 p-5 w-full">
-      <h3 class="text-lg pb-5 text-slate-950 flex gap-2 items-center">
+    <section class="mt-8 p-5 w-full dark:bg-slate-800 dark:text-white">
+      <h3
+        class="text-lg pb-5 text-slate-950 flex gap-2 items-center dark:text-white"
+      >
         <span
           class="text-white flex items-center justify-center rounded-full px-3 py-[2px] bg-[#21a150]"
-          >2</span
         >
+          2
+        </span>
         <span class="font-[500]">Connaissance de base</span>
       </h3>
       <form @submit.prevent="saveAgentKnow" class="grid grid-cols-12">
         <div class="col-span-full flex flex-col gap-6">
           <!-- Section Connaissances de base -->
           <div class="w-full">
-            <label class="text-md text-slate-800">Connaissances de base</label>
-            <p class="text-xs text-slate-600 pb-2">
+            <label class="text-md text-slate-800 dark:text-slate-300"
+              >Connaissances de base</label
+            >
+            <p class="text-xs text-slate-600 pb-2 dark:text-slate-400">
               Ajoutez des informations liées à produit, site web, service ou
               réseaux sociaux...
             </p>
@@ -26,7 +31,7 @@
               <div class="w-1/4">
                 <select
                   v-model="info.type"
-                  class="rounded-md text-sm p-2 bg-transparent outline-none border-[1.5px] border-solid focus:rounded-lg text-slate-950 w-full"
+                  class="rounded-md text-sm p-2 bg-transparent outline-none border-[1.5px] border-solid focus:rounded-lg dark:bg-slate-700 dark:text-white w-full"
                 >
                   <option value="presentation">Présentation</option>
                   <option value="produit">Produit</option>
@@ -39,7 +44,7 @@
               <div class="">
                 <textarea
                   v-model="info.content"
-                  class="rounded-md text-sm px-2 p-2 bg-transparent outline-none border-[1.5px] border-solid focus:rounded-lg w-full transition duration-300 ease-in-out text-slate-950 focus:border-[#f3c775]"
+                  class="rounded-md text-sm px-2 p-2 bg-transparent outline-none border-[1.5px] border-solid focus:rounded-lg dark:bg-slate-700 dark:text-white w-full transition duration-300 ease-in-out focus:border-[#f3c775]"
                   placeholder="Entrez le contenu lié au type sélectionné"
                   rows="6"
                   :disabled="!configStore.config?.name"
@@ -197,7 +202,7 @@ const saveAgentKnow = async () => {
   }
 };
 onMounted(async () => {
-  console.log(knowStore.knowledge)
+  console.log(knowStore.knowledge);
   if (knowStore.knowledge.metadata.length == 0) {
     const url = `https://app.myfindora.com/api/agent/know/list?user_id=${users.info.uuid}`;
     try {
@@ -215,7 +220,7 @@ onMounted(async () => {
       const json = await response.json();
 
       if (json && json.success) {
-        console.log(json.data)
+        console.log(json.data);
         knowStore.updateKnowledge(json.data?.metadata);
         knowledgeBase.value = json.data?.metadata;
       }

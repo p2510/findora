@@ -39,6 +39,6 @@ defineProps({
 // Classe CSS par défaut avec une possibilité d'ajouter des classes personnalisées
 const computedClass = computed(
   () =>
-    ` bg-white outline-none border-2 border-solid focus:rounded-lg transition duration-300 ease-in-out text-slate-800/80 w-full focus:border-[#f3c775] `
+    ` bg-white dark:bg-slate-500 outline-none border-2 border-solid focus:rounded-lg transition duration-300 ease-in-out text-slate-800/80 dark:text-white w-full focus:border-[#ffbd59] `
 );
 </script>

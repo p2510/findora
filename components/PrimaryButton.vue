@@ -1,6 +1,6 @@
 <template>
   <button
-    class=" text-slate-700 hover:text-white bg-[#f3c775] hover:bg-[#99732c] rounded-md shadow-md text-md p-3 transition-all duration-300 ease-in-out"
+    class=" text-neutral-800 hover:text-neutral-900 bg-[#ffbd59] hover:bg-[#ffbd59]/80 rounded-md shadow-md text-md p-3 transition-all duration-300 ease-in-out"
   >
     <slot />
   </button>

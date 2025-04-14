@@ -13,7 +13,7 @@
               viewBox="0 0 88 24"
             >
               <g>
-                <!-- Forme de base (rectangular shape with rounded corners) -->
+                <!-- Forme de base (forme rectangulaire avec coins arrondis) -->
                 <rect
                   x="0"
                   y="0"
@@ -47,19 +47,21 @@
             </svg>
           </span>
         </div>
-        <h4 class="text-slate-900 text-3xl pb-2 font-semibold">
+        <h4
+          class="text-slate-900 dark:text-slate-50 text-3xl pb-2 font-semibold"
+        >
           Heureux de vous revoir !
         </h4>
-        <p class="text-slate-900/60 text-sm font-normal">
-          Automatisez et transformez votre whatsapp en CRM !
+        <p class="text-slate-900/60 dark:text-slate-200 text-sm font-normal">
+          Allez plus vite avec un agent IA et le marketing WhatsApp !
         </p>
         <form class="pt-10 w-2/3 space-y-4" @submit.prevent="login">
           <InputFiled
-            placeholder="Votre adresse email"
+            placeholder="Votre adresse e-mail"
             type="email"
             autofocus
             v-model="DataForms.email"
-            custom-class=" pl-4 pr-2 py-3 rounded-md text-sm "
+            custom-class="pl-4 pr-2 py-3 rounded-md text-sm"
           />
           <InputFiled
             placeholder="Votre mot de passe"
@@ -73,87 +75,45 @@
               :isLoading="isRequestInProgress"
               :disabled="isDisabled"
               type="submit"
-              custom-class="text-white w-1/2 flex justify-center gap-3 mt-4 bg-slate-950 hover:bg-slate-800 rounded-full"
+              custom-class="text-white w-1/2 flex justify-center gap-3 mt-4 bg-slate-950 hover:bg-slate-800 dark:bg-white dark:text-slate-800 hover:dark:bg-slate-100 rounded-full"
               @click="handleButtonClick"
             >
-              Me connecter
+              Se connecter
             </SubmitButton>
           </div>
         </form>
 
-        <p class="text-slate-950/70 text-xs text-center w-2/3 pt-6">
+        <p class="text-slate-950/70 dark:text-slate-100 text-xs text-center w-2/3 pt-6">
           <span>Vous n'avez pas de compte ? </span>
           <a
             target="_blank"
             href="https://myfindora.com/creer-un-compte"
-            class="pl-2 font-semibold text-slate-800 text-xs underline hover:text-slate-950 transition duration-300 ease-in-out"
+            class="pl-2 font-semibold text-slate-800 dark:text-slate-200 text-xs underline hover:text-slate-950 transition duration-300 ease-in-out"
           >
-            Créer un compte
+            S'inscrire
           </a>
         </p>
 
         <div v-if="isAlertOpen">
           <AlertModal
-            title="Accès Incorrect"
+            title="Accès incorrect"
             type="error"
             @close-alert="closeAlert"
           >
             <template #message>
               <p class="">
                 Les informations de connexion que vous avez saisies sont
-                incorrectes. Vérifiez
-                <span class="font-semibold">
-                  votre e-mail et votre mot de passe</span
-                >, puis réessayez.
+                incorrectes. Veuillez vérifier votre e-mail et votre mot de
+                passe, puis réessayez.
               </p>
             </template>
           </AlertModal>
         </div>
       </div>
       <div
-        class="xl:col-start-9 xl:col-end-13 h-screen hidden xl:flex xl:justify-start 00"
+        class="xl:col-start-9 xl:col-end-13 h-screen hidden xl:flex xl:justify-start"
       >
-        <section>
-          <div class="relative">
-            <div
-              class="absolute w-full h-full top-0 bg-gradient-to-b from-transparent from-20% to-slate-950/90 z-20"
-            ></div>
-
-            <div class="absolute w-full h-[200px] top-1/3 z-30 p-4 space-y-4">
-              <h3 class="text-white xl:text-4xl  text-center font-bold">
-                Un compte whatsapp
-              </h3>
-              <div class="overflow-hidden h-[80px]">
-                <div class="text-slide flex flex-col">
-                  <h4
-                    class="slide-item bg-gradient-to-r from-[#25D366] to-[#1e6337] text-5xl text-center font-bold p-2 rounded-full"
-                  >
-                    <span class="bg-clip-text text-white">Un CRM</span>
-                  </h4>
-                  <h4
-                    class="slide-item bg-gradient-to-r from-[#25D366] to-[#1e6337] text-5xl text-center font-bold p-2 rounded-full"
-                  >
-                    <span class="bg-clip-text text-white"
-                      >Un Agent IA</span
-                    >
-                  </h4>
-                  <h4
-                    class="slide-item bg-gradient-to-r from-[#25D366] to-[#1e6337] text-5xl text-center font-bold p-2 rounded-full"
-                  >
-                    <span class="bg-clip-text text-white"
-                      >Un API token</span
-                    >
-                  </h4>
-                </div>
-              </div>
-            </div>
-            <img
-              src="~/assets/img/slide/crm.webp"
-              alt=""
-              class="w-full h-screen object-cover"
-            />
-          </div>
-        </section>
+        <section></section>
       </div>
     </div>
   </div>
@@ -161,7 +121,6 @@
 
 <script setup>
 import { ref } from "vue";
-
 import { useUser } from "@/stores/user";
 const user = useUser();
 import { useWhatsapp } from "@/stores/whatsapp";
@@ -171,7 +130,7 @@ definePageMeta({
   middleware: "redirect-auth",
 });
 useHead({
-  title: "Findora - Me connecter",
+  title: "Findora - Sign In",
 });
 
 const supabase = useSupabaseClient();
@@ -197,8 +156,7 @@ let login = async () => {
       },
     })
     .then(async (res) => {
-      
- 
+      console.log(res);
       if (res.data?.user) {
         let { data: userData, error: userError } = await supabase
           .from("users")
@@ -223,68 +181,16 @@ let login = async () => {
           }
         }
         return navigateTo("/dashboard");
-      }else{
+      } else {
         if (res.error?.code === "invalid_credentials") {
-        errorMessage.value = "Identifiants de connexion invalides";
-        isAlertOpen.value = true;
-      }
+          errorMessage.value = "Login failed. Please check your credentials.";
+          isAlertOpen.value = true;
+        }
       }
     })
-    .catch((err) => {
-     
-     
-    })
+    .catch((err) => {})
     .finally(() => {
-      
       isRequestInProgress.value = false;
     });
 };
 </script>
-
-<style scoped>
-@import url("~/assets/css/font.css");
-.text-slide {
-  position: relative;
-  height: 80px;
-}
-
-.slide-item {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.5s, transform 0.5s;
-}
-
-.slide-item:nth-child(1) {
-  animation: show-slide 6s infinite 0s;
-}
-
-.slide-item:nth-child(2) {
-  animation: show-slide 6s infinite 2s;
-}
-
-.slide-item:nth-child(3) {
-  animation: show-slide 6s infinite 4s;
-}
-
-@keyframes show-slide {
-  0%,
-  100% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  10%,
-  30% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  33%,
-  100% {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-}
-</style>

@@ -1,12 +1,12 @@
 <template>
   <div class="col-span-full flex items-end gap-4">
     <div class="space-y-[1px]">
-      <label for="name" class="text-gray-500 text-sm">Client</label>
+      <label for="name" class="text-gray-500 text-sm">contact</label>
       <USelectMenu
         searchable
-        searchable-placeholder="Trouver un client..."
+        searchable-placeholder="Trouver un contact..."
         class="w-full lg:w-48"
-        placeholder="Choisir un client"
+        placeholder="Choisir un contact"
         :options="customerStore.customer"
         option-attribute="name"
         multiple
@@ -25,7 +25,7 @@
           <span v-if="localCustomers?.length" class="truncate"
             >{{ localCustomers?.length }} Selectionné(s)</span
           >
-          <span v-else>Selection client</span>
+          <span v-else>Selection contact</span>
         </template>
       </USelectMenu>
     </div>
@@ -34,7 +34,7 @@
       type="button"
       class="bg-slate-800 text-white rounded-md px-3 py-2 hover:bg-slate-950 transition duration-300 ease-in-out"
     >
-      Choisir tous les clients
+      Choisir tous les contacts
     </button>
     <div class="flex gap-4" v-if="list_group == null">
       <SkeletonButton />
@@ -46,7 +46,7 @@
       :key="group.id"
       @click="selectByGroup(group.customers, group.name)"
       type="button"
-      class="text-slate-800 rounded-md px-3 py-2 transition duration-300 ease-in-out"
+      class="hidden md:flex text-slate-800 rounded-md px-3 py-2 transition duration-300 ease-in-out"
       :class="
         group_select === group.name
           ? ' bg-[#f3c775] hover:bg-[#b99653]'
@@ -72,7 +72,7 @@ const { modelValue } = defineProps({
 // Événements pour émettre des changements vers le parent
 const emit = defineEmits(["update:modelValue"]);
 
-// Valeur locale pour la sélection de clients
+// Valeur locale pour la sélection de contacts
 const localCustomers = ref(modelValue); // Référence initiale à modelValue
 
 // Mise à jour du parent chaque fois que la sélection change
@@ -84,7 +84,7 @@ const supabase = useSupabaseClient();
 const list_group = ref(null);
 const group_select = ref(null);
 
-// Méthodes pour sélectionner des clients
+// Méthodes pour sélectionner des contacts
 const selectAll = () => {
   localCustomers.value = customerStore.customer;
   group_select.value = null;

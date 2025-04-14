@@ -65,7 +65,7 @@
                 clip-rule="evenodd"
               />
             </svg>
-            Gestion jusqu'à 10 clients
+            Gestion jusqu'à 10 contacts
           </li>
           <li class="flex gap-x-3">
             <svg
@@ -207,7 +207,7 @@
                 clip-rule="evenodd"
               />
             </svg>
-            Gestion de clients illimités
+            Gestion de contacts illimités
           </li>
           <li class="flex gap-x-3">
             <svg
@@ -355,7 +355,7 @@
                 clip-rule="evenodd"
               />
             </svg>
-            Gestion de clients illimités
+            Gestion de contacts illimités
           </li>
           <li class="flex gap-x-3">
             <svg
@@ -500,7 +500,7 @@
                 clip-rule="evenodd"
               />
             </svg>
-            Gestion de clients illimités
+            Gestion de contacts illimités
           </li>
           <li class="flex gap-x-3">
             <svg

@@ -11,6 +11,7 @@ export const useUser = defineStore(
       domain: null,
       uuid: null,
       currency: "XOF",
+      onboarding_done: null,
     });
 
     const subscription = ref({
@@ -37,6 +38,7 @@ export const useUser = defineStore(
         domain: null,
         uuid: null,
         currency: "XOF",
+        onboarding_done: null,
       };
       subscription.value = {
         subscription_type: null,

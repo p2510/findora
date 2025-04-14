@@ -1,24 +1,23 @@
 <template>
   <section class="px-10 lg:px-12">
-    <h4 class="text-slate-900 text-4xl pb-2">
-      Commençez une <br />
-      Nouvelle
+    <h4 class="text-slate-900 dark:text-white text-2xl lg:text-4xl pb-2">
+      Lancez une nouvelle <br />
       <span
-        class="bg-clip-text text-transparent bg-gradient-to-r from-[#25D366] to-[#1e6337]"
+        class="bg-clip-text text-transparent bg-gradient-to-r from-[#25D366] to-[#1e6337] dark:from-[#25D366] dark:to-[#1e6337]"
       >
         campagne
       </span>
-      ou automatisez
+      ou configurez une automatisation
     </h4>
     <form class="grid grid-cols-12 gap-4 pt-10" @submit.prevent="handleSubmit">
       <div class="col-span-full space-y-3">
-        <label for="content" class="text-gray-500"
-          >Créer le contenu de votre campagne</label
+        <label for="content" class="text-gray-500 dark:text-gray-300"
+          >Créons le contenu de votre campagne !</label
         >
         <textarea
           v-model="formData.content"
           autofocus
-          class="border-2 border-slate-200 text-sm p-4 rounded-3xl bg-slate-100/60 outline-none text-slate-800 w-full"
+          class="border-2 border-slate-200 text-sm p-4 rounded-3xl bg-slate-100/60 dark:bg-slate-800/60 outline-none text-slate-800 dark:text-white w-full"
           rows="7"
           minlength="3"
         ></textarea>
@@ -33,15 +32,19 @@
           @click="sendNow"
         >
           <p class="flex justify-between">
-            <span class="text-lg text-slate-800">Maintenant</span>
+            <span class="text-lg text-slate-800 dark:text-white"
+              >Envoyer maintenant</span
+            >
             <UIcon
               v-if="!isScheduled"
               name="i-heroicons-check-circle"
               class="w-6 h-6 text-emerald-600"
             />
           </p>
-          <span class="text-xs text-slate-800"
-            >Si vous souhaitez envoyer à vos clients dès maintenant.
+          <span
+            class="hidden md:block text-xs text-slate-800 dark:text-gray-300"
+          >
+            Si vous souhaitez envoyer à vos contacts dès maintenant.
           </span>
         </button>
         <button
@@ -50,15 +53,19 @@
           @click="programCampaign"
         >
           <p class="flex justify-between">
-            <span class="text-lg text-slate-800">Programmer</span>
+            <span class="text-lg text-slate-800 dark:text-white"
+              >Programmer</span
+            >
             <UIcon
               v-if="isScheduled"
               name="i-heroicons-check-circle"
               class="w-6 h-6 text-emerald-600"
             />
           </p>
-          <span class="text-xs text-slate-800"
-            >Si vous souhaitez l'envoyer plus tard à vos clients.
+          <span
+            class="hidden md:block text-xs text-slate-800 dark:text-gray-300"
+          >
+            Si vous souhaitez l'envoyer plus tard à vos contacts.
           </span>
         </button>
 
@@ -76,14 +83,14 @@
       </div>
 
       <div v-if="isScheduled" class="col-span-full space-y-3">
-        <label for="scheduleDate" class="text-gray-500"
-          >Choisissez la date </label
+        <label for="scheduleDate" class="text-gray-500 dark:text-gray-300"
+          >Choisissez la date</label
         >
         <input
           v-model="formData.scheduleDate"
           type="date"
           id="scheduleDate"
-          class="border-2 border-slate-200 text-sm p-4 rounded-3xl bg-slate-100/60 outline-none text-slate-800 w-full"
+          class="border-2 border-slate-200 text-sm p-4 rounded-3xl bg-slate-100/60 dark:bg-slate-800/60 outline-none text-slate-800 dark:text-white w-full"
         />
       </div>
     </form>
@@ -160,7 +167,7 @@ let handleSubmit = async () => {
 
   if (!isScheduled.value) {
     const url = "https://app.myfindora.com/api/whatsapp/send-message";
-    
+
     try {
       const response = await fetch(url, {
         method: "POST",

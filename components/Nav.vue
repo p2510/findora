@@ -7,99 +7,90 @@
             <Squares2X2Icon class="size-5" />
           </template>
         </NavLink>
-        <NavLink to="/client" label="Mes clients">
+        <NavLink to="/contacts" label="Gérer mes contacts">
           <template #icon>
             <UsersIcon class="size-5" />
           </template>
         </NavLink>
-        <NavLink to="/paiement" label="Paiement">
+        <NavLink to="/agent" label=" Agent IA Whatsapp ">
           <template #icon>
-            <CreditCardIcon class="size-5" />
+            <RectangleGroupIcon class="size-5" />
           </template>
         </NavLink>
-        <NavLink to="/relance" label="Relance">
+        <NavLink to="/whatsapp" label="Whatsapp marketing">
           <template #icon>
-            <BoltIcon class="size-5" />
+            <PaperAirplaneIcon class="size-5" />
           </template>
         </NavLink>
-
-        <NavLink to="/templates" label="Templates">
+        <NavLink to="/api/jeton" label="Manage APIs">
           <template #icon>
-            <InboxArrowDownIcon class="size-5" />
+            <KeyIcon class="size-5" />
           </template>
         </NavLink>
+      </ul>
+      <ul class="flex flex-col gap-2">
         <NavLink to="/abonnement" label="Abonnement">
           <template #icon>
             <LifebuoyIcon class="size-5" />
           </template>
         </NavLink>
-      </ul>
-      <ul class="flex flex-col gap-2">
-        <NavLink to="/parametre" label="Paramètre">
-          <template #icon>
-            <Cog6ToothIcon class="size-5" />
-          </template>
-        </NavLink>
         <li
           @click="logout"
-          class="cursor-pointer flex items-center gap-2 rounded-full transition-all duration-200 ease-in-out py-2 pl-4 pr-10 text-slate-600/70 hover:bg-[#f3c775] hover:text-slate-800"
+          class="text-sm cursor-pointer flex items-center gap-2 rounded-full transition-all duration-300 pr-10 pl-4 hover:text-slate-600 ease-in-out"
         >
           <PowerIcon class="size-5" />
           <span>Déconnexion</span>
         </li>
-
       </ul>
     </div>
-    <div
-      class="flex xl:hidden flex-row py-4 px-6 bg-slate-800/5 rounded-full items-center"
+    <div 
+      class="flex xl:hidden flex-row py-4 px-6 bg-slate-800/5 dark:bg-slate-950/20 rounded-full items-center"
     >
       <ul class="flex flex-row gap-2">
         <NavIcon to="/dashboard">
           <template #icon>
-            <Squares2X2Icon class="size-8 flex justify-center" />
+            <Squares2X2Icon class="size-6 flex justify-center" />
           </template>
         </NavIcon>
-        <NavIcon to="/client">
+        <NavIcon to="/contacts">
           <template #icon>
-            <UsersIcon class="size-8 flex justify-center" />
+            <UsersIcon class="size-6 flex justify-center" />
           </template>
         </NavIcon>
-        <NavIcon to="/paiement">
+        <NavIcon to="/agent">
           <template #icon>
-            <CreditCardIcon class="size-8 flex justify-center" />
+            <RectangleGroupIcon class="size-6 flex justify-center" />
           </template>
         </NavIcon>
-        <NavIcon to="/relance">
+        <NavIcon to="/whatsapp">
           <template #icon>
-            <BoltIcon class="size-8 flex justify-center" />
+            <PaperAirplaneIcon class="size-6 flex justify-center" />
           </template>
         </NavIcon>
-
-        <NavIcon to="/templates">
+        <NavIcon to="/api/jeton">
           <template #icon>
-            <InboxArrowDownIcon class="size-8 flex justify-center" />
+            <KeyIcon class="size-6 flex justify-center" />
           </template>
         </NavIcon>
 
         <NavIcon to="/abonnement">
           <template #icon>
-            <LifebuoyIcon class="size-8 flex justify-center" />
+            <LifebuoyIcon class="size-6 flex justify-center" />
           </template>
         </NavIcon>
       </ul>
       <ul class="flex flex-row">
         <NavIcon to="/parametre">
           <template #icon>
-            <Cog6ToothIcon class="size-8 flex justify-center" />
+            <Cog6ToothIcon class="size-6 flex justify-center" />
           </template>
         </NavIcon>
         <li
           @click="logout"
-          class="cursor-pointer flex items-center gap-2 rounded-full transition-all duration-200 ease-in-out px-3 text-slate-600/70 hover:bg-[#f3c775] hover:text-slate-800"
+          class="cursor-pointer flex items-center gap-2 rounded-full transition-all duration-200 ease-in-out px-3 text-slate-600/70 hover:bg-[#f3c775] hover:text-slate-800 dark:text-slate-50"
         >
-          <PowerIcon class="size-8 flex justify-center" />
+          <PowerIcon class="size-6 flex justify-center" />
         </li>
-       
       </ul>
     </div>
   </nav>
@@ -110,16 +101,13 @@ import { ref, onMounted } from "vue";
 import { reset } from "@/utils/shared/resetStore";
 import {
   Squares2X2Icon,
-  PowerIcon,
-  InboxArrowDownIcon,
   UsersIcon,
-  BoltIcon,
+  RectangleGroupIcon,
   LifebuoyIcon,
-  CreditCardIcon,
-  PresentationChartLineIcon,
+  PaperAirplaneIcon,
   Cog6ToothIcon,
-  ChatBubbleLeftRightIcon,
-  MegaphoneIcon,
+  KeyIcon,
+  PowerIcon,
 } from "@heroicons/vue/24/outline";
 import { useUser } from "@/stores/user";
 const users = useUser();

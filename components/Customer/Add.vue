@@ -1,7 +1,8 @@
 <script setup>
-import { ref,  defineEmits } from "vue";
+import { ref, defineEmits } from "vue";
 import { useCustomer } from "@/stores/customer";
 import { useStat } from "@/stores/stat";
+
 const stat = useStat();
 const customerStore = useCustomer();
 const supabase = useSupabaseClient();
@@ -58,7 +59,8 @@ let AddCustomer = async () => {
 
     if (error) {
       if (error.code === "23505") {
-        errorMessage.value = "Ce client existe déjà avec cet adresse E-mail.";
+        errorMessage.value =
+          "Ce contact existe déjà avec cette adresse e-mail.";
       } else {
         handleServerErrors(error);
         errorMessage.value = error.message;
@@ -70,7 +72,6 @@ let AddCustomer = async () => {
       // Réinitialisation des champs si la soumission a réussi
       customerStore.updatecustomers();
       stat.incrementCustomer();
-      customerStore.incrementcustomerParticular(isEntreprise.value);
 
       formData.value.name = "";
       formData.value.email = "";
@@ -78,7 +79,7 @@ let AddCustomer = async () => {
       formData.value.address = "";
       isRequestInProgress.value = false;
       isOpen.value = false;
-      emit("submit"); // Émettre un événement pour informer que le client a été créé
+      emit("submit"); // Émettre un événement pour informer que le contact a été créé
     }
   } catch (err) {
     handleServerErrors({ code: "23514", message: "Erreur serveur" });
@@ -86,12 +87,15 @@ let AddCustomer = async () => {
   }
 };
 </script>
-
 <template>
   <div>
-    <PrimaryButton @click="isOpen = true"
-      >Créer un nouveau client</PrimaryButton
+    <PrimaryButton
+      @click="isOpen = true"
+      class="flex gap-2 items-center justify-between"
     >
+      <UIcon name="i-heroicons-plus" class="w-5 h-5 text-neutral-800" />
+      <span>Créer un nouveau contact</span>
+    </PrimaryButton>
 
     <UModal v-model="isOpen">
       <UCard
@@ -103,18 +107,23 @@ let AddCustomer = async () => {
         <template #header>
           <div class="space-y-[1px]">
             <h5>
-              <UBadge color="gray" variant="soft" size="lg" v-if="!isEntreprise"
-                >Particulier</UBadge
+              <UBadge
+                color="gray"
+                variant="soft"
+                size="lg"
+                v-if="!isEntreprise"
               >
-              <UBadge color="amber" variant="soft" size="lg" v-else
-                >Entreprise</UBadge
-              >
+                Particulier
+              </UBadge>
+              <UBadge color="amber" variant="soft" size="lg" v-else>
+                Entreprise
+              </UBadge>
             </h5>
             <span class="text-gray-500 text-sm" v-if="!isEntreprise">
-              Vous êtes sur le point de créer un client de type particulier.
+              Vous êtes sur le point de créer un contact particulier.
             </span>
             <span class="text-gray-500 text-sm" v-else>
-              Vous êtes sur le point de créer un client de type entreprise.
+              Vous êtes sur le point de créer un contact entreprise.
             </span>
           </div>
         </template>
@@ -123,10 +132,10 @@ let AddCustomer = async () => {
           <div class="col-span-full flex items-center justify-center gap-4">
             <p>
               <span class="text-gray-500 text-sm" v-if="!isEntreprise">
-                Activer pour passer à un client de type entreprise
+                Activez pour passer à un contact entreprise
               </span>
               <span class="text-gray-500 text-sm" v-else>
-                Activer pour passer à un client de type particulier
+                Activez pour passer à un contact particulier
               </span>
             </p>
             <UToggle
@@ -138,18 +147,19 @@ let AddCustomer = async () => {
             />
           </div>
 
-          <!-- Nom & Prénom / Nom d'entreprise -->
+          <!-- Nom & Prénom / Nom de l'entreprise -->
           <div class="col-span-full space-y-[1px]">
             <label
               for="name"
-              class="text-gray-500 font-semibold"
+              class="text-gray-500 text-sm"
               v-if="!isEntreprise"
-              >Nom & prénom</label
             >
-            <label for="name" class="text-gray-500 font-semibold" v-else
-              >Nom d'entreprise</label
-            >
-            <InputFiled
+              Nom & Prénom
+            </label>
+            <label for="name" class="text-gray-500 text-sm" v-else>
+              Nom de l'entreprise
+            </label>
+            <InputFieldSimple
               type="text"
               autofocus
               custom-class="hover:shadow-sm p-2 rounded-lg"
@@ -162,8 +172,8 @@ let AddCustomer = async () => {
 
           <!-- Email -->
           <div class="col-span-full space-y-[1px]">
-            <label for="email" class="text-gray-500 font-semibold">Email</label>
-            <InputFiled
+            <label for="email" class="text-gray-500 text-sm">Email</label>
+            <InputFieldSimple
               type="email"
               custom-class="hover:shadow-sm p-2 rounded-lg"
               v-model="formData.email"
@@ -173,9 +183,9 @@ let AddCustomer = async () => {
             </div>
           </div>
 
-          <!-- Téléphone -->
+          <!-- Numéro de téléphone -->
           <div class="col-span-full space-y-[1px] w-full">
-            <label for="phone" class="text-gray-500 font-semibold"
+            <label for="phone" class="text-gray-500 text-sm"
               >Numéro de téléphone</label
             >
 
@@ -183,8 +193,8 @@ let AddCustomer = async () => {
               block
               :translations="{
                 countrySelector: {
-                  placeholder: 'Indicatif',
-                  error: 'Choisir un pays',
+                  placeholder: 'Code pays',
+                  error: 'Sélectionnez un pays',
                   searchPlaceholder: 'Trouver un pays',
                 },
                 phoneInput: {
@@ -204,10 +214,8 @@ let AddCustomer = async () => {
 
           <!-- Adresse -->
           <div class="col-span-full space-y-[1px]">
-            <label for="address" class="text-gray-500 font-semibold"
-              >Adresse</label
-            >
-            <InputFiled
+            <label for="address" class="text-gray-500 text-sm">Adresse</label>
+            <InputFieldSimple
               type="text"
               custom-class="hover:shadow-sm p-2 rounded-lg"
               v-model="formData.address"
@@ -223,7 +231,7 @@ let AddCustomer = async () => {
               variant="soft"
               color="emerald"
             >
-              Créer un nouveau client
+              Créer un nouveau contact
             </UButton>
           </div>
         </form>

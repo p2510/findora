@@ -16,7 +16,7 @@
           color="black"
           variant="none"
           :ui="{
-            base: ' hover:shadow-sm rounded-lg hover:shadow-sm  rounded-lg bg-white outline-none border-2 border-solid focus:rounded-lg transition duration-300 ease-in-out text-slate-800/80 w-full focus:border-[#f3c775]',
+            base: ' hover:shadow-sm rounded-lg hover:shadow-sm rounded-lg bg-white outline-none border-2 border-solid focus:rounded-lg transition duration-300 ease-in-out text-slate-800/80 w-full focus:border-[#f3c775]',
           }"
         >
         </USelectMenu>
@@ -27,32 +27,35 @@
         size="sm"
         variant="solid"
         color="black"
-        :disabled="props.customers.length == 0"
+        :disabled="props.customers.length == 0 || !formDataGroup.group_id"
         class="rounded-md basis-1/4 flex justify-center"
-        >Intégrer</UButton
       >
+        Intégrer
+      </UButton>
     </form>
+
+    <!-- Modal de succès -->
     <div v-if="isSuccessOpen">
       <AlertModal
-        title="Campagne effectué"
+        title="Campagne réussie"
         type="success"
         @close-alert="closeSuccessAlert"
       >
         <template #message>
-          <p>Client(s) ajouté(s) au groupe avec succès.</p>
+          <p>Le(s) contact(s) ont été ajoutés au groupe avec succès.</p>
         </template>
       </AlertModal>
     </div>
+
+    <!-- Modal d'erreur -->
     <div v-if="isAlertOpen">
       <AlertModal
-        title="Informations incorrectes"
+        title="Information incorrecte"
         type="error"
         @close-alert="closeErrorAlert"
       >
         <template #message>
-          <p>
-            {{ errorMessage }}
-          </p>
+          <p>{{ errorMessage }}</p>
         </template>
       </AlertModal>
     </div>
@@ -84,11 +87,10 @@ let closeSuccessAlert = () => {
 };
 
 let assignGroup = async () => {
-  //isRequestInProgress.value = true;
   const formattedCustomers = props.customers.map((customer) => ({
-    customers_id: customer.id, // Prend uniquement l'ID du customer
-    groups_id: formDataGroup.value.group_id?.id, // Ajoute l'ID du groupe
-    created_by: user.value.id, // Ajoute l'utilisateur qui a créé l'entrée
+    customers_id: customer.id,
+    groups_id: formDataGroup.value.group_id?.id,
+    created_by: user.value.id,
   }));
 
   try {
@@ -99,24 +101,24 @@ let assignGroup = async () => {
 
     if (error) {
       if (error.code === "23505") {
-        errorMessage.value = "Ce client appartient déjà à ce groupe";
+        errorMessage.value = "Ce contact est déjà dans ce groupe";
       } else {
-        handleServerErrors(error);
         errorMessage.value = error.message;
       }
-      isAlertOpen.value = true; // Affichage de l'alerte
+      isAlertOpen.value = true;
       isRequestInProgress.value = false;
     } else {
-      // Réinitialisation des champs si la soumission a réussi
       formDataGroup.value.group_id = null;
       isRequestInProgress.value = false;
       isSuccessOpen.value = true;
-      emit("submit"); // Émettre un événement pour informer que le client a été créé
+      emit("submit");
     }
   } catch (err) {
-    handleServerErrors({ code: "23514", message: "Erreur serveur" });
+    errorMessage.value = "Erreur serveur";
     isRequestInProgress.value = false;
+    isAlertOpen.value = true;
   }
 };
+
 onMounted(() => {});
 </script>

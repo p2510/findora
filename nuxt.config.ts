@@ -9,6 +9,7 @@ export default defineNuxtConfig({
     "maz-ui/nuxt",
     '@pinia/nuxt',
     "nuxt-module-hotjar",
+    "dayjs-nuxt",
   ],
   hotjar: {
     hotjarId: 5242761,

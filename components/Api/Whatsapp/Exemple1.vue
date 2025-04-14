@@ -1,8 +1,8 @@
 <template>
-           <pre
-  class="text-xs text-slate-500 p-4 rounded-lg bg-gray-900 overflow-x-auto shadow-md"
->
-  <span class="text-slate-500">// Exemple d'utilisation pour envoyer un message à un ou plusieurs clients via l'API en Javascript</span> <br>
+  <pre
+    class="text-xs text-slate-500 p-4 rounded-lg bg-gray-900 overflow-x-auto shadow-md"
+  >
+  <span class="text-slate-500">// Exemple d'utilisation pour envoyer un message à un ou plusieurs contacts via l'API en Javascript</span> <br>
   fetch('https://api.myfindora.com/api/message/send', {
     <span class="text-yellow-400">method</span>: <span class="text-green-400">'POST'</span>,
     <span class="text-yellow-400">headers</span>: {
