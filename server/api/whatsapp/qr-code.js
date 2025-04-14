@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
   );
 
   const requestBody = await readBody(event);
-  const { token } = JSON.parse(requestBody);
+  const { token } = JSON.parse(requestBody); 
 
   // Requête pour créer un canal sur Whapi uniquement si isValid est vrai
 

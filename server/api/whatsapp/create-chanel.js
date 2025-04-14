@@ -4,7 +4,6 @@ export default defineEventHandler(async (event) => {
   // Initialisation du client Supabase
   const apiKey =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1eHZjY3dteGZwZ3lvY2dsaW9lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczMjcyNzA4NCwiZXhwIjoyMDQ4MzAzMDg0fQ.amjPfsZkysKczrI29qJmgabu-NQjyj-Sza3sWmcm4iA";
- 
 
   const supabase = createClient(
     "https://puxvccwmxfpgyocglioe.supabase.co",
@@ -120,10 +119,7 @@ export default defineEventHandler(async (event) => {
         error: err,
       };
     }
-  } else if (
-    (dataTest.subscription_type == "free") |
-    (dataTest.subscription_type == "premium")
-  ) {
+  } else if (dataTest.subscription_type == "free") {
     const tokenId =
       "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImExZDI2YWYyYmY4MjVmYjI5MzVjNWI3OTY3ZDA3YmYwZTMxZWIxYjcifQ.eyJwYXJ0bmVyIjp0cnVlLCJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vd2hhcGktYTcyMWYiLCJhdWQiOiJ3aGFwaS1hNzIxZiIsImF1dGhfdGltZSI6MTc0MDI0MjM1NCwidXNlcl9pZCI6IlQyTWlGanlkSnBlaGhIbWcyUWszTnFTMlFKOTIiLCJzdWIiOiJUMk1pRmp5ZEpwZWhoSG1nMlFrM05xUzJRSjkyIiwiaWF0IjoxNzQwMjQyMzU0LCJleHAiOjE4MDA3MjIzNTQsImVtYWlsIjoicG91cG9pbmFrYTAzQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7ImVtYWlsIjpbInBvdXBvaW5ha2EwM0BnbWFpbC5jb20iXX0sInNpZ25faW5fcHJvdmlkZXIiOiJwYXNzd29yZCJ9fQ.SeY-wcxw9lYuKOsgUN4Yyq4mSLq5WR_6K5hHh8kwjjUxG022yh21OaUmX2v4fY8S2lMZ4ndASEvHh-LAgV4Z38JGlC-vjmjciaznvur-XSrj7Vp2bOGYuGVstze_2KdQYXozQnR0HhafIUkI-JFSjy3dl2KYbiLGiVBw52-por8BcleeNfe1Sa75PbDrYI79Y3_ey7aOl3BiyrEKC-w7cJf9tCvOE-4cj8cLfIn6IkapygX6kpIdi3FFIkmk_XSNtfbJZhSnKC6KWRNA6V7zvN9JpkI3_bU5IzOWpEGzFele3Yq5tauPruS1uq6og6Yi265DqO0ZmHFGfz3B60ovXw";
     const projectId = "ZPtUJ1HInzAiWGI6EOqs";
@@ -142,6 +138,38 @@ export default defineEventHandler(async (event) => {
       });
       const createChannelJson = await createChannelResponse.json();
       console.log("Channel Created:", createChannelJson);
+      // Changer le mode en "live"
+      const modeResponse = await fetch(
+        `${baseUrl}/${createChannelJson.id}/mode`,
+        {
+          method: "PATCH",
+          headers: {
+            accept: "application/json",
+            "content-type": "application/json",
+            authorization: tokenId,
+          },
+          body: JSON.stringify({ mode: "live" }),
+        }
+      );
+      const modeJson = await modeResponse.json();
+      console.log("Mode Changed:", modeJson);
+
+      // Extension de validité de 2 jours
+      const extendResponse = await fetch(
+        `${baseUrl}/${createChannelJson.id}/extend`,
+        {
+          method: "POST",
+          headers: {
+            accept: "application/json",
+            "content-type": "application/json",
+            authorization: tokenId,
+          },
+          body: JSON.stringify({ days: 2, comment: "Increment days" }),
+        }
+      );
+      const extendJson = await extendResponse.json();
+      console.log("Validity Extended:", extendJson);
+
       return {
         success: true,
         message: "Processus terminé.",

@@ -10,7 +10,6 @@ export const useUser = defineStore(
       email: null,
       domain: null,
       uuid: null,
-      currency: "XOF",
       onboarding_done: null,
     });
 
@@ -37,7 +36,6 @@ export const useUser = defineStore(
         email: null,
         domain: null,
         uuid: null,
-        currency: "XOF",
         onboarding_done: null,
       };
       subscription.value = {
