@@ -61,13 +61,13 @@
           v-else-if="whatsappStore.whatsapp_backlogs.mode == 'trial'"
         >
           <div
-            class="col-span-full md:col-span-5 lg:col-start-1 lg:col-end-6 xl:col-start-1 xl:col-end-5 2xl:col-start-1 2xl:col-end-5"
+            class="col-span-full md:col-span-6 lg:col-start-1 lg:col-end-6 xl:col-start-1 xl:col-end-5 2xl:col-start-1 2xl:col-end-5"
           >
             <div
               class="rounded-lg px-4 py-2 bg-[#25D366]/20 dark:bg-[#25D366]/10 flex justify-between items-center"
             >
               <p class="text-slate-800 text-xs dark:text-white">
-                <span class="font-semibold">5 Jours</span> / d'essai limité
+                <span class="font-semibold">7 Jours</span>  d'essai gratuit
               </p>
               <NuxtLink
                 to="/abonnement"
@@ -78,40 +78,7 @@
             </div>
           </div>
 
-          <div
-            class="col-span-full md:col-span-7 lg:col-start-7 lg:col-end-13 xl:col-start-7 xl:col-end-13 2xl:col-start-8 2xl:col-end-13"
-          >
-            <div
-              class="rounded-lg px-4 py-2 bg-slate-300/20 dark:bg-slate-700/20 flex justify-around items-center"
-            >
-              <div class="flex gap-4">
-                <button
-                  class="text-sm text-white bg-orange-600 rounded-md shadow-md text-md p-3 transition-all duration-300 ease-in-out"
-                >
-                  Message
-                </button>
-                <p class="flex flex-col justify-between">
-                  <span class="text-slate-800 text-sm dark:text-slate-300"
-                    >Volume max</span
-                  >
-                  <span class="text-orange-600 text-xl font-semibold">150</span>
-                </p>
-              </div>
-              <div class="flex gap-4">
-                <button
-                  class="text-sm text-white bg-orange-600 rounded-md shadow-md text-md p-3 transition-all duration-300 ease-in-out"
-                >
-                  Numéro
-                </button>
-                <p class="flex flex-col justify-between">
-                  <span class="text-slate-800 text-sm dark:text-slate-300"
-                    >Volume max</span
-                  >
-                  <span class="text-orange-600 text-xl font-semibold">5</span>
-                </p>
-              </div>
-            </div>
-          </div>
+      
         </div>
       </section>
 

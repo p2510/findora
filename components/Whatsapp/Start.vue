@@ -2,7 +2,7 @@
   <button
     @click="createChanel"
     class="flex items-center text-slate-700 hover:text-white bg-[#f3c775] hover:bg-[#99732c] rounded-md hover:shadow-md text-md p-3 transition-all duration-300 ease-in-out"
-  > 
+  >
     <span v-if="isProgress">
       <svg
         aria-hidden="true"
@@ -75,12 +75,20 @@ const createChanel = async () => {
     const json = await response.json();
     if (json) {
       if (json.data.createChannel) {
+        const isTrial = json.data.createChannel.mode === "trial";
+        const baseDate = new Date(json.data.createChannel.activeTill);
+
+        // Si mode = trial, on ajoute 2 jours. Sinon on garde la date d’origine.
+        const expireDate = isTrial
+          ? new Date(baseDate.setDate(baseDate.getDate() + 2))
+          : baseDate;
+
         const { data, error } = await supabase
           .from("whatsapp_backlogs")
           .upsert({
             user_id: users.info.uuid,
             chanel_id: json.data.createChannel.id,
-            expire_date: new Date(json.data.createChannel.activeTill),
+            expire_date: expireDate,
             token: json.data.createChannel.token,
             status: "active",
             mode: json.data.createChannel.mode,
