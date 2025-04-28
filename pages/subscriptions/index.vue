@@ -1,21 +1,7 @@
 <template>
   <div>
-    <div v-if="users.subscription.is_partner" class="mt-14 space-y-4 pr-4">
-      <h3 class="text-5xl text-center">
-        <span> Vous êtes </span> <br />
-        partenaire
-        <span
-          class="bg-clip-text text-transparent bg-gradient-to-r from-[#f3c775] to-[#5e4414]"
-        >
-          Findora
-        </span>  
-      </h3>
-      <p class="text-center text-sm text-slate-600 pt-6">
-        Les partenaires Findora sont exemptés des abonnements pour l'utilisation
-        de l'application.
-      </p>
-    </div>
-    <div v-else class="mt-4 space-y-4 pr-4">
+
+    <div class="mt-4 space-y-4 pr-4">
       <div
         v-if="
           users.subscription.subscription_type == 'free' ||
@@ -49,18 +35,6 @@
               >
                 Mon abonnement
               </h2>
-
-              <div
-                v-if="users.subscription.status == 'active'"
-                class="flex gap-2 items-center"
-              >
-                <button
-                  @click="disableSubscription"
-                  class="text-xs text-slate-700 underline hover:text-slate-600 transition duration-200 ease-in-out"
-                >
-                  Suspendre mon abonnement
-                </button>
-              </div>
             </div>
           </template>
 
@@ -211,11 +185,7 @@ definePageMeta({
 });
 useHead({
   title: "Findora - Abonnement",
-  script: [
-    {
-      src: "https://js.paystack.co/v2/inline.js",
-    },
-  ],
+ 
 });
 
 import { useUser } from "@/stores/user";
@@ -294,36 +264,5 @@ let closeSuccessAlert = () => {
   isSuccessOpen.value = false;
 };
 
-let disableSubscription = async () => {
-  const url = `${useRuntimeConfig().public.url_base}/api/subscription/disable`;
- 
 
-  try {
-    const response = await fetch(url, {
-      method: "POST",
-      body: JSON.stringify({
-        user_id: users.info.uuid,
-      }),
-    });
-    if (!response.ok) {
-      throw new Error(`Response status: ${response.status}`);
-    }
-
-    const json = await response.json();
-    if (json.fetchResponse) {
-      isSuccessOpen.value = true;
-      successMessage.value =
-        " Votre abonnement a été résilié et vous ne serez pas facturé à la prochaine échéance.";
-      users.updateSubscription({ status: "cancel" });
-    } else {
-      
-      errorMessage.value =
-        "Nous sommes actuellement en maintenance. Veuillez réessayer plus tard";
-      isAlertOpen.value = true;
-    }
-  } catch (err) {
-    errorMessage.value = err.message;
-    isAlertOpen.value = true;
-  }
-};
 </script>

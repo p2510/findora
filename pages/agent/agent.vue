@@ -21,17 +21,7 @@
             Acheter plus de crédit
           </a>
         </p>
-        <div
-          class="border-[1.3px] border-slate-200 dark:border-slate-600 rounded-lg p-3"
-        >
-          <UAlert
-            color="warning"
-            variant="soft"
-            title="Facturation par conversation"
-            description="Chaque conversation est facturée par un crédit, quel que soit le nombre de messages échangés. Le coût d'un crédit est de 200 F CFA environ 0,35 $. Veuillez confirmer que l'adresse email utilisée pour l'achat est la même que celle associée à votre compte Findora."
-            icon="i-lucide:credit-card"
-          />
-        </div>
+    
       </div>
     </div>
   </section>
@@ -41,7 +31,7 @@
 import { useUser } from "@/stores/user";
 const userStore = useUser();
 definePageMeta({
-  middleware: ["auth", "is-entreprise"],
+  middleware: ["auth", "is-ultra"],
   alias: "/agent",
 });
 useHead({

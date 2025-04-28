@@ -149,7 +149,7 @@ export default defineEventHandler(async (event) => {
             {
               mode: "body",
               events: [{ type: "messages", method: "post" }],
-              url: `${useRuntimeConfig().public.api_base}/api/webhook/agents`,
+              url: `${useRuntimeConfig().public.url_base}/api/webhook/agents`,
             },
           ],
         }),

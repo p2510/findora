@@ -1,9 +1,8 @@
 // /server/api/agent/chat/update-status/[conversationId].js
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = "https://puxvccwmxfpgyocglioe.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1eHZjY3dteGZwZ3lvY2dsaW9lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczMjcyNzA4NCwiZXhwIjoyMDQ4MzAzMDg0fQ.amjPfsZkysKczrI29qJmgabu-NQjyj-Sza3sWmcm4iA";
-
+const supabaseUrl = useRuntimeConfig().public.supabase_url;
+const supabaseKey = useRuntimeConfig().supabase_secret_key
 export default defineEventHandler(async (event) => {
   try {
     const conversationId = event.context.params.conversationId;

@@ -13,7 +13,7 @@
 <script setup>
 import { ref } from "vue";
 definePageMeta({
-  middleware: ["auth", "is-entreprise"],
+  middleware: ["auth", "is-ultra"],
   alias: "/agent/config",
 });
 useHead({

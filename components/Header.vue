@@ -45,16 +45,9 @@
         </svg>
       </span>
     </div>
-    <div
-      class="flex justify-center gap-2 w-full text-slate-950 dark:text-slate-50"
-      v-if="users.subscription.is_partner"
-    >
-      <p class="text-xs lg:text-sm text-white">
-        <span> Vous êtes un partenaire Findora 🚀</span>
-      </p>
-    </div>
 
-    <div class="flex justify-between gap-2 w-full" v-else>
+
+    <div class="flex justify-between gap-2 w-full" >
       <p
         class="text-xs lg:block w-full lg:text-sm text-center text-slate-950 dark:text-slate-50"
         v-if="users.subscription.subscription_type === 'free'"
@@ -74,7 +67,7 @@
         class="text-xs lg:block w-full lg:text-sm text-center text-slate-950 dark:text-slate-50"
         v-else-if="
           (users.subscription.subscription_type === 'ultra' ||
-            users.subscription.subscription_type === 'business') &&
+            users.subscription.subscription_type === 'entreprise') &&
           new Date(
             new Date(users.subscription.start_at).setMonth(
               new Date(users.subscription.start_at).getMonth() + 1

@@ -1,11 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 
 export default defineEventHandler(async (event) => {
-  const apiKey =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1eHZjY3dteGZwZ3lvY2dsaW9lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczMjcyNzA4NCwiZXhwIjoyMDQ4MzAzMDg0fQ.amjPfsZkysKczrI29qJmgabu-NQjyj-Sza3sWmcm4iA";
-
+  const apiKey =useRuntimeConfig().supabase_secret_key
   const supabase = createClient(
-    "https://puxvccwmxfpgyocglioe.supabase.co",
+    useRuntimeConfig().public.supabase_url,
+
     apiKey
   );
   const formatPhoneNumber = (phoneNumber) => {

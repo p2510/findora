@@ -118,7 +118,7 @@ import { onMounted } from "vue";
 import { useUser } from "@/stores/user";
 const users = useUser();
 definePageMeta({
-  middleware: ["auth", "is-ultra"],
+  middleware: ["auth"],
   alias: "/api/jeton",
 });
 useHead({

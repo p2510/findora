@@ -16,7 +16,6 @@ export const useUser = defineStore(
     const subscription = ref({
       subscription_type: null,
       start_at: null,
-      is_partner: null,
       status: null,
       max_limit: 0,
     });
@@ -41,7 +40,6 @@ export const useUser = defineStore(
       subscription.value = {
         subscription_type: null,
         start_at: null,
-        is_partner: null,
         status: null,
         max_limit: 0,
       };

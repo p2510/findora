@@ -311,7 +311,7 @@ import { onMounted } from "vue";
 import { useChatStore } from "@/stores/agent/chat";
 
 definePageMeta({
-  middleware: ["auth", "is-entreprise"],
+  middleware: ["auth", "is-ultra"],
   alias: "/agent/chat",
 });
 
