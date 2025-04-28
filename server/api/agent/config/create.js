@@ -149,7 +149,7 @@ export default defineEventHandler(async (event) => {
             {
               mode: "body",
               events: [{ type: "messages", method: "post" }],
-              url: "https://api.myfindora.com/api/webhook/agents",
+              url: `${useRuntimeConfig().public.api_base}/api/webhook/agents`,
             },
           ],
         }),

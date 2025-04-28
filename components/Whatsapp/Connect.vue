@@ -94,7 +94,7 @@ let closeErrorAlert = () => {
 };
 const qrCode = async () => {
   isProgress.value = true;
-  const url = "https://app.myfindora.com/api/whatsapp/qr-code";
+  const url = `${useRuntimeConfig().public.url_base}/api/whatsapp/qr-code`;
 
   try {
     const response = await fetch(url, {

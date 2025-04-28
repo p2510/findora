@@ -165,7 +165,7 @@ const saveAgentKnow = async () => {
 
   isRequestInProgress.value = true;
 
-  const url = "https://app.myfindora.com/api/agent/know/create";
+  const url = `${useRuntimeConfig().public.url_base}/api/agent/know/create`;
 
   try {
     const response = await fetch(url, {
@@ -204,7 +204,7 @@ const saveAgentKnow = async () => {
 onMounted(async () => {
   console.log(knowStore.knowledge);
   if (knowStore.knowledge.metadata.length == 0) {
-    const url = `https://app.myfindora.com/api/agent/know/list?user_id=${users.info.uuid}`;
+    const url = `${useRuntimeConfig().public.url_base}/api/agent/know/list?user_id=${users.info.uuid}`;
     try {
       const response = await fetch(url, {
         method: "GET",

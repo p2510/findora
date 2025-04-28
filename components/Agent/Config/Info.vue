@@ -217,7 +217,7 @@ const saveAgentConfig = async () => {
 
   isRequestInProgress.value = true;
 
-  const url = "https://app.myfindora.com/api/agent/config/create";
+  const url = `${useRuntimeConfig()}/api/agent/config/create`;
 
   try {
     const response = await fetch(url, {
@@ -256,7 +256,7 @@ const saveAgentConfig = async () => {
 };
 onMounted(async () => {
   if (!configStore.config?.name) {
-    const url = `https://app.myfindora.com/api/agent/config/list?user_id=${users.info.uuid}`;
+    const url = `${useRuntimeConfig().public.url_base}/api/agent/config/list?user_id=${users.info.uuid}`;
     try {
       const response = await fetch(url, {
         method: "GET",
@@ -290,7 +290,7 @@ watch(active, async (oldValue, newValue) => {
   if (oldValue != newValue) {
     try {
       const response = await fetch(
-        "https://app.myfindora.com/api/agent/config/update-status",
+        `${useRuntimeConfig().public.url_base}/api/agent/config/update-status`,
         {
           method: "POST",
           body: JSON.stringify({

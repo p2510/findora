@@ -146,7 +146,7 @@ let isGenerate = ref(false);
 // Fonction pour générer la clé API
 const generateApiKey = async () => {
   isGenerate.value = true;
-  const url = "https://app.myfindora.com/api/token/generate";
+  const url = `${useRuntimeConfig().public.url_base}/api/token/generate`;
   const userToken = await supabase.auth.getSession();
   const token = userToken.data?.session?.access_token;
   try {
@@ -175,7 +175,7 @@ const generateApiKey = async () => {
 
 // Fonction pour révoquer la clé API
 const revokeApiKey = async () => {
-  const url = "https://app.myfindora.com/api/token/revoke";
+  const url = `${useRuntimeConfig().public.url_base}/api/token/revoke`;
   try {
     const response = await fetch(url, {
       method: "POST",

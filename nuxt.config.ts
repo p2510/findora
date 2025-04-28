@@ -47,4 +47,15 @@ export default defineNuxtConfig({
       },
     },
   },
+    runtimeConfig: {
+       supabase_secret_key: process.env.SUPABASE_SECRET_KEY,
+       openai_api_key: process.env.OPENAI_API_KEY,
+       public : {
+          url_base: process.env.URL_BASE,
+          api_base: process.env.API_BASE,
+          supabase_url: process.env.PROJECT_URL,
+          supabase_public_key: process.env.SUPABASE_KEY,
+       }
+    }
+
 })
