@@ -4,26 +4,10 @@
       @submit="fetchCustomers"
       class="col-span-6 lg:col-span-4 2xl:col-span-3"
     />
-
-    <div
-      class="hidden lg:block cursor-pointer border-[1.8px] border-neutral-200 dark:border-neutral-700 rounded-md col-span-6 lg:col-span-4 2xl:col-span-3 p-3 bg-transparent dark:bg-neutral-900 relative overflow-hidden"
-    >
-      <div>
-        <p class="pb-3 flex justify-between items-center z-10">
-          <span class="text-sm text-slate-950 dark:text-white font-[500]">
-            Synchroniser les contacts
-          </span>
-          <button
-            class="flex items-center justify-center rounded-full p-2 text-slate-800 dark:text-white bg-[#ffbd59]/10 dark:bg-[#ffbd59]/20 transition duration-300 ease-in-out hover:bg-[#ffbd59]/20 dark:hover:bg-[#ffbd59]/30"
-          >
-            <UIcon name="i-heroicons-arrow-up-right" />
-          </button>
-        </p>
-        <p class="text-xs text-slate-700 dark:text-slate-300 font-[300]">
-          Migrer tous vos contacts téléphoniques vers Findora
-        </p>
-      </div>
-    </div>
+    <CustomerSynchro
+      @submit="fetchCustomers"
+      class="col-span-6 lg:col-span-4 2xl:col-span-3"
+    />
 
     <div
       @click="isOpen = true"

@@ -4,12 +4,26 @@ export default defineEventHandler(async (event) => {
   const apiKey = useRuntimeConfig().supabase_secret_key;
   const supabase = createClient(
     useRuntimeConfig().public.supabase_url,
-
     apiKey
   );
 
+  // Fonction pour personnaliser le message avec les données du client
+  const personalizeMessage = (content, customer) => {
+    let personalizedContent = content;
+    
+    // Remplacer toutes les variables {name}, {email}, {phone} par les valeurs du client
+    Object.keys(customer).forEach(key => {
+      const regex = new RegExp(`{${key}}`, 'g');
+      personalizedContent = personalizedContent.replace(regex, customer[key] || '');
+    });
+    
+    return personalizedContent;
+  };
 
   const sendMessageToCustomer = async (customer, content, token) => {
+    // Personnaliser le message pour ce client
+    const personalizedContent = personalizeMessage(content, customer);
+    
     const url = "https://gate.whapi.cloud/messages/text";
     const options = {
       method: "POST",
@@ -21,7 +35,7 @@ export default defineEventHandler(async (event) => {
       body: JSON.stringify({
         typing_time: 0,
         to: customer.phone,
-        body: content,
+        body: personalizedContent,
       }),
     };
 
