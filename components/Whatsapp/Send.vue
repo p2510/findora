@@ -175,11 +175,14 @@ let handleSubmit = async () => {
     isProgress.value = false;
     isAlertOpen.value = true;
     errorMessage.value = "Veuillez choisir une date avant de programmer. ";
+
     return;
   }
 
   if (!isScheduled.value) {
-    const url = `${useRuntimeConfig().public.url_base}/api/whatsapp/send-message`;
+    const url = `${
+      useRuntimeConfig().public.url_base
+    }/api/whatsapp/send-message`;
 
     try {
       const response = await fetch(url, {
@@ -216,6 +219,15 @@ let handleSubmit = async () => {
       isAlertOpen.value = true;
     }
   } else {
+    const today = new Date();
+    const chosenDate = new Date(formData.value.scheduleDate);
+    if (chosenDate < today) {
+      isProgress.value = false;
+      isAlertOpen.value = true;
+      errorMessage.value =
+        "La date choisie est déjà passée. Veuillez en sélectionner une autre.";
+      return;
+    }
     try {
       const chunkArray = (array, size) => {
         return Array.from(
