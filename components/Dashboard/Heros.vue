@@ -253,7 +253,7 @@
           class="hidden 2xl:block 2xl:col-span-3 bg-white text-slate-800 dark:bg-slate-800 dark:text-white rounded-md shadow-md hover:shadow-lg transition duration-300 ease-in-out"
         >
           <nuxt-link
-            to="/dashboard"
+            to="/contacts"
             class="flex gap-4 justify-start items-center p-3"
           >
             <p

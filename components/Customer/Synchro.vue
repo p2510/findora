@@ -67,7 +67,7 @@ let synchronize = async () => {
           </button>
         </p>
         <p class="text-xs text-slate-700 dark:text-slate-300 font-[300]">
-          Migrer tous vos contacts whatsapp vers Findora
+          Migrer tous vos contacts whatsapp vers Findora en un seul clic.
         </p>
       </div>
     </div>
