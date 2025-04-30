@@ -34,7 +34,7 @@
       </template>
 
       <!-- Filtres -->
-      <div class="flex items-center justify-between gap-3 px-4 py-3 ">
+      <div class="flex items-center justify-between gap-3 px-4 py-3">
         <div class="flex items-center justify-between gap-3 basis-1/2">
           <UInput
             v-model="search"
@@ -114,6 +114,9 @@
           label: 'Oups, Aucun contact trouvé',
         }"
       >
+        <template #phone-data="{ row }">
+          <span>+{{ row.phone }}</span>
+        </template>
         <template #customer_type-data="{ row }">
           <UBadge
             v-if="row.customer_type == 'Entreprise'"
@@ -192,7 +195,7 @@
               class="text-gray-700 w-4 h-4"
             />
             <span class="text-slate-800 text-sm">
-              {{ selectedCustomer.phone }}</span
+              +{{ selectedCustomer.phone }}</span
             >
           </div>
           <UBadge
@@ -418,6 +421,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
+import { formatPhone, unformatPhone } from "@/utils/shared/format";
+
 definePageMeta({
   middleware: "auth",
   alias: "/contacts",
@@ -644,7 +649,7 @@ const editCustomer = async () => {
       .update({
         name: formData.value.name,
         email: formData.value.email,
-        phone: formData.value.phone,
+        phone: formatPhone(formData.value.phone),
         address: formData.value.address,
         customer_type: isEntreprise.value ? "Entreprise" : "Particulier",
       })

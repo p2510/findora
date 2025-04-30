@@ -2,6 +2,7 @@
 import { ref, defineEmits } from "vue";
 import { useCustomer } from "@/stores/customer";
 import { useStat } from "@/stores/stat";
+import { formatPhone } from "@/utils/shared/format";
 
 const stat = useStat();
 const customerStore = useCustomer();
@@ -49,7 +50,7 @@ let AddCustomer = async () => {
         {
           name: formData.value.name,
           email: formData.value.email,
-          phone: formData.value.phone,
+          phone: formatPhone(formData.value.phone),
           address: formData.value.address,
           customer_type: isEntreprise.value ? "Entreprise" : "Particulier",
           created_by: user.value.id,

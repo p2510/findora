@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
       },
       body: JSON.stringify({
         typing_time: 0,
-        to: formatPhoneNumber(customer.phone),
+        to: customer.phone,
         body: content,
       }),
     };
@@ -40,19 +40,7 @@ export default defineEventHandler(async (event) => {
     }
   };
 
-  // Fonction pour formater le numéro de téléphone
-  const formatPhoneNumber = (phoneNumber) => {
-    if (!phoneNumber.startsWith("+")) return phoneNumber;
 
-    const countryCode = phoneNumber.slice(1, 4);
-    const remainingNumber = phoneNumber.slice(4);
-
-    if (countryCode === "225") {
-      return countryCode + remainingNumber.slice(2);
-    } else {
-      return phoneNumber.slice(1);
-    }
-  };
 
   // Fonction pour envoyer des messages avec pauses
   const sendMessagesWithPause = async (customers, content, token) => {

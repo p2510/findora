@@ -53,7 +53,7 @@
                 clip-rule="evenodd"
               />
             </svg>
-            Whatsapp Marketing 7 Jours
+            500 Whatsapp Marketing 
           </li>
 
           <li class="flex gap-x-3 text-slate-400">
@@ -303,7 +303,6 @@ let suscribe = async (plan, type) => {
       paystack.resumeTransaction(json.fetchResponse.data.access_code);
     } else {
       console.log(json);
-
       alert(
         "Nous sommes actuellement en maintenance. Veuillez réessayer plus tard."
       );

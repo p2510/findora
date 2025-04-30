@@ -1,33 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
 
 export default defineEventHandler(async (event) => {
-  const apiKey =useRuntimeConfig().supabase_secret_key
+  const apiKey = useRuntimeConfig().supabase_secret_key;
   const supabase = createClient(
     useRuntimeConfig().public.supabase_url,
 
     apiKey
   );
-  const formatPhoneNumber = (phoneNumber) => {
-    if (!phoneNumber.startsWith("+")) return phoneNumber;
-
-    const countryCode = phoneNumber.slice(1, 4); // "225"
-    const remainingNumber = phoneNumber.slice(4); // Numéro sans l'indicatif
-
-    if (countryCode === "225") {
-        // Vérifier si les deux premiers chiffres après 225 sont "01"
-        if (remainingNumber.startsWith("01")) {
-            return countryCode + remainingNumber; // On garde le numéro entier
-        }
-        // Vérifier si le troisième et le quatrième chiffre après 225 sont "00"
-        if (remainingNumber.length >= 4 && remainingNumber[2] === "0" && remainingNumber[3] === "0") {
-            return countryCode + remainingNumber; // On garde le numéro entier
-        }
-
-        return countryCode + remainingNumber.slice(2); // Sinon, on slice
-    } else {
-        return phoneNumber.slice(1); // On enlève juste le "+"
-    }
-};
 
 
   const sendMessageToCustomer = async (customer, content, token) => {
@@ -41,7 +20,7 @@ export default defineEventHandler(async (event) => {
       },
       body: JSON.stringify({
         typing_time: 0,
-        to: formatPhoneNumber(customer.phone),
+        to: customer.phone,
         body: content,
       }),
     };

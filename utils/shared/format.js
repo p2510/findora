@@ -20,3 +20,54 @@ export const formatDate = (currentDate) => {
     year: "numeric",
   });
 };
+
+export const formatPhone = (phoneNumber) => {
+  if (!phoneNumber.startsWith("+")) return phoneNumber;
+
+  const countryCode = phoneNumber.slice(1, 4); // "225"
+  const remainingNumber = phoneNumber.slice(4); // Numéro sans l'indicatif
+
+  if (countryCode === "225") {
+    // Vérifier si les deux premiers chiffres après 225 sont "01"
+    if (remainingNumber.startsWith("01")) {
+      return countryCode + remainingNumber; // On garde le numéro entier
+    }
+    // Vérifier si le troisième et le quatrième chiffre après 225 sont "00"
+    if (
+      remainingNumber.length >= 4 &&
+      remainingNumber[2] === "0" &&
+      remainingNumber[3] === "0"
+    ) {
+      return countryCode + remainingNumber; // On garde le numéro entier
+    }
+
+    return countryCode + remainingNumber.slice(2); // Sinon, on slice
+  } else {
+    return phoneNumber.slice(1); // On enlève juste le "+"
+  }
+};
+
+export const unformatPhone = (formattedNumber) => {
+  if (!formattedNumber.startsWith("225")) return formattedNumber;
+
+  const countryCode = "225";
+  const remainingNumber = formattedNumber.slice(3); // Après "225"
+
+  // Si ça commence déjà par "01" → on garde tel quel
+  if (remainingNumber.startsWith("01")) {
+    return `+${countryCode}${remainingNumber}`;
+  }
+
+  // Si la 3e et 4e position sont "00" → on garde aussi tel quel
+  if (
+    remainingNumber.length >= 4 &&
+    remainingNumber[2] === "0" &&
+    remainingNumber[3] === "0"
+  ) {
+    return `+${countryCode}${remainingNumber}`;
+  }
+
+  // Sinon, on ajoute "07" devant les 8 chiffres pour reconstruire
+  const fullNumber = `07${remainingNumber}`;
+  return `+${countryCode}${fullNumber}`;
+};

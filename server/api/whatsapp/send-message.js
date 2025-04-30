@@ -2,43 +2,39 @@ import { createClient } from "@supabase/supabase-js";
 
 export default defineEventHandler(async (event) => {
   // Initialisation du client Supabase
-  const apiKey =useRuntimeConfig().supabase_secret_key
+  const apiKey = useRuntimeConfig().supabase_secret_key;
 
-  const supabase = createClient(
-    useRuntimeConfig().public.supabase_url,
-    apiKey
-  );
+  const supabase = createClient(useRuntimeConfig().public.supabase_url, apiKey);
 
   const requestBody = await readBody(event);
   const { customers, content, token, user_id } = JSON.parse(requestBody);
 
   // Vérification de l'abonnement de l'utilisateur
   let isValid = false;
+  let maxCampaigns = 0;
+  let subscriptionId = null;
 
   try {
     const { data: subscription, error } = await supabase
       .from("subscriptions")
-      .select("subscription_type, start_at, is_partner")
+      .select("subscription_type, start_at, max_campaigns,id")
       .eq("user_id", user_id)
       .order("start_at", { ascending: false })
       .limit(1)
-      .single();
+      .single(); 
 
     if (error) throw error;
 
     if (subscription) {
-      // Si l'utilisateur est un partenaire, il peut envoyer la campagne
-      if (subscription.is_partner) {
+      // Vérification du type d'abonnement
+      const expirationDate = new Date(subscription.start_at);
+      expirationDate.setMonth(expirationDate.getMonth() + 1);
+      const isExpired = expirationDate < new Date();
+      if (!isExpired && subscription.max_campaigns >= customers.length) {
         isValid = true;
-      } else {
-        // Vérification du type d'abonnement
-        const expirationDate = new Date(subscription.start_at);
-        expirationDate.setMonth(expirationDate.getMonth() + 1);
-        const isExpired = expirationDate < new Date();
-        if (!isExpired) {
-          isValid = true;
-        }
-      }
+      } 
+      maxCampaigns = subscription.max_campaigns;
+      subscriptionId = subscription.id;
     }
   } catch (error) {
     return {
@@ -51,7 +47,7 @@ export default defineEventHandler(async (event) => {
   if (!isValid) {
     return {
       success: false,
-      message: "Abonnement expiré.",
+      message: "Abonnement expiré ou volume insuffisant.",
     };
   }
 
@@ -84,6 +80,13 @@ export default defineEventHandler(async (event) => {
         errors,
       };
     }
+
+    const { error: updateError } = await supabase
+      .from("subscriptions")
+      .update({ max_campaigns: maxCampaigns - customers.length })
+      .eq("id", subscriptionId)
+      .select();
+
     return {
       success: true,
       message: "Processus terminé avec succès.",
@@ -92,7 +95,7 @@ export default defineEventHandler(async (event) => {
     return {
       success: false,
       message: "Erreur lors de l'envoi de la campagne.",
-      errur: error,
+      erreur: error,
     };
   }
 });

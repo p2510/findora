@@ -1,15 +1,28 @@
 <template>
   <section class="px-10 lg:px-12">
-    <h4 class="text-slate-900 dark:text-white text-2xl lg:text-4xl pb-2">
-      Lancez une nouvelle <br />
-      <span
-        class="bg-clip-text text-transparent bg-gradient-to-r from-[#25D366] to-[#1e6337] dark:from-[#25D366] dark:to-[#1e6337]"
+    <h4
+      class="text-slate-900 dark:text-white text-2xl lg:text-4xl pb-2 flex items-center justify-between"
+    >
+      <p>
+        Lancez une nouvelle
+        <span
+          class="bg-clip-text text-transparent bg-gradient-to-r from-[#25D366] to-[#1e6337] dark:from-[#25D366] dark:to-[#1e6337]"
+        >
+          campagne
+        </span>
+      </p>
+      <p
+        class="rounded-lg px-4 py-2 bg-[#25D366]/20 dark:bg-[#25D366]/10 flex justify-between items-center"
       >
-        campagne
-      </span>
-      ou configurez une automatisation
+        <span class="text-slate-800 text-xs dark:text-white">
+          <i class="font-semibold not-italic">{{
+            users.subscription.max_campaigns
+          }}</i>
+          Campagnes restantes
+        </span>
+      </p>
     </h4>
-    <form class="grid grid-cols-12 gap-4 pt-10" @submit.prevent="handleSubmit">
+    <form class="grid grid-cols-12 gap-4 pt-6" @submit.prevent="handleSubmit">
       <div class="col-span-full space-y-3">
         <label for="content" class="text-gray-500 dark:text-gray-300"
           >Créons le contenu de votre campagne !</label
@@ -190,6 +203,8 @@ let handleSubmit = async () => {
         isProgress.value = false;
         isSuccessOpen.value = true;
         successMessage.value = "Votre campagne a bien été envoyée.";
+        users.subscription.max_campaigns =
+          users.subscription.max_campaigns - formData.value.customers.length;
       } else {
         isProgress.value = false;
         errorMessage.value = json.message;
@@ -220,14 +235,24 @@ let handleSubmit = async () => {
         });
       });
       const results = await Promise.all(insertPromises);
-      const errors = results.filter((result) => result.status === "rejected");
 
-      if (errors.length > 0) {
-        errorMessage.value = "Certaines insertions ont échoué.";
+      if (results.length > 0 && results[0].error) {
+        errorMessage.value = results[0].error.message;
         isAlertOpen.value = true;
         isRequestInProgress.value = false;
       } else {
         // Réinitialisation des champs si la soumission a réussi
+        users.subscription.max_campaigns =
+          users.subscription.max_campaigns - formData.value.customers.length;
+
+        await supabase
+          .from("subscriptions")
+          .update({
+            max_campaigns: users.subscription.max_campaigns,
+          })
+          .eq("user_id", users.info.uuid)
+          .select();
+
         isSuccessOpen.value = true;
         successMessage.value = "Votre campagne a bien été programmée.";
         formData.value.customers = [];
