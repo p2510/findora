@@ -3,6 +3,7 @@ import OpenAI from "openai";
 import axios from "axios";
 import path from "path";
 import fs from "fs";
+import ffmpeg from "fluent-ffmpeg";
 import { promises as fsPromises } from "fs";
 
 export default defineEventHandler(async (event) => {
@@ -190,60 +191,59 @@ export default defineEventHandler(async (event) => {
           messageContent = message.text?.body || "";
         } else if (message.voice) {
           try {
-            // Utiliser le répertoire temporaire du système
             const tempDir = "/tmp";
-
-            // Récupérer le lien direct vers le fichier audio
             const voiceUrl = message.voice.link;
 
             if (voiceUrl) {
               console.log(
                 `Téléchargement du fichier audio depuis: ${voiceUrl}`
               );
+              const uniqueId = `voice_${Date.now()}_${Math.random()
+                .toString(36)
+                .substring(2, 15)}`;
+              const tempOgaPath = path.join(tempDir, `${uniqueId}.oga`);
+              const tempMp3Path = path.join(tempDir, `${uniqueId}.mp3`);
 
-              // Définir le chemin où le fichier sera enregistré avec un nom unique
-              const tempFilePath = path.join(
-                tempDir,
-                `voice_${Date.now()}_${Math.random()
-                  .toString(36)
-                  .substring(2, 15)}.oga`
-              );
-
-              // Télécharger le fichier sans token d'authentification supplémentaire
+              // Télécharger le fichier .oga
               const response = await axios({
                 method: "GET",
                 url: voiceUrl,
                 responseType: "arraybuffer",
               });
 
-              // Enregistrer le fichier localement
-              await fsPromises.writeFile(tempFilePath, response.data);
+              await fsPromises.writeFile(tempOgaPath, response.data);
+              console.log(`Fichier .oga enregistré à: ${tempOgaPath}`);
 
-              console.log(
-                `Fichier audio téléchargé et enregistré à: ${tempFilePath}`
-              );
+              // Convertir en .mp3 avec FFmpeg
+              await new Promise((resolve, reject) => {
+                ffmpeg(tempOgaPath)
+                  .toFormat("mp3")
+                  .on("end", resolve)
+                  .on("error", reject)
+                  .save(tempMp3Path);
+              });
 
-              // Transcrire le fichier audio
+              console.log(`Fichier converti en .mp3 à: ${tempMp3Path}`);
+
+              // Transcrire le fichier converti
               const transcription = await openai.audio.transcriptions.create({
-                file: fs.createReadStream(tempFilePath),
-                model: "gpt-4o-transcribe", // ou "gpt-4o-transcribe" si disponible
+                file: fs.createReadStream(tempMp3Path),
+                model: "gpt-4o-transcribe",
                 response_format: "text",
               });
 
               console.log(`Transcription obtenue: ${transcription}`);
-
-              // Supprimer le fichier temporaire après utilisation
-              await fsPromises.unlink(tempFilePath);
-
               messageContent = transcription;
+
+              // Nettoyage des fichiers temporaires
+              await fsPromises.unlink(tempOgaPath);
+              await fsPromises.unlink(tempMp3Path);
             }
           } catch (voiceError) {
             console.error(
               "Erreur lors du traitement du message vocal:",
               voiceError
             );
-            // Afficher plus de détails sur l'erreur pour le débogage
-            console.error("Détails de l'erreur:", voiceError.stack);
             if (voiceError.response) {
               console.error("Réponse d'erreur:", voiceError.response.data);
             }
