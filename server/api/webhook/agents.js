@@ -189,15 +189,10 @@ export default defineEventHandler(async (event) => {
           messageContent = message.text?.body || "";
         } else if (message.voice) {
           try {
-            // Créer un dossier temporaire pour stocker les fichiers audio si nécessaire
-            const tempDir = path.join(process.cwd(), "temp");
-            try {
-              await fsPromises.mkdir(tempDir, { recursive: true });
-            } catch (err) {
-              if (err.code !== "EEXIST") throw err;
-            }
+            // Utiliser le répertoire temporaire du système
+            const tempDir = "/tmp";
 
-            // Télécharger le fichier audio depuis l'URL
+            // Récupérer le lien direct vers le fichier audio
             const voiceUrl = message.voice.link;
 
             if (!voiceUrl) {
@@ -205,13 +200,19 @@ export default defineEventHandler(async (event) => {
               messageContent =
                 "Je n'ai pas pu comprendre votre message vocal. Pourriez-vous envoyer un message texte à la place?";
             } else {
-              // Définir le chemin où le fichier sera enregistré
-              const tempFilePath = path.join(
-                tempDir,
-                `voice_${Date.now()}.ogg`
+              console.log(
+                `Téléchargement du fichier audio depuis: ${voiceUrl}`
               );
 
-              // Télécharger le fichier
+              // Définir le chemin où le fichier sera enregistré avec un nom unique
+              const tempFilePath = path.join(
+                tempDir,
+                `voice_${Date.now()}_${Math.random()
+                  .toString(36)
+                  .substring(2, 15)}.oga`
+              );
+
+              // Télécharger le fichier sans token d'authentification supplémentaire
               const response = await axios({
                 method: "GET",
                 url: voiceUrl,
@@ -221,12 +222,18 @@ export default defineEventHandler(async (event) => {
               // Enregistrer le fichier localement
               await fsPromises.writeFile(tempFilePath, response.data);
 
+              console.log(
+                `Fichier audio téléchargé et enregistré à: ${tempFilePath}`
+              );
+
               // Transcrire le fichier audio
               const transcription = await openai.audio.transcriptions.create({
                 file: fs.createReadStream(tempFilePath),
-                model: "gpt-4o-transcribe",
+                model: "gpt-4o-transcribe", // ou "gpt-4o-transcribe" si disponible
                 response_format: "text",
               });
+
+              console.log(`Transcription obtenue: ${transcription}`);
 
               // Supprimer le fichier temporaire après utilisation
               await fsPromises.unlink(tempFilePath);
@@ -238,6 +245,12 @@ export default defineEventHandler(async (event) => {
               "Erreur lors du traitement du message vocal:",
               voiceError
             );
+            // Afficher plus de détails sur l'erreur pour le débogage
+            console.error("Détails de l'erreur:", voiceError.stack);
+            if (voiceError.response) {
+              console.error("Réponse d'erreur:", voiceError.response.data);
+            }
+
             messageContent =
               "Je n'ai pas pu comprendre votre message vocal. Pourriez-vous envoyer un message texte à la place?";
           }
