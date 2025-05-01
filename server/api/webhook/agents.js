@@ -1,6 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 import OpenAI from "openai";
-import fs from "fs";
+import axios from "axios";
+import path from "path";
+import { promises as fsPromises } from "fs";
 
 export default defineEventHandler(async (event) => {
   // Configuration constants
@@ -186,12 +188,62 @@ export default defineEventHandler(async (event) => {
         if (message.text) {
           messageContent = message.text?.body || "";
         } else if (message.voice) {
-          const transcription = await openai.audio.transcriptions.create({
-            file: fs.createReadStream(message.voice.link),
-            model: "gpt-4o-transcribe",
-            response_format: "text",
-          });
-          messageContent = transcription;
+          try {
+            // Créer un dossier temporaire pour stocker les fichiers audio si nécessaire
+            const tempDir = path.join(process.cwd(), "temp");
+            try {
+              await fsPromises.mkdir(tempDir, { recursive: true });
+            } catch (err) {
+              if (err.code !== "EEXIST") throw err;
+            }
+
+            // Télécharger le fichier audio depuis l'URL
+            const voiceUrl = message.voice.link;
+
+            if (!voiceUrl) {
+              console.error("URL du message vocal non disponible");
+              messageContent =
+                "Je n'ai pas pu comprendre votre message vocal. Pourriez-vous envoyer un message texte à la place?";
+            } else {
+              // Définir le chemin où le fichier sera enregistré
+              const tempFilePath = path.join(
+                tempDir,
+                `voice_${Date.now()}.ogg`
+              );
+
+              // Télécharger le fichier
+              const response = await axios({
+                method: "GET",
+                url: voiceUrl,
+                responseType: "arraybuffer",
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              });
+
+              // Enregistrer le fichier localement
+              await fsPromises.writeFile(tempFilePath, response.data);
+
+              // Transcrire le fichier audio
+              const transcription = await openai.audio.transcriptions.create({
+                file: fs.createReadStream(tempFilePath),
+                model: "gpt-4o-transcribe", 
+                response_format: "text",
+              });
+
+              // Supprimer le fichier temporaire après utilisation
+              await fsPromises.unlink(tempFilePath);
+
+              messageContent = transcription;
+            }
+          } catch (voiceError) {
+            console.error(
+              "Erreur lors du traitement du message vocal:",
+              voiceError
+            );
+            messageContent =
+              "Je n'ai pas pu comprendre votre message vocal. Pourriez-vous envoyer un message texte à la place?";
+          }
         }
 
         try {
