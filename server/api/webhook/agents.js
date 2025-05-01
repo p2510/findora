@@ -196,11 +196,8 @@ export default defineEventHandler(async (event) => {
             console.log(message);
             const voiceUrl = message.voice.link;
             console.log(voiceUrl);
-            return;
+
             if (!voiceUrl) {
-              console.error("URL du message vocal non disponible");
-              messageContent =
-                "Je n'ai pas pu comprendre votre message vocal. Pourriez-vous envoyer un message texte à la place?";
             } else {
               console.log(
                 `Téléchargement du fichier audio depuis: ${voiceUrl}`
