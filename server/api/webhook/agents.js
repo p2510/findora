@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import OpenAI from "openai";
 import axios from "axios";
 import path from "path";
+import fs from "fs";
 import { promises as fsPromises } from "fs";
 
 export default defineEventHandler(async (event) => {
@@ -193,12 +194,9 @@ export default defineEventHandler(async (event) => {
             const tempDir = "/tmp";
 
             // Récupérer le lien direct vers le fichier audio
-            console.log(message);
             const voiceUrl = message.voice.link;
-            console.log(voiceUrl);
 
-            if (!voiceUrl) {
-            } else {
+            if (voiceUrl) {
               console.log(
                 `Téléchargement du fichier audio depuis: ${voiceUrl}`
               );
