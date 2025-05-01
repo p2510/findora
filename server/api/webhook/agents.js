@@ -216,9 +216,6 @@ export default defineEventHandler(async (event) => {
                 method: "GET",
                 url: voiceUrl,
                 responseType: "arraybuffer",
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
               });
 
               // Enregistrer le fichier localement
@@ -227,7 +224,7 @@ export default defineEventHandler(async (event) => {
               // Transcrire le fichier audio
               const transcription = await openai.audio.transcriptions.create({
                 file: fs.createReadStream(tempFilePath),
-                model: "gpt-4o-transcribe", 
+                model: "gpt-4o-transcribe",
                 response_format: "text",
               });
 
