@@ -3,8 +3,9 @@ import OpenAI from "openai";
 import axios from "axios";
 import path from "path";
 import fs from "fs";
-import ffmpeg from "fluent-ffmpeg";
 import { promises as fsPromises } from "fs";
+const ffmpegPath = require('ffmpeg-static');
+const ffmpeg = require('fluent-ffmpeg');
 
 export default defineEventHandler(async (event) => {
   // Configuration constants
@@ -193,52 +194,59 @@ export default defineEventHandler(async (event) => {
           try {
             const tempDir = "/tmp";
             const voiceUrl = message.voice.link;
-
+            ffmpeg.setFfmpegPath(ffmpegPath);
+          
             if (voiceUrl) {
-              console.log(
-                `Téléchargement du fichier audio depuis: ${voiceUrl}`
-              );
+              console.log(`Téléchargement du fichier audio depuis: ${voiceUrl}`);
               const uniqueId = `voice_${Date.now()}_${Math.random()
                 .toString(36)
                 .substring(2, 15)}`;
               const tempOgaPath = path.join(tempDir, `${uniqueId}.oga`);
               const tempMp3Path = path.join(tempDir, `${uniqueId}.mp3`);
-
-              // Télécharger le fichier .oga
-              const response = await axios({
-                method: "GET",
-                url: voiceUrl,
-                responseType: "arraybuffer",
-              });
-
-              await fsPromises.writeFile(tempOgaPath, response.data);
-              console.log(`Fichier .oga enregistré à: ${tempOgaPath}`);
-
-              // Convertir en .mp3 avec FFmpeg
-              await new Promise((resolve, reject) => {
-                ffmpeg(tempOgaPath)
-                  .toFormat("mp3")
-                  .on("end", resolve)
-                  .on("error", reject)
-                  .save(tempMp3Path);
-              });
-
-              console.log(`Fichier converti en .mp3 à: ${tempMp3Path}`);
-              return;
-
-              // Transcrire le fichier converti
-              const transcription = await openai.audio.transcriptions.create({
-                file: fs.createReadStream(tempMp3Path),
-                model: "gpt-4o-transcribe",
-                response_format: "text",
-              });
-
-              console.log(`Transcription obtenue: ${transcription}`);
-              messageContent = transcription;
-
-              // Nettoyage des fichiers temporaires
-              await fsPromises.unlink(tempOgaPath);
-              await fsPromises.unlink(tempMp3Path);
+              
+              try {
+                // Télécharger le fichier .oga
+                const response = await axios({
+                  method: "GET",
+                  url: voiceUrl,
+                  responseType: "arraybuffer",
+                });
+                
+                await fsPromises.writeFile(tempOgaPath, response.data);
+                console.log(`Fichier .oga enregistré à: ${tempOgaPath}`);
+                
+                // Convertir en .mp3 avec FFmpeg
+                await new Promise((resolve, reject) => {
+                  ffmpeg(tempOgaPath)
+                    .toFormat("mp3")
+                    .on("end", () => {
+                      console.log(`Fichier converti en .mp3 à: ${tempMp3Path}`);
+                      resolve();
+                    })
+                    .on("error", (err) => {
+                      console.error("Erreur FFmpeg:", err);
+                      reject(err);
+                    })
+                    .save(tempMp3Path);
+                });
+                
+                // Transcrire le fichier converti
+                const transcription = await openai.audio.transcriptions.create({
+                  file: fs.createReadStream(tempMp3Path),
+                  model: "gpt-4o-transcribe",
+                  response_format: "text",
+                });
+                
+                console.log(`Transcription obtenue: ${transcription}`);
+                messageContent = transcription;
+                
+                // Nettoyage des fichiers temporaires
+                await fsPromises.unlink(tempOgaPath);
+                await fsPromises.unlink(tempMp3Path);
+              } catch (error) {
+                console.error("Erreur lors du traitement audio:", error);
+                throw error;
+              }
             }
           } catch (voiceError) {
             console.error(
