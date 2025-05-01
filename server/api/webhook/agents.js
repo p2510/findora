@@ -193,8 +193,10 @@ export default defineEventHandler(async (event) => {
             const tempDir = "/tmp";
 
             // Récupérer le lien direct vers le fichier audio
+            console.log(message);
             const voiceUrl = message.voice.link;
-
+            console.log(voiceUrl);
+            return;
             if (!voiceUrl) {
               console.error("URL du message vocal non disponible");
               messageContent =
