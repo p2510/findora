@@ -10,6 +10,9 @@ definePageMeta({
   middleware: "auth",
 });
 useHead({
-  title: "Findora - Votre tableau de bord pour une Gestion des contacts sans effort",
+  title:
+    "Findora - Votre tableau de bord pour une Gestion des contacts sans effort",
 });
+
+
 </script>

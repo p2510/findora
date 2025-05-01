@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import OpenAI from "openai";
+import fs from "fs";
 
 export default defineEventHandler(async (event) => {
   // Configuration constants
@@ -133,7 +134,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Définir les limites de tokens avec des valeurs par défaut
-    const maxCompletionTokens = 3000;
+    const maxCompletionTokens = 7000;
     const maxPromptTokens = 5000;
 
     // Vérifier l'état de l'API WhatsApp
@@ -180,7 +181,18 @@ export default defineEventHandler(async (event) => {
 
         const senderPhone = message.from;
         const senderName = message?.from_name || "";
-        const messageContent = message.text?.body || "";
+
+        let messageContent = null;
+        if (message.text) {
+          messageContent = message.text?.body || "";
+        } else if (message.voice) {
+          const transcription = await openai.audio.transcriptions.create({
+            file: fs.createReadStream(message.voice.link),
+            model: "gpt-4o-transcribe",
+            response_format: "text",
+          });
+          messageContent = transcription;
+        }
 
         try {
           // Gérer la conversation
@@ -590,7 +602,7 @@ export default defineEventHandler(async (event) => {
 
     return runStatus;
   }
-  
+
   async function terminateAndDecrementLimit(
     supabase,
     supabasePublic,
