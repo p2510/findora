@@ -4,8 +4,9 @@ import axios from "axios";
 import path from "path";
 import fs from "fs";
 import { promises as fsPromises } from "fs";
-const ffmpegPath = require('ffmpeg-static');
-const ffmpeg = require('fluent-ffmpeg');
+
+import ffmpegStatic from "ffmpeg-static";
+import ffmpegPackage from "fluent-ffmpeg";
 
 export default defineEventHandler(async (event) => {
   // Configuration constants
@@ -194,16 +195,18 @@ export default defineEventHandler(async (event) => {
           try {
             const tempDir = "/tmp";
             const voiceUrl = message.voice.link;
-            ffmpeg.setFfmpegPath(ffmpegPath);
-          
+            ffmpegPackage.setFfmpegPath(ffmpegStatic);
+
             if (voiceUrl) {
-              console.log(`Téléchargement du fichier audio depuis: ${voiceUrl}`);
+              console.log(
+                `Téléchargement du fichier audio depuis: ${voiceUrl}`
+              );
               const uniqueId = `voice_${Date.now()}_${Math.random()
                 .toString(36)
                 .substring(2, 15)}`;
               const tempOgaPath = path.join(tempDir, `${uniqueId}.oga`);
               const tempMp3Path = path.join(tempDir, `${uniqueId}.mp3`);
-              
+
               try {
                 // Télécharger le fichier .oga
                 const response = await axios({
@@ -211,13 +214,13 @@ export default defineEventHandler(async (event) => {
                   url: voiceUrl,
                   responseType: "arraybuffer",
                 });
-                
+
                 await fsPromises.writeFile(tempOgaPath, response.data);
                 console.log(`Fichier .oga enregistré à: ${tempOgaPath}`);
-                
+
                 // Convertir en .mp3 avec FFmpeg
                 await new Promise((resolve, reject) => {
-                  ffmpeg(tempOgaPath)
+                  ffmpegPackage(tempOgaPath)
                     .toFormat("mp3")
                     .on("end", () => {
                       console.log(`Fichier converti en .mp3 à: ${tempMp3Path}`);
@@ -229,25 +232,27 @@ export default defineEventHandler(async (event) => {
                     })
                     .save(tempMp3Path);
                 });
-                
-                // Transcrire le fichier converti
+
+                // Transcrire le fichier converti (assurez-vous que openai est aussi importé correctement)
                 const transcription = await openai.audio.transcriptions.create({
                   file: fs.createReadStream(tempMp3Path),
                   model: "gpt-4o-transcribe",
                   response_format: "text",
                 });
-                
+
                 console.log(`Transcription obtenue: ${transcription}`);
-                messageContent = transcription;
-                
+
                 // Nettoyage des fichiers temporaires
                 await fsPromises.unlink(tempOgaPath);
                 await fsPromises.unlink(tempMp3Path);
+
+                return transcription;
               } catch (error) {
                 console.error("Erreur lors du traitement audio:", error);
                 throw error;
               }
             }
+            return null;
           } catch (voiceError) {
             console.error(
               "Erreur lors du traitement du message vocal:",
