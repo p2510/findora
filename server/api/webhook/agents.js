@@ -224,6 +224,7 @@ export default defineEventHandler(async (event) => {
               });
 
               console.log(`Fichier converti en .mp3 à: ${tempMp3Path}`);
+              return;
 
               // Transcrire le fichier converti
               const transcription = await openai.audio.transcriptions.create({
