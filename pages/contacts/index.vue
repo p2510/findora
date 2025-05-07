@@ -1,9 +1,9 @@
 <template>
   <div class="mt-14 space-y-4 pr-4">
     <CustomerMetrics />
-
+<div class="">
     <UCard
-      class="w-full"
+      class="w-full sm:h-full lg:h-[50vh] 2xl:h-[60vh] overflow-y-scroll"
       :ui="{
         base: '',
         ring: '',
@@ -103,7 +103,7 @@
         :loading="status === 'pending'"
         sort-asc-icon="i-heroicons-arrow-up"
         sort-desc-icon="i-heroicons-arrow-down"
-        class="w-full sm:h-36 md:h-40 lg:h-44 xl:h-80 overflow-y-scroll"
+        class="w-full h-full overflow-y-hidden"
         :ui="{
           td: { base: 'max-w-[0] truncate ' },
           default: { checkbox: { color: 'gray' } },
@@ -176,6 +176,7 @@
         </div>
       </template>
     </UCard>
+    </div>
 
     <!--Show customer-->
     <UModal v-model="isOpenShow">

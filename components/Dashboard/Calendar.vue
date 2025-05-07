@@ -1,13 +1,10 @@
 <template>
   <div class="space-y-5 pb-2">
-    <div class="px-8 h-screen bg-neutral-100">
-      <!-- Code existant inchangé -->
-
-      <!-- ... -->
-
-      <div class="grid grid-cols-12 pt-10 gap-4 h-full">
+    <div class="px-8  bg-neutral-100 ">
+  
+      <div class="sm:h-full lg:h-[40vh] 2xl:h-[52vh] grid grid-cols-12 pt-4 gap-4   ">
         <div
-          class="sm:h-80 xl:h-[31rem] overflow-auto col-span-full bg-white text-slate-800 rounded-md shadow-md hover:shadow-lg transition duration-300 ease-in-out"
+          class="h-full  overflow-y-scroll col-span-full bg-white text-slate-800 rounded-md shadow-md hover:shadow-lg transition duration-300 ease-in-out"
         >
           <p class="pl-5 py-3 text-lg font-semibold text-neutral-800">
             Calendrier de campagne
