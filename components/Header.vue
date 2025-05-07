@@ -2,7 +2,7 @@
   <header
     class="flex justify-between py-2 px-10 items-center w-full bg-transparent dark:bg-slate-950 border-b-[1.5px] border-slate-400"
   >
-    <div class="px-4 w-full flex items-center gap-3 divide-x-[1px] basis-1/2">
+    <div class="px-4 w-full flex items-center gap-3 divide-x-[1px] basis-1/3">
       <span class="flex items-center">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -47,7 +47,7 @@
     </div>
 
 
-    <div class="flex justify-between gap-2 w-full" >
+    <div class="flex justify-between gap-2 w-full basis-1/2" >
       <p
         class="text-xs lg:block w-full lg:text-sm text-center text-slate-950 dark:text-slate-50"
         v-if="users.subscription.subscription_type === 'free'"
@@ -98,7 +98,7 @@
     </div>
 
     <div
-      class="hidden lg:flex items-center gap-3 divide-x-[1px] divide-slate-400 basis-1/2 justify-end"
+      class="basis-1/3 hidden lg:flex items-center gap-3 divide-x-[1px] divide-slate-400  justify-end"
     >
       <MazDropdown position="bottom right">
         <div
