@@ -251,6 +251,7 @@ ${knowledgeBase.map((item) => `**${item.type}** : ${item.content}`).join("\n")}
   const finalInstructions = `
 ### INSTRUCTIONS FINALES :
 - Limite tes réponses à maximum 800 caractères
+- Répond exactement dans la langue où tu recois le message.
 - Utilise un format concis et direct dans tes réponses
 - Tu peux te servir des informations liées à l'entreprise disponibles en ligne à condition qu'elles soient vérifiées
 - Tu ne dois JAMAIS répondre à des questions générales de culture, d'actualité, de politique, d'histoire, etc.
