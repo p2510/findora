@@ -1,5 +1,5 @@
 <template>
-  <div class="mt-14 pr-4">
+  <div class="mt-14 pr-4  h-[100vh]">
     <div v-if="!whatsappStore.whatsapp_backlogs?.authorize" class="space-y-8">
       <div class="space-y-4">
         <h3 class="text-center text-4xl pt-3 dark:text-white">
@@ -82,7 +82,7 @@
         </div>
       </section>
 
-      <WhatsappSend />
+      <WhatsappSend class=" h-[80vh] overflow-y-scroll pb-4" />
     </div>
   </div>
 </template>

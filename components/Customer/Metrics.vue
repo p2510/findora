@@ -97,7 +97,7 @@ const formData = ref({
   name: "",
 });
 
-let ajouterGroupe = async () => {
+let addGroup = async () => {
   isRequestInProgress.value = true;
   const validationErrors = validateForm({
     name: formData.value.name,
@@ -138,7 +138,7 @@ let ajouterGroupe = async () => {
   }
 };
 
-const supprimerGroupes = async (id) => {
+const deleteGroups = async (id) => {
   const { error } = await supabase.from("groups").delete().eq("id", id);
   if (!error) {
     customerStore.updateGroup();

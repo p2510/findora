@@ -111,9 +111,11 @@ let assignGroup = async () => {
       formDataGroup.value.group_id = null;
       isRequestInProgress.value = false;
       isSuccessOpen.value = true;
-      emit("submit");
+      customerStore.fetchCustomers();
+
     }
   } catch (err) {
+   
     errorMessage.value = "Erreur serveur";
     isRequestInProgress.value = false;
     isAlertOpen.value = true;
