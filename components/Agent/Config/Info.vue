@@ -213,11 +213,11 @@ const saveAgentConfig = async () => {
   if (!agentName.value || !selectedPersonality.value || !selectedGoal.value) {
     alert("Veuillez remplir tous les champs avant de sauvegarder.");
     return;
-  }
+  } 
 
   isRequestInProgress.value = true;
 
-  const url = `${useRuntimeConfig()}/api/agent/config/create`;
+  const url = `${useRuntimeConfig().public.url_base}/api/agent/config/create`;
 
   try {
     const response = await fetch(url, {
