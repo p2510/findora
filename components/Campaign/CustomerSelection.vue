@@ -1,5 +1,5 @@
 <template>
-  <div class="col-span-full flex items-end gap-4">
+  <div class="col-span-full flex items-end gap-4 z-30">
     <div class="space-y-[1px]">
       <label for="name" class="text-gray-500 text-sm">contact</label>
       <USelectMenu
@@ -62,6 +62,7 @@
 import { ref, onMounted, defineProps, defineEmits } from "vue";
 import { useCustomer } from "@/stores/customer";
 const customerStore = useCustomer();
+console.log( customerStore.customer)
 const { modelValue } = defineProps({
   modelValue: {
     type: Array,
@@ -96,6 +97,7 @@ const selectByGroup = (customers, group) => {
 };
 
 onMounted(async () => {
+  
   try {
     const { data: groups, error: groupsError } = await supabase
       .from("groups")

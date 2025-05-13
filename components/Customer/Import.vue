@@ -3,7 +3,7 @@ import { ref, defineEmits } from "vue";
 import { read, utils } from "xlsx";
 import { useCustomer } from "@/stores/customer";
 import { useStat } from "@/stores/stat";
-
+import { formatPhone } from "@/utils/shared/format";
 
 const stat = useStat();
 const customerStore = useCustomer();
@@ -15,9 +15,18 @@ const isRequestInProgress = ref(false);
 const errorMessage = ref("");
 const isAlertOpen = ref(false);
 const fileData = ref(null);
+const progressInfo = ref({
+  isVisible: false,
+  current: 0,
+  total: 0,
+  percentage: 0
+});
 const emit = defineEmits(["submit"]);
 
-const fermerAlerteErreur = () => {
+// Taille des lots pour l'importation
+const BATCH_SIZE = 500;
+
+const closeErrorAlert = () => {
   isAlertOpen.value = false;
 };
 
@@ -46,43 +55,96 @@ const traiterFichier = async (file) => {
         return;
       }
 
-      await ajouterClients(jsonData);
+      // Afficher un avertissement si le nombre de contacts est élevé
+      if (jsonData.length > 1000) {
+        if (!confirm(`Vous allez importer ${jsonData.length} contacts. Cette opération peut prendre du temps. Voulez-vous continuer?`)) {
+          return;
+        }
+      }
+
+      await ajouterClientsParLots(jsonData);
     };
   } catch (error) {
+    console.error("Erreur lors du traitement du fichier:", error);
     errorMessage.value = "Erreur lors du traitement du fichier.";
     isAlertOpen.value = true;
   }
 };
 
-const ajouterClients = async (contacts) => {
-  isRequestInProgress.value = true;
-  try {
-    const formattedData = contacts.map((item) => ({
-      ...item,
-      created_by: user.value.id,
-      customer_type:
-        item.customer_type &&
-        ["Entreprise", "Particulier"].includes(item.customer_type)
-          ? item.customer_type
-          : "Particulier",
-      email: "",
-      address: "",
-    }));
+const formatterDonnees = (contacts) => {
+  return contacts.map((item) => ({
+    ...item,
+    phone: item.phone ? formatPhone(item.phone) : "",
+    created_by: user.value.id,
+    customer_type:
+      item.customer_type &&
+      ["Entreprise", "Particulier"].includes(item.customer_type)
+        ? item.customer_type
+        : "Particulier",
+    email: item.email || "",
+    address: item.address || "",
+  }));
+};
 
-    const { data, error } = await supabase
-      .from("customers")
-      .insert(formattedData);
-    if (error) throw error;
+const ajouterClientsParLots = async (contacts) => {
+  isRequestInProgress.value = true;
+  progressInfo.value = {
+    isVisible: true,
+    current: 0,
+    total: contacts.length,
+    percentage: 0
+  };
+  
+  try {
+    // Diviser les contacts en lots
+    const batches = [];
+    for (let i = 0; i < contacts.length; i += BATCH_SIZE) {
+      batches.push(contacts.slice(i, i + BATCH_SIZE));
+    }
+    
+    let totalImported = 0;
+    
+    for (let i = 0; i < batches.length; i++) {
+      const batch = batches[i];
+      const formattedBatch = formatterDonnees(batch);
+      
+      // Insertion dans la base de données
+      const { data, error } = await supabase
+        .from("customers")
+        .insert(formattedBatch);
+      
+      if (error) {
+        console.error(`Erreur lors de l'importation du lot ${i+1}:`, error);
+        throw error;
+      }
+      
+      // Mettre à jour la progression
+      totalImported += batch.length;
+      progressInfo.value.current = totalImported;
+      progressInfo.value.percentage = Math.floor((totalImported / contacts.length) * 100);
+      
+      // Pause courte entre les lots pour éviter de surcharger la base de données
+      if (i < batches.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+    }
+    
     emit("submit");
     customerStore.updatecustomers();
-    stat.incrementCustomer(formattedData.length);
-
+    stat.incrementCustomer(contacts.length);
+    
     isOpen.value = false;
+    
+    // Notification de succès
+    alert(`${contacts.length} contacts ont été importés avec succès.`);
+    
   } catch (error) {
-    errorMessage.value = "Votre fichier n'est pas compatible.";
+    console.error("Erreur lors de l'importation:", error);
+    errorMessage.value = "Une erreur est survenue lors de l'importation. Vérifiez que votre fichier est compatible.";
     isAlertOpen.value = true;
   } finally {
     isRequestInProgress.value = false;
+    progressInfo.value.isVisible = false;
   }
 };
 </script>
@@ -130,7 +192,7 @@ const ajouterClients = async (contacts) => {
                 Pour des raisons de compatibilité, nous avons préparé un
                 exemple.
                 <a
-                  href="/image/example_excel.png"
+                  href="/image/exemple_excel.png"
                   target="_blank"
                   class="rounded-md"
                 >
@@ -157,12 +219,27 @@ const ajouterClients = async (contacts) => {
             />
           </div>
 
+          <!-- Barre de progression -->
+          <div v-if="progressInfo.isVisible" class="col-span-full">
+            <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+              <div 
+                class="bg-blue-600 h-2.5 rounded-full" 
+                :style="{ width: progressInfo.percentage + '%' }"
+              ></div>
+            </div>
+            <p class="text-xs text-gray-500 dark:text-gray-300 mt-1">
+              Progression: {{ progressInfo.current }} / {{ progressInfo.total }} contacts ({{ progressInfo.percentage }}%)
+            </p>
+          </div>
+
           <div class="col-span-full">
             <UButton
               :loading="isRequestInProgress"
               size="lg"
               variant="solid"
               color="black"
+              type="button"
+              :disabled="!fileData"
             >
               Importer
             </UButton>

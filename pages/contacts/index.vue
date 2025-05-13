@@ -69,7 +69,7 @@
 
           <USelect
             v-model="pageCount"
-            :options="[3, 5, 10, 20, 30, 40]"
+            :options="[3, 5, 10, 20, 30, 40,100,2000,10000]"
             class="me-2 w-20"
             size="sm"
           />

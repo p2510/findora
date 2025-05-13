@@ -66,7 +66,7 @@
       </div>
 
       <div class="col-span-full flex items-end gap-4 mb-12">
-        <CampaignCustomerSelection v-model="formData.customers" />
+        <CampaignCustomerSelection v-model="formData.customers" class="z-40" />
       </div>
 
       <div class="col-span-full flex justify-center items-center gap-4">
