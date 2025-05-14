@@ -123,7 +123,7 @@ export default defineEventHandler(async (event) => {
       const myAssistant = await client.beta.assistants.create({
         name: name,
         instructions: generatePrompt(name, personality, goal, []),
-        model: "gpt-4o",
+        model: "gpt-4.1",
         temperature: 0.4,
       });
 

@@ -3,10 +3,15 @@
     <!-- En-tête avec compteurs et filtres -->
     <div class="flex items-center justify-between">
       <div class="text-sm text-gray-600">
-        {{ localCustomers?.length || 0 }} / {{ totalContacts.toLocaleString("fr-FR") }} sélectionné(s)
+        {{ localCustomers?.length || 0 }} contact(s) sélectionné(s) sur {{ totalContacts }}
       </div>
       <div class="flex items-center gap-2">
-   
+        <input 
+          v-model="searchQuery" 
+          type="text" 
+          placeholder="Rechercher un contact..." 
+          class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:border-[#f3c775] outline-none"
+        />
         <button
           @click="selectAll"
           type="button"
@@ -14,36 +19,13 @@
         >
           Tout sélectionner
         </button>
-            <!-- Groupes de contacts -->
-        <div class="flex flex-wrap gap-2 ">
-          <button
-            v-for="group in list_group"
-            :key="group.id"
-            @click="selectByGroup(group.customers, group.name)"
-            type="button"
-            class="text-slate-800 rounded-md px-3 py-2 text-sm transition duration-300 ease-in-out"
-            :class="
-              group_select === group.name
-                ? 'bg-[#f3c775] hover:bg-[#b99653]'
-                : 'bg-[#f3c775]/50 hover:bg-[#b99653]'
-            "
-          >
-            {{ group.name }}
-          </button>
-        </div>
       </div>
     </div>
 
     <!-- Sélecteur principal avec virtualisation -->
     <div class="relative">
-      <input 
-          v-model="searchQuery" 
-          type="text" 
-          placeholder="Rechercher un contact..." 
-          class="w-full px-3 py-2 border border-gray-300 rounded-t-lg text-sm focus:border-[#f3c775] outline-none"
-        />
       <div 
-        class="w-full border-2 rounded-b-lg bg-white p-2 max-h-40 overflow-auto"
+        class="w-full border-2 rounded-lg bg-white p-2 max-h-72 overflow-auto"
         ref="scrollContainer"
         @scroll="handleScroll"
       >
@@ -70,7 +52,7 @@
                 class="mr-3 h-4 w-4 accent-[#f3c775]"
                 @click.stop
               />
-              <span class="truncate text-sm">{{ contact.name }} - {{ contact.phone }}</span>
+              <span class="truncate">{{ contact.name }}</span>
             </div>
             
             <!-- Indicateur de chargement en bas -->
@@ -82,7 +64,23 @@
       </div>
     </div>
 
-
+    <!-- Groupes de contacts -->
+    <div class="flex flex-wrap gap-2 mt-2">
+      <button
+        v-for="group in list_group"
+        :key="group.id"
+        @click="selectByGroup(group.customers, group.name)"
+        type="button"
+        class="text-slate-800 rounded-md px-3 py-2 text-sm transition duration-300 ease-in-out"
+        :class="
+          group_select === group.name
+            ? 'bg-[#f3c775] hover:bg-[#b99653]'
+            : 'bg-[#f3c775]/50 hover:bg-[#b99653]'
+        "
+      >
+        {{ group.name }}
+      </button>
+    </div>
   </div>
 </template>
 
