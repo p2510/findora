@@ -124,7 +124,7 @@ export default defineEventHandler(async (event) => {
         ),
         name: user_id,
         temperature: 0.7,
-        model: "gpt-4.1",
+        model: "gpt-4o",
       });
       const assistantId = myAssistant.id;
 
