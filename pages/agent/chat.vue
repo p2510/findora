@@ -34,7 +34,21 @@
                     : 'text-slate-500 hover:text-slate-400',
                 ]"
               >
-                Ouvert
+                <span>Ouvert</span>
+                <!-- Indicateur de temps réel lorsque actif -->
+                <span v-if="chatStore.pollingActive" class="relative flex h-2 w-2">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </span>
+              </li>
+            <!-- Bouton pour activer/désactiver les notifications sonores -->
+              <li
+                @click="toggleSound"
+                class="cursor-pointer text-center flex items-center justify-center rounded-lg transition-all duration-200 ease-in-out px-2 py-2 text-sm"
+                :class="{ 'text-blue-400': soundNotification.isEnabled(), 'text-slate-500': !soundNotification.isEnabled() }"
+                title="Notifications sonores"
+              >
+                <UIcon :name="soundNotification.isEnabled() ? 'i-heroicons-speaker-wave' : 'i-heroicons-speaker-x-mark'" class="w-5 h-5" />
               </li>
             </ul>
           </div>
@@ -81,9 +95,7 @@
                 <div
                   class="flex items-center justify-between text-white gap-2 pt-4"
                 >
-                  <span
-                    class="text-sm px-3 py-[2px] rounded-full inline"
-                  ></span>
+                  <span class="text-sm px-3 py-[2px] rounded-full inline"></span>
                   <span
                     class="text-blue-700 text-xs px-3 py-[2px] rounded-full inline"
                   >
@@ -99,13 +111,14 @@
           <div v-if="chatStore.isLoading" class="text-center py-4">
             <UIcon
               name="i-heroicons-arrow-path"
-              class="w-6 h-6 animate-spin text-blue-700"
+              class="w-6 h-6 animate-spin text-blue-700 hidden"
             />
           </div>
         </div>
 
         <!-- Zone d'affichage des messages -->
         <div
+        
           v-if="chatStore.selectedConversation"
           class="hidden md:block col-span-8 2xl:col-start-4 2xl:col-end-10 bg-transparent p-5 dark:bg-slate-800 dark:text-white"
         >
@@ -139,10 +152,8 @@
               <!-- Statut avec badge -->
               <span
                 :class="{
-                  'bg-green-500 text-white':
-                    chatStore.selectedConversation.status === 'active',
-                  'bg-red-500 text-white':
-                    chatStore.selectedConversation.status === 'terminated',
+                  'bg-green-500 text-white': chatStore.selectedConversation.status === 'active',
+                  'bg-red-500 text-white': chatStore.selectedConversation.status === 'terminated',
                 }"
                 class="px-3 py-1 rounded-lg text-xs"
               >
@@ -156,6 +167,7 @@
           </h2>
 
           <div
+           ref="chatContainer"
             class="space-y-2 overflow-y-auto h-96 p-4 rounded-2xl"
             style="
               background-color: #e2e8f030;
@@ -307,8 +319,9 @@
 </template>
 
 <script setup>
-import { onMounted } from "vue";
+import { onMounted, onBeforeUnmount, ref, watch } from "vue";
 import { useChatStore } from "@/stores/agent/chat";
+import { SoundNotification } from "@/utils/soundNotification";
 
 definePageMeta({
   middleware: ["auth", "is-ultra"],
@@ -320,8 +333,21 @@ useHead({
     "Findora Agent IA Whatsapp - Économisez des heures avec notre agent IA intelligent.",
 });
 
+// Auto scroll vers le bas 
+
+const chatContainer = ref(null)
+const scrollToBottom = () => {
+  if (chatContainer.value) {
+    chatContainer.value.scrollTop = chatContainer.value.scrollHeight
+  }
+}
+
 // Utiliser le store Pinia
 const chatStore = useChatStore();
+
+// Initialiser la classe de notification sonore
+const soundNotification = ref(new SoundNotification());
+
 // Fonction pour gérer la prise de relais
 const handleTakeOver = async () => {
   if (
@@ -337,8 +363,108 @@ const handleTakeOver = async () => {
   );
 };
 
+// Fonction pour activer/désactiver les notifications sonores
+const toggleSound = () => {
+  soundNotification.value.setEnabled(!soundNotification.value.isEnabled());
+};
+
+// Variable pour suivre le dernier comptage de messages total
+const lastMessageCount = ref({});
+
+// Détecter les nouveaux messages en surveillant les conversations
+const checkNewMessages = () => {
+  chatStore.conversations.forEach(conversation => {
+    const convId = conversation.id;
+    
+    // Si c'est la première vérification pour cette conversation
+    if (!lastMessageCount.value[convId]) {
+      lastMessageCount.value[convId] = {
+        timestamp: conversation.last_message_at,
+        content: conversation.last_content
+      };
+      return;
+    }
+    
+    const lastCheck = lastMessageCount.value[convId];
+    
+    // Vérifier si le timestamp ou le contenu a changé
+    if (
+      new Date(conversation.last_message_at) > new Date(lastCheck.timestamp) ||
+      conversation.last_content !== lastCheck.content
+    ) {
+      // Si la conversation n'est pas actuellement affichée ou si l'app n'est pas au premier plan
+      const isNotCurrentConversation = !chatStore.selectedConversation || 
+                                      chatStore.selectedConversation.id !== convId;
+      
+      // Jouer la notification si approprié
+      if (isNotCurrentConversation || !document.hasFocus()) {
+        soundNotification.value.play();
+        
+        // Tenter d'afficher une notification du navigateur si l'app n'est pas au premier plan
+        if (!document.hasFocus() && 'Notification' in window) {
+          // Demander la permission si pas encore accordée
+          if (Notification.permission === 'default') {
+            Notification.requestPermission();
+          }
+          
+          // Afficher la notification si permission accordée
+          if (Notification.permission === 'granted') {
+            new Notification('Nouveau message', {
+              body: `${conversation.name}: ${conversation.last_content || conversation.last_response}`,
+              icon: '/public/icon.png'
+            });
+          }
+        }
+      }
+      
+      // Mettre à jour le dernier état connu
+      lastMessageCount.value[convId] = {
+        timestamp: conversation.last_message_at,
+        content: conversation.last_content
+      };
+    }
+  });
+};
+
 // Charger les conversations au montage du composant
 onMounted(() => {
+  // Précharger le son de notification
+  soundNotification.value.preload();
+  
+  // Charger toutes les conversations au départ
   chatStore.fetchConversations();
+  
+  // Si on est sur le filtre "active", démarrer le polling
+  if (chatStore.filterStatus === "active") {
+    chatStore.startRealTimePolling();
+  }
+  
+  // Demander la permission pour les notifications du navigateur
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+  
+  // Observer les changements dans les conversations pour détecter les nouveaux messages
+  watch(() => [...chatStore.conversations], () => {
+    checkNewMessages();
+  }, { deep: true });
+
+  nextTick(() => {
+    scrollToBottom()
+  })
+});
+// Watch les messages : scroll à chaque changement
+watch(
+  () => chatStore.messages.length,
+  () => {
+    nextTick(() => {
+      scrollToBottom()
+    })
+  }
+)
+
+// Nettoyer l'intervalle de polling lors de la destruction du composant
+onBeforeUnmount(() => {
+  chatStore.stopRealTimePolling();
 });
 </script>

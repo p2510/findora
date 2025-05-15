@@ -1,8 +1,8 @@
 <template>
-  <div class="col-span-full flex flex-col gap-4 z-30">
+  <div class="col-span-full flex flex-col gap-4 z-30 w-full">
     <!-- En-tête avec compteurs et filtres -->
     <div class="flex items-center justify-between">
-      <div class="text-sm text-gray-600">
+      <div class="text-sm text-gray-600 pr-4">
         {{ localCustomers?.length || 0 }} / {{ totalContacts.toLocaleString("fr-FR") }} sélectionné(s)
       </div>
       <div class="flex items-center gap-2">
@@ -70,9 +70,8 @@
                 class="mr-3 h-4 w-4 accent-[#f3c775]"
                 @click.stop
               />
-              <span class="truncate text-sm">{{ contact.name }} - {{ contact.phone }}</span>
+              <p class="truncate text-sm"> <span>{{ contact.name }} </span> - <span class="text-xs opacity-70">{{ contact.phone }} </span> </p>
             </div>
-            
             <!-- Indicateur de chargement en bas -->
             <div v-if="loadingMore" class="flex justify-center py-2">
               <div class="animate-spin rounded-full h-4 w-4 border-2 border-[#f3c775] border-t-transparent"></div>

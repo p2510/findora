@@ -16,6 +16,7 @@
           <span class="text-sm text-slate-600 dark:text-slate-300"
             >Status de l'agent</span
           >
+          
           <UToggle
             v-model="active"
             size="2xl"
@@ -153,7 +154,7 @@ const configStore = useAgentConfig();
 const agentName = ref(configStore.config?.name);
 const selectedPersonality = ref(configStore.config?.personality);
 const selectedGoal = ref(configStore.config?.goal);
-const status = ref(configStore.config?.status);
+let status = ref(configStore.config?.status);
 const isRequestInProgress = ref(false);
 
 const personalities = ref([
@@ -254,8 +255,11 @@ const saveAgentConfig = async () => {
     isRequestInProgress.value = false;
   }
 };
+let active = ref(configStore.config?.status);
 onMounted(async () => {
-  if (!configStore.config?.name) {
+
+  
+  if (!configStore.config?.name) {  
     const url = `${useRuntimeConfig().public.url_base}/api/agent/config/list?user_id=${users.info.uuid}`;
     try {
       const response = await fetch(url, {
@@ -277,15 +281,19 @@ onMounted(async () => {
         selectedGoal.value = json.data?.goal;
         selectedPersonality.value = json.data?.personality;
         status.value = json.data?.status;
+        active.value=json.data?.status
+        
+       
       }
     } catch (err) {
       errorMessage.value =
         "Une erreur s'est produite lors de l'enregistrement.";
     }
   }
+
 });
 
-let active = ref(configStore.config?.status);
+
 watch(active, async (oldValue, newValue) => {
   if (oldValue != newValue) {
     try {

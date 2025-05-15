@@ -13,6 +13,9 @@ export const useChatStore = defineStore(
     const filterStatus = ref("all");
     const isLoading = ref(false);
     const users = useUser();
+    const refreshInterval = ref(null); // Pour stocker l'intervalle de mise à jour
+    const pollingActive = ref(false); // État du polling
+    const lastKnownMessages = ref({}); // Pour stocker le nombre de messages connus par conversation
 
     // Getters
     const filteredConversations = computed(() => {
@@ -25,26 +28,142 @@ export const useChatStore = defineStore(
     });
 
     // Actions
-    async function fetchConversations() {
+    async function fetchConversations(status = null) {
       try {
         isLoading.value = true;
-        const response = await fetch(
-          `/api/agent/chat/list?user_id=${users.info.uuid}`
-        );
+        let url = `/api/agent/chat/list?user_id=${users.info.uuid}`;
+        
+        // Ajouter le paramètre de statut si fourni
+        if (status) {
+          url += `&status=${status}`;
+        }
+        
+        const response = await fetch(url);
         if (!response.ok)
           throw new Error(`Response status: ${response.status}`);
         const data = await response.json();
-        conversations.value = data;
+        
+        // Vérifier s'il y a de nouveaux messages
+        checkForNewMessages(data);
+        
+        // Si on demande uniquement les conversations actives
+        if (status === 'active') {
+          // Mettre à jour uniquement les conversations actives
+          const activeConversations = data;
+          
+          // Fusionner avec les conversations existantes en conservant les non-actives
+          const nonActiveConversations = conversations.value.filter(
+            conv => conv.status.toLowerCase() !== 'active'
+          );
+          
+          conversations.value = [...activeConversations, ...nonActiveConversations];
+        } else {
+          // Sinon, mettre à jour toutes les conversations
+          conversations.value = data;
+        }
 
         // Sélectionner automatiquement la première conversation
         if (data.length > 0 && !selectedConversation.value) {
           selectConversation(data[0]);
+        }
+        
+        // Mettre à jour la conversation sélectionnée si elle existe dans les nouvelles données
+        if (selectedConversation.value) {
+          const updatedSelectedConvo = data.find(
+            conv => conv.id === selectedConversation.value.id
+          );
+          if (updatedSelectedConvo) {
+            selectedConversation.value = updatedSelectedConvo;
+            // Si la conversation sélectionnée est mise à jour, rafraîchir ses messages
+            await fetchMessages(selectedConversation.value.id);
+          }
         }
       } catch (error) {
         console.error("Erreur lors du chargement des conversations", error);
       } finally {
         isLoading.value = false;
       }
+    }
+    
+    /**
+     * Vérifie s'il y a de nouveaux messages dans les conversations
+     * @param {Array} updatedConversations - Les conversations mises à jour
+     */
+    function checkForNewMessages(updatedConversations) {
+      updatedConversations.forEach(conversation => {
+        const convId = conversation.id;
+        const lastMessageTime = conversation.last_message_at;
+        
+        // Si c'est la première fois qu'on voit cette conversation, juste enregistrer son état
+        if (!lastKnownMessages.value[convId]) {
+          lastKnownMessages.value[convId] = {
+            lastTime: lastMessageTime,
+            content: conversation.last_content,
+            response: conversation.last_response
+          };
+          return;
+        }
+        
+        // Comparer avec le dernier état connu
+        const knownState = lastKnownMessages.value[convId];
+        
+        // Si la date du dernier message a changé, c'est qu'il y a un nouveau message
+        if (new Date(lastMessageTime) > new Date(knownState.lastTime)) {
+          // Si le contenu ou la réponse est différent, jouer une notification
+          if (conversation.last_content !== knownState.content || 
+              conversation.last_response !== knownState.response) {
+            
+            // Ne pas jouer de notification si c'est la conversation actuellement sélectionnée
+            // et que l'utilisateur est déjà en train de la consulter
+            const isCurrent = selectedConversation.value && 
+                             selectedConversation.value.id === convId;
+            
+            if (!isCurrent || !document.hasFocus()) {
+              console.log('1')
+              // Afficher une notification du navigateur si l'application n'est pas au premier plan
+              if (!document.hasFocus() && 'Notification' in window && 
+                  Notification.permission === 'granted') {
+                    console.log(2)
+                new Notification('Nouveau message', {
+                  body: `${conversation.name}: ${conversation.last_content || conversation.last_response}`,
+                  icon: '/public/icon.png'
+                });
+              }
+            }
+          }
+          
+          // Mettre à jour l'état connu
+          lastKnownMessages.value[convId] = {
+            lastTime: lastMessageTime,
+            content: conversation.last_content,
+            response: conversation.last_response
+          };
+        }
+      });
+    }
+
+    // Fonction pour démarrer le polling des conversations actives
+    function startRealTimePolling(interval = 5000) {
+      if (pollingActive.value) return; // Ne pas démarrer si déjà actif
+      
+      pollingActive.value = true;
+      
+      // Créer un intervalle pour mettre à jour les conversations actives
+      refreshInterval.value = setInterval(async () => {
+        await fetchConversations('active');
+      }, interval);
+      
+      // Immédiatement récupérer les conversations actives
+      fetchConversations('active');
+    }
+    
+    // Fonction pour arrêter le polling
+    function stopRealTimePolling() {
+      if (refreshInterval.value) {
+        clearInterval(refreshInterval.value);
+        refreshInterval.value = null;
+      }
+      pollingActive.value = false;
     }
 
     async function fetchMessages(conversationId) {
@@ -71,7 +190,16 @@ export const useChatStore = defineStore(
 
     function setFilter(status) {
       filterStatus.value = status;
+      
+      // Si on filtre sur les conversations actives, démarrer le polling
+      if (status === "active") {
+        startRealTimePolling();
+      } else {
+        // Si on change pour un autre filtre, arrêter le polling
+        stopRealTimePolling();
+      }
     }
+    
     async function takeOver(conversationId, phone) {
       try {
         isLoading.value = true;
@@ -163,13 +291,19 @@ export const useChatStore = defineStore(
         ? text.substring(0, maxLength) + "..."
         : text;
     }
+    
     const $reset = () => {
       conversations.value = [];
       selectedConversation.value = null;
       messages.value = [];
       filterStatus.value = "all";
       isLoading.value = false;
+      lastKnownMessages.value = {};
+      stopRealTimePolling(); // Arrêter le polling lors de la réinitialisation
     };
+
+ 
+ 
 
     return {
       conversations,
@@ -177,6 +311,7 @@ export const useChatStore = defineStore(
       messages,
       filterStatus,
       isLoading,
+      pollingActive,
       filteredConversations,
       fetchConversations,
       fetchMessages,
@@ -187,6 +322,8 @@ export const useChatStore = defineStore(
       formatTime,
       formatDateHuman,
       truncateText,
+      startRealTimePolling,
+      stopRealTimePolling,
       $reset,
     };
   },
