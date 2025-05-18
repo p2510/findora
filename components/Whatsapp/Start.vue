@@ -22,28 +22,29 @@
         />
       </svg>
     </span>
-    <span v-if="step == 0"> Commençer maintenant</span>
-    <span v-if="step == 1"> Préparation du serveur</span>
+    <span v-if="step == 0">{{ $t("whatsapp.start.start_now") }}</span>
+    <span v-if="step == 1">{{ $t("whatsapp.start.prepare_server") }}</span>
     <div v-if="isAlertOpen">
       <AlertModal
-        title="Synchronisation"
+        :title="$t('whatsapp.start.synchronization')"
         type="error"
         @close-alert="closeErrorAlert"
       >
         <template #message>
           <p>
-            La synchronisation est en cours, veuillez patienter et réessayer.
+            {{ $t("whatsapp.start.synchronization_message") }}
           </p>
         </template>
       </AlertModal>
     </div>
   </button>
 </template>
-
 <script setup>
 import { defineEmits } from "vue";
+import { useI18n } from "vue-i18n";
 import { useUser } from "@/stores/user";
 import { useWhatsapp } from "@/stores/whatsapp";
+const { t } = useI18n();
 const whatsappStore = useWhatsapp();
 const supabase = useSupabaseClient();
 const users = useUser();
@@ -57,7 +58,9 @@ let step = ref(0);
 const createChanel = async () => {
   isProgress.value = true;
 
-  const url = `${useRuntimeConfig().public.url_base}/api/whatsapp/create-chanel`;
+  const url = `${
+    useRuntimeConfig().public.url_base
+  }/api/whatsapp/create-chanel`;
 
   try {
     const response = await fetch(url, {
@@ -110,9 +113,7 @@ const createChanel = async () => {
 
       return json;
     } else {
-      alert(
-        "Nous sommes actuellement en maintenance. Veuillez réessayer plus tard."
-      );
+      alert(t("whatsapp.start.maintenance_message"));
       isProgress.value = false;
     }
   } catch (error) {

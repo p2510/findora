@@ -4,7 +4,7 @@
     @submit.prevent="submit"
   >
     <UBadge color="gray" variant="soft" size="lg" class="w-1/2"
-      >Informations de compte</UBadge
+      >{{ $t('setting.info.account_information') }}</UBadge
     >
     <div
       class="col-span-full space-y-[1px] flex justify-between items-center pt-4"
@@ -13,13 +13,13 @@
         <MazPhoneNumberInput
           :translations="{
             countrySelector: {
-              placeholder: 'Indicatif',
-              error: 'Choisir un pays',
-              searchPlaceholder: 'Trouver un pays',
+              placeholder: $t('setting.info.country_code_placeholder'),
+              error: $t('setting.info.select_country'),
+              searchPlaceholder: $t('setting.info.find_country'),
             },
             phoneInput: {
-              placeholder: 'Numéro de téléphone',
-              example: 'Exemple:',
+              placeholder: $t('setting.info.phone_number'),
+              example: $t('setting.info.example'),
             },
           }"
           countryCode="CI"
@@ -33,7 +33,7 @@
       class="col-span-full space-y-[1px] flex justify-between items-center pt-4"
     >
       <label class="text-slate-800 basis-1/2"
-        >Nom de l'entreprise ou activité</label
+        >{{ $t('setting.info.company_name') }}</label
       >
       <div class="basis-1/2">
         <InputFiled
@@ -51,13 +51,13 @@
     <div
       class="col-span-full space-y-[1px] flex justify-between items-center pt-4"
     >
-      <label class="text-slate-800 basis-1/2">Secteur d'activité</label>
+      <label class="text-slate-800 basis-1/2">{{ $t('setting.info.business_sector') }}</label>
       <div class="basis-1/2">
         <USelectMenu
           v-model="DataForms.domain"
           searchable
-          searchable-placeholder="Trouver un domaine..."
-          placeholder="Choisir un domaine"
+          :searchable-placeholder="$t('setting.info.find_domain')"
+          :placeholder="$t('setting.info.choose_domain')"
           :options="[
             'Production agricole',
             'Agriculture durable',
@@ -88,7 +88,7 @@
           class="hover:shadow-sm rounded-lg bg-white outline-none border-2 border-solid focus:rounded-lg transition duration-300 ease-in-out text-slate-800/80 w-full focus:border-[#f3c775]"
         >
           <template #option-empty="{ query }">
-            <q>{{ query }}</q> n'existe pas
+            <q>{{ query }}</q> {{ $t('setting.info.domain_not_found') }}
           </template>
         </USelectMenu>
         <div v-if="errors.domain.length" class="error">
@@ -105,7 +105,7 @@
         size="lg"
         variant="solid"
         color="yellow"
-        >Mettre à jour
+        >{{ $t('setting.info.update') }}
       </UButton>
     </div>
   </form>
@@ -113,7 +113,9 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
+import { useI18n } from 'vue-i18n';
 import { useUser } from "@/stores/user";
+const { t } = useI18n();
 const users = useUser();
 const { errors, validateForm, handleServerErrors } =
   useFormValidationUserInfo();
@@ -154,7 +156,7 @@ let submit = async () => {
     if (error) {
       if (error.code === "23505") {
         errorMessage.value =
-          "Ce utilisateur existe déjà avec cet adresse E-mail.";
+          t('setting.info.user_exists_with_email');
       } else {
         handleServerErrors(error);
         errorMessage.value = error.message;
@@ -172,7 +174,7 @@ let submit = async () => {
       emit("submit");
     }
   } catch {
-    handleServerErrors({ code: "23514", message: "Erreur serveur" });
+    handleServerErrors({ code: "23514", message: t('setting.info.server_error') });
     isRequestInProgress.value = false;
   }
 };
@@ -183,6 +185,7 @@ onMounted(async () => {
   DataForms.value.domain = users.info.domain;
 });
 </script>
+
 <style scoped>
 .error {
   color: red;

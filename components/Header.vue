@@ -2,7 +2,8 @@
   <header
     class="flex justify-between py-2 px-10 items-center w-full bg-transparent dark:bg-slate-950 border-b-[1.5px] border-slate-400"
   >
-    <div class="px-4 w-full flex items-center gap-3 divide-x-[1px] basis-1/3">
+    <div class="px-4 w-full flex items-center gap-3  basis-1/3">
+      <switchLangage />
       <span class="flex items-center">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -46,19 +47,18 @@
       </span>
     </div>
 
-
-    <div class="flex justify-between gap-2 w-full basis-1/2" >
+    <div class="flex justify-between gap-2 w-full basis-1/2">
       <p
         class="text-xs lg:block w-full lg:text-sm text-center text-slate-950 dark:text-slate-50"
         v-if="users.subscription.subscription_type === 'free'"
       >
         <span>
-          Allez plus loin avec Findora en passant à l'Ultra.
+          {{ $t("header.free_plan_message") }}
           <NuxtLink
             to="/abonnement"
             class="hover:text-[#ffbd59] transition duration-500 ease-in-out"
           >
-            Découvrez le plan Ultra
+            {{ $t("header.ultra_plan_cta") }}
           </NuxtLink>
         </span>
       </p>
@@ -76,12 +76,14 @@
         "
       >
         <span>
-          Votre abonnement a expiré.
+          {{ $t("header.expired_message") }}
+
           <NuxtLink
             to="/abonnement"
             class="hover:text-[#ffbd59] transition duration-500 ease-in-out"
           >
-            Renouvelez le plan {{ users.subscription.subscription_type }}
+            {{ $t("header.renew_plan") }}
+            {{ users.subscription.subscription_type }}
           </NuxtLink>
         </span>
       </p>
@@ -91,29 +93,32 @@
         v-else
       >
         <span>
-          Votre abonnement {{ users.subscription.subscription_type }} est
-          toujours actif.
+          {{ $t("header.active_plan") }}
         </span>
       </p>
     </div>
 
     <div
-      class="basis-1/3 hidden lg:flex items-center gap-3 divide-x-[1px] divide-slate-400  justify-end"
+      class="basis-1/3 hidden lg:flex items-center gap-3 divide-x-[1px] divide-slate-400 justify-end"
     >
       <MazDropdown position="bottom right">
         <div
           class="flex gap-2 items-center bg-slate-700 py-2 px-3 rounded-xl transition-all duration-300 ease-in-out"
         >
-          <p class="text-xs  text-white">Mon compte</p>
+          <p class="text-xs text-white">{{ $t("header.my_account") }}</p>
         </div>
         <template #dropdown>
           <div class="grid grid-cols-12 gap-3 pr-4">
             <MazBtn color="transparent" class="col-span-full">
               <NuxtLink to="/parametre" class="flex gap-2 items-center w-full">
                 <div>
-                  <p class="text-sm text-slate-950 dark:text-slate-50 text-left">Paramètre</p>
+                  <p
+                    class="text-sm text-slate-950 dark:text-slate-50 text-left"
+                  >
+                    {{ $t("header.settings") }}
+                  </p>
                   <p class="text-xs text-slate-950/80 dark:text-slate-50">
-                    Modifier vos informations de compte
+                    {{ $t("header.edit_info") }}
                   </p>
                 </div>
               </NuxtLink>
@@ -133,7 +138,9 @@
           class="w-8 h-8 rounded-full"
         />
         <p class="flex flex-col justify-center">
-          <span class="text-sm text-slate-950 dark:text-slate-100">{{ users.info.email }}</span>
+          <span class="text-sm text-slate-950 dark:text-slate-100">{{
+            users.info.email
+          }}</span>
         </p>
       </h4>
     </div>

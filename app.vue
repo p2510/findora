@@ -20,7 +20,7 @@ useHead({
   ],
 });
 const route = useRoute();
-const listRoute = ["/", "/confirm"];
+const listRoute = ["/","/en", "/confirm"];
 const shouldHideLayout = computed(() => listRoute.includes(route.path));
 onMounted(() => {
   initialize()

@@ -21,7 +21,7 @@
                     : 'text-slate-500 hover:text-slate-400',
                 ]"
               >
-                Tout
+                {{ $t("agent.chat.all") }}
               </li>
 
               <!-- Bouton Ouvert -->
@@ -34,21 +34,38 @@
                     : 'text-slate-500 hover:text-slate-400',
                 ]"
               >
-                <span>Ouvert</span>
+                <span>{{ $t("agent.chat.open") }}</span>
                 <!-- Indicateur de temps réel lorsque actif -->
-                <span v-if="chatStore.pollingActive" class="relative flex h-2 w-2">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                <span
+                  v-if="chatStore.pollingActive"
+                  class="relative flex h-2 w-2"
+                >
+                  <span
+                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"
+                  ></span>
+                  <span
+                    class="relative inline-flex rounded-full h-2 w-2 bg-green-500"
+                  ></span>
                 </span>
               </li>
-            <!-- Bouton pour activer/désactiver les notifications sonores -->
+              <!-- Bouton pour activer/désactiver les notifications sonores -->
               <li
                 @click="toggleSound"
                 class="cursor-pointer text-center flex items-center justify-center rounded-lg transition-all duration-200 ease-in-out px-2 py-2 text-sm"
-                :class="{ 'text-blue-400': soundNotification.isEnabled(), 'text-slate-500': !soundNotification.isEnabled() }"
-                title="Notifications sonores"
+                :class="{
+                  'text-blue-400': soundNotification.isEnabled(),
+                  'text-slate-500': !soundNotification.isEnabled(),
+                }"
+                :title="$t('agent.chat.sound_notifications')"
               >
-                <UIcon :name="soundNotification.isEnabled() ? 'i-heroicons-speaker-wave' : 'i-heroicons-speaker-x-mark'" class="w-5 h-5" />
+                <UIcon
+                  :name="
+                    soundNotification.isEnabled()
+                      ? 'i-heroicons-speaker-wave'
+                      : 'i-heroicons-speaker-x-mark'
+                  "
+                  class="w-5 h-5"
+                />
               </li>
             </ul>
           </div>
@@ -95,7 +112,9 @@
                 <div
                   class="flex items-center justify-between text-white gap-2 pt-4"
                 >
-                  <span class="text-sm px-3 py-[2px] rounded-full inline"></span>
+                  <span
+                    class="text-sm px-3 py-[2px] rounded-full inline"
+                  ></span>
                   <span
                     class="text-blue-700 text-xs px-3 py-[2px] rounded-full inline"
                   >
@@ -118,7 +137,6 @@
 
         <!-- Zone d'affichage des messages -->
         <div
-        
           v-if="chatStore.selectedConversation"
           class="hidden md:block col-span-8 2xl:col-start-4 2xl:col-end-10 bg-transparent p-5 dark:bg-slate-800 dark:text-white"
         >
@@ -152,22 +170,24 @@
               <!-- Statut avec badge -->
               <span
                 :class="{
-                  'bg-green-500 text-white': chatStore.selectedConversation.status === 'active',
-                  'bg-red-500 text-white': chatStore.selectedConversation.status === 'terminated',
+                  'bg-green-500 text-white':
+                    chatStore.selectedConversation.status === 'active',
+                  'bg-red-500 text-white':
+                    chatStore.selectedConversation.status === 'terminated',
                 }"
                 class="px-3 py-1 rounded-lg text-xs"
               >
                 {{
                   chatStore.selectedConversation.status === "terminated"
-                    ? "Terminé"
-                    : "Active"
+                    ? $t("agent.chat.terminated")
+                    : $t("agent.chat.active")
                 }}
               </span>
             </div>
           </h2>
 
           <div
-           ref="chatContainer"
+            ref="chatContainer"
             class="space-y-2 overflow-y-auto h-96 p-4 rounded-2xl"
             style="
               background-color: #e2e8f030;
@@ -232,7 +252,7 @@
         >
           <div class="bg-slate-100 rounded-xl p-5 dark:bg-slate-700">
             <h3 class="text-sm 2xl:text-md mb-4 dark:text-white">
-              Détails conversations
+              {{ $t("agent.chat.conversation_details") }}
             </h3>
 
             <!-- Stats de la conversation -->
@@ -241,7 +261,7 @@
                 <span
                   class="text-xs 2xl:text-sm text-slate-700 dark:text-slate-400"
                 >
-                  Messages contact
+                  {{ $t("agent.chat.contact_messages") }}
                 </span>
                 <span
                   class="text-xs 2xl:text-sm text-slate-800 dark:text-slate-300"
@@ -253,7 +273,7 @@
                 <span
                   class="text-xs 2xl:text-sm text-slate-700 dark:text-slate-400"
                 >
-                  Premier échange
+                  {{ $t("agent.chat.first_exchange") }}
                 </span>
                 <span
                   class="text-xs 2xl:text-sm text-slate-800 dark:text-slate-300"
@@ -269,7 +289,7 @@
                 <span
                   class="text-xs 2xl:text-sm text-slate-700 dark:text-slate-400"
                 >
-                  Dernier contact
+                  {{ $t("agent.chat.last_contact") }}
                 </span>
                 <span
                   class="text-xs 2xl:text-sm text-slate-800 dark:text-slate-300"
@@ -290,7 +310,7 @@
                 class="text-white bg-blue-600 hover:bg-blue-700 transition-all duration-300 ease-in-out w-full py-2 rounded-lg flex items-center justify-center gap-2"
               >
                 <UIcon name="i-heroicons-phone" class="w-4 h-4 text-white" />
-                Appeler
+                {{ $t("agent.chat.call") }}
               </a>
               <button
                 @click="handleTakeOver"
@@ -308,7 +328,7 @@
                   name="i-heroicons-chat-bubble-left-right"
                   class="w-4 h-4"
                 />
-                Prendre le relais
+                {{ $t("agent.chat.take_over") }}
               </button>
             </div>
           </div>
@@ -319,9 +339,11 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, ref, watch } from "vue";
+import { onMounted, onBeforeUnmount, ref, watch, nextTick } from "vue";
 import { useChatStore } from "@/stores/agent/chat";
 import { SoundNotification } from "@/utils/soundNotification";
+
+const { t } = useI18n();
 
 definePageMeta({
   middleware: ["auth", "is-ultra"],
@@ -329,18 +351,17 @@ definePageMeta({
 });
 
 useHead({
-  title:
-    "Findora Agent IA Whatsapp - Économisez des heures avec notre agent IA intelligent.",
+  title: t("agent.chat.delegate_conversations"),
 });
 
-// Auto scroll vers le bas 
+// Auto scroll vers le bas
 
-const chatContainer = ref(null)
+const chatContainer = ref(null);
 const scrollToBottom = () => {
   if (chatContainer.value) {
-    chatContainer.value.scrollTop = chatContainer.value.scrollHeight
+    chatContainer.value.scrollTop = chatContainer.value.scrollHeight;
   }
-}
+};
 
 // Utiliser le store Pinia
 const chatStore = useChatStore();
@@ -373,54 +394,57 @@ const lastMessageCount = ref({});
 
 // Détecter les nouveaux messages en surveillant les conversations
 const checkNewMessages = () => {
-  chatStore.conversations.forEach(conversation => {
+  chatStore.conversations.forEach((conversation) => {
     const convId = conversation.id;
-    
+
     // Si c'est la première vérification pour cette conversation
     if (!lastMessageCount.value[convId]) {
       lastMessageCount.value[convId] = {
         timestamp: conversation.last_message_at,
-        content: conversation.last_content
+        content: conversation.last_content,
       };
       return;
     }
-    
+
     const lastCheck = lastMessageCount.value[convId];
-    
+
     // Vérifier si le timestamp ou le contenu a changé
     if (
       new Date(conversation.last_message_at) > new Date(lastCheck.timestamp) ||
       conversation.last_content !== lastCheck.content
     ) {
       // Si la conversation n'est pas actuellement affichée ou si l'app n'est pas au premier plan
-      const isNotCurrentConversation = !chatStore.selectedConversation || 
-                                      chatStore.selectedConversation.id !== convId;
-      
+      const isNotCurrentConversation =
+        !chatStore.selectedConversation ||
+        chatStore.selectedConversation.id !== convId;
+
       // Jouer la notification si approprié
       if (isNotCurrentConversation || !document.hasFocus()) {
         soundNotification.value.play();
-        
+
         // Tenter d'afficher une notification du navigateur si l'app n'est pas au premier plan
-        if (!document.hasFocus() && 'Notification' in window) {
+        if (!document.hasFocus() && "Notification" in window) {
           // Demander la permission si pas encore accordée
-          if (Notification.permission === 'default') {
+          if (Notification.permission === "default") {
             Notification.requestPermission();
           }
-          
+
           // Afficher la notification si permission accordée
-          if (Notification.permission === 'granted') {
-            new Notification('Nouveau message', {
-              body: `${conversation.name}: ${conversation.last_content || conversation.last_response}`,
-              icon: '/public/icon.png'
+          if (Notification.permission === "granted") {
+            new Notification(t("agent.chat.new_message"), {
+              body: `${conversation.name}: ${
+                conversation.last_content || conversation.last_response
+              }`,
+              icon: "/public/icon.png",
             });
           }
         }
       }
-      
+
       // Mettre à jour le dernier état connu
       lastMessageCount.value[convId] = {
         timestamp: conversation.last_message_at,
-        content: conversation.last_content
+        content: conversation.last_content,
       };
     }
   });
@@ -430,38 +454,42 @@ const checkNewMessages = () => {
 onMounted(() => {
   // Précharger le son de notification
   soundNotification.value.preload();
-  
+
   // Charger toutes les conversations au départ
   chatStore.fetchConversations();
-  
+
   // Si on est sur le filtre "active", démarrer le polling
   if (chatStore.filterStatus === "active") {
     chatStore.startRealTimePolling();
   }
-  
+
   // Demander la permission pour les notifications du navigateur
-  if ('Notification' in window && Notification.permission === 'default') {
+  if ("Notification" in window && Notification.permission === "default") {
     Notification.requestPermission();
   }
-  
+
   // Observer les changements dans les conversations pour détecter les nouveaux messages
-  watch(() => [...chatStore.conversations], () => {
-    checkNewMessages();
-  }, { deep: true });
+  watch(
+    () => [...chatStore.conversations],
+    () => {
+      checkNewMessages();
+    },
+    { deep: true }
+  );
 
   nextTick(() => {
-    scrollToBottom()
-  })
+    scrollToBottom();
+  });
 });
 // Watch les messages : scroll à chaque changement
 watch(
   () => chatStore.messages.length,
   () => {
     nextTick(() => {
-      scrollToBottom()
-    })
+      scrollToBottom();
+    });
   }
-)
+);
 
 // Nettoyer l'intervalle de polling lors de la destruction du composant
 onBeforeUnmount(() => {

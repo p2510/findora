@@ -2,34 +2,34 @@
   <nav class="py-2">
     <div class="hidden xl:flex flex-col gap-y-24 space-y-2 pt-10">
       <ul class="flex flex-col gap-2">
-        <NavLink to="/dashboard" label="Dashboard">
+        <NavLink to="/dashboard" :label="$t('nav.dashboard')">
           <template #icon>
             <Squares2X2Icon class="size-5" />
           </template>
         </NavLink>
-        <NavLink to="/contacts" label="Gérer mes contacts">
+        <NavLink to="/contacts" :label="$t('nav.contacts')">
           <template #icon>
             <UsersIcon class="size-5" />
           </template>
         </NavLink>
-        <NavLink to="/agent" label=" Agent IA Whatsapp ">
+        <NavLink to="/agent" :label="$t('nav.agent')">
           <template #icon>
             <RectangleGroupIcon class="size-5" />
           </template>
         </NavLink>
-        <NavLink to="/whatsapp" label="Whatsapp marketing">
+        <NavLink to="/whatsapp" :label="$t('nav.whatsapp')">
           <template #icon>
             <PaperAirplaneIcon class="size-5" />
           </template>
         </NavLink>
-        <NavLink to="/api/jeton" label="Manage APIs">
+        <NavLink to="/api/jeton" :label="$t('nav.api')">
           <template #icon>
             <KeyIcon class="size-5" />
           </template>
         </NavLink>
       </ul>
       <ul class="flex flex-col gap-2">
-        <NavLink to="/abonnement" label="Abonnement">
+        <NavLink to="/abonnement" :label="$t('nav.subscription')">
           <template #icon>
             <LifebuoyIcon class="size-5" />
           </template>
@@ -39,7 +39,7 @@
           class="text-sm cursor-pointer flex items-center gap-2 rounded-full transition-all duration-300 pr-10 pl-4 hover:text-slate-600 ease-in-out"
         >
           <PowerIcon class="size-5" />
-          <span>Déconnexion</span>
+          <span>{{ $t('nav.logout') }}</span>
         </li>
       </ul>
     </div>
@@ -72,7 +72,6 @@
             <KeyIcon class="size-6 flex justify-center" />
           </template>
         </NavIcon>
-
         <NavIcon to="/abonnement">
           <template #icon>
             <LifebuoyIcon class="size-6 flex justify-center" />

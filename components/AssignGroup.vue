@@ -7,9 +7,9 @@
       <div class="basis-3/4">
         <USelectMenu
           searchable
-          searchable-placeholder="Choisir un groupe..."
+          :searchable-placeholder="$t('customer.group.choose_group_placeholder')"
           v-model="formDataGroup.group_id"
-          placeholder="Choisir un groupe"
+          :placeholder="$t('customer.group.choose_group')"
           :options="customerStore.groups"
           option-attribute="name"
           size="sm"
@@ -30,19 +30,19 @@
         :disabled="props.customers.length == 0 || !formDataGroup.group_id"
         class="rounded-md basis-1/4 flex justify-center"
       >
-        Intégrer
+        {{ $t('customer.group.integrate') }}
       </UButton>
     </form>
 
     <!-- Modal de succès -->
     <div v-if="isSuccessOpen">
       <AlertModal
-        title="Campagne réussie"
+        :title="$t('customer.group.successful_campaign')"
         type="success"
         @close-alert="closeSuccessAlert"
       >
         <template #message>
-          <p>Le(s) contact(s) ont été ajoutés au groupe avec succès.</p>
+          <p>{{ $t('customer.group.contacts_added_successfully') }}</p>
         </template>
       </AlertModal>
     </div>
@@ -50,7 +50,7 @@
     <!-- Modal d'erreur -->
     <div v-if="isAlertOpen">
       <AlertModal
-        title="Information incorrecte"
+        :title="$t('customer.group.incorrect_information')"
         type="error"
         @close-alert="closeErrorAlert"
       >
@@ -62,9 +62,11 @@
   </div>
 </template>
 
+
 <script setup>
 import { ref, onMounted } from "vue";
 import { useCustomer } from "@/stores/customer";
+const { t } = useI18n();
 const customerStore = useCustomer();
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
@@ -101,7 +103,7 @@ let assignGroup = async () => {
 
     if (error) {
       if (error.code === "23505") {
-        errorMessage.value = "Ce contact est déjà dans ce groupe";
+        errorMessage.value = t('customer.group.contact_already_in_group');
       } else {
         errorMessage.value = error.message;
       }
@@ -112,11 +114,9 @@ let assignGroup = async () => {
       isRequestInProgress.value = false;
       isSuccessOpen.value = true;
       customerStore.fetchCustomers();
-
     }
   } catch (err) {
-   
-    errorMessage.value = "Erreur serveur";
+    errorMessage.value = t('customer.group.server_error');
     isRequestInProgress.value = false;
     isAlertOpen.value = true;
   }

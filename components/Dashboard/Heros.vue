@@ -3,7 +3,7 @@
     <h2
       class="text-xl xl:text-2xl font-semibold text-neutral-800 dark:text-white tracking-tight pl-8"
     >
-      {{ user?.info?.name }}, que souhaitez-vous faire aujourd'hui ?
+      {{ $t("dashboard.greeting", { name: user?.info?.name }) }}
     </h2>
     <div
       v-if="whatsappStore.whatsapp_backlogs == null"
@@ -20,11 +20,10 @@
         </span>
         <h4>
           <p class="text-sm lg:text-md text-slate-800 dark:text-slate-200">
-            veuillez connecter votre compte WhatsApp.
+            {{ $t("dashboard.connect_whatsapp_title") }}
           </p>
           <p class="text-xs lg:text-xs text-slate-600 dark:text-slate-50">
-            Nous avons préparé une courte vidéo pour vous guider étape par étape
-            dans cette connexion.
+            {{ $t("dashboard.connect_whatsapp_desc") }}
           </p>
         </h4>
       </div>
@@ -33,7 +32,7 @@
         target="_blank"
         class="animate-bounce text-slate-800 dark:text-slate-900 px-4 py-2 rounded-3xl bg-[#f3c775] dark:bg-[#f3c775]/90 hover:bg-[#d6b77c] hover:shadow-sm transition duration-300 ease-in-out"
       >
-        Regarder la vidéo
+        {{ $t("dashboard.watch_video") }}
       </a>
     </div>
 
@@ -42,7 +41,7 @@
       v-if="whatsappStore.whatsapp_backlogs == null"
     >
       <p class="font-[500] text-neutral-800 dark:text-white text-lg pt-6 pb-3">
-        Commencez maintenant
+        {{ $t("dashboard.start_now") }}
       </p>
       <ul class="col-span-full grid grid-cols-12 gap-4">
         <li
@@ -63,12 +62,12 @@
             </p>
             <p class="flex flex-col">
               <strong class="font-[500] text-sm text-slate-950 dark:text-white">
-                Connecter mon whatsapp
+                {{ $t("dashboard.connect_whatsapp") }}
               </strong>
               <span
                 class="text-xs text-slate-700 font-[300] dark:text-slate-100"
               >
-                Lier votre whatsapp à findora
+                {{ $t("dashboard.connect_whatsapp_sub") }}
               </span>
             </p>
           </nuxt-link>
@@ -91,12 +90,12 @@
             </p>
             <p class="flex flex-col">
               <strong class="font-[500] text-sm text-slate-950 dark:text-white">
-                Abonnements
+                {{ $t("dashboard.subscriptions") }}
               </strong>
               <span
                 class="text-xs text-slate-700 font-[300] dark:text-slate-100"
               >
-                Découvrer nos abonnements
+                {{ $t("dashboard.subscriptions_sub") }}
               </span>
             </p>
           </nuxt-link>
@@ -120,12 +119,12 @@
             </p>
             <p class="flex flex-col">
               <strong class="font-[500] text-sm text-slate-950 dark:text-white">
-                Tester l'agent IA
+                {{ $t("dashboard.try_ai_agent") }}
               </strong>
               <span
                 class="text-xs text-slate-700 font-[300] dark:text-slate-100"
               >
-                Votre co-pilote whatsapp
+                {{ $t("dashboard.try_ai_agent_sub") }}
               </span>
             </p>
           </a>
@@ -148,12 +147,12 @@
             </p>
             <p class="flex flex-col">
               <strong class="font-[500] text-sm text-slate-950 dark:text-white">
-                Premier contact
+                {{ $t("dashboard.add_first_contact") }}
               </strong>
               <span
                 class="text-xs text-slate-700 font-[300] dark:text-slate-100"
               >
-                Ajouter un premier contact
+                {{ $t("dashboard.add_first_contact_sub") }}
               </span>
             </p>
           </nuxt-link>
@@ -163,7 +162,7 @@
 
     <div v-else class="px-8 h-screen bg-neutral-100 dark:bg-slate-950/30">
       <p class="font-[500] text-neutral-800 dark:text-white text-lg pt-6 pb-3">
-        Commencez maintenant
+        {{ $t("dashboard.start_now") }}
       </p>
       <ul class="col-span-full grid grid-cols-12 gap-4">
         <li
@@ -182,13 +181,14 @@
               />
             </p>
             <p class="flex flex-col">
-              <strong class="font-[500] text-sm text-slate-950 dark:text-white"
-                >Agent IA</strong
+              <strong
+                class="font-[500] text-sm text-slate-950 dark:text-white"
+                >{{ $t("dashboard.ai_agent") }}</strong
               >
               <span
                 class="text-xs text-slate-700 font-[300] dark:text-slate-100"
               >
-                Plus de conversation</span
+                {{ $t("dashboard.ai_agent_sub") }}</span
               >
             </p>
           </nuxt-link>
@@ -210,12 +210,12 @@
             </p>
             <p class="flex flex-col">
               <strong class="font-[500] text-sm text-slate-950 dark:text-white">
-                Lancer une campagne
+                {{ $t("dashboard.launch_campaign") }}
               </strong>
               <span
                 class="text-xs text-slate-700 font-[300] dark:text-slate-100"
               >
-                Toucher plus de mille personnes
+                {{ $t("dashboard.launch_campaign_sub") }}
               </span>
             </p>
           </nuxt-link>
@@ -238,12 +238,12 @@
             </p>
             <p class="flex flex-col">
               <strong class="font-[500] text-sm text-slate-950 dark:text-white">
-                Gérer les APIs
+                {{ $t("dashboard.manage_apis") }}
               </strong>
               <span
                 class="text-xs text-slate-700 font-[300] dark:text-slate-100"
               >
-                Connecter avec mon application
+                {{ $t("dashboard.connect_with_app") }}
               </span>
             </p>
           </nuxt-link>
@@ -266,12 +266,12 @@
             </p>
             <p class="flex flex-col">
               <strong class="font-[500] text-sm text-slate-950 dark:text-white">
-                Synchronisation contact
+                {{ $t("dashboard.contact_sync") }}
               </strong>
               <span
                 class="text-xs text-slate-700 font-[300] dark:text-slate-100"
               >
-                Importer mes contacts
+                {{ $t("dashboard.import_contacts") }}
               </span>
             </p>
           </nuxt-link>

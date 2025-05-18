@@ -1,26 +1,26 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   ssr: false,
-  compatibilityDate: '2024-04-03',
+  compatibilityDate: "2024-04-03",
   devtools: { enabled: false },
   debug: false,
   modules: [
-    '@nuxtjs/supabase',
+    "@nuxtjs/supabase",
     "@nuxt/ui",
     "maz-ui/nuxt",
-    '@pinia/nuxt',
+    "@pinia/nuxt",
     "nuxt-module-hotjar",
     "dayjs-nuxt",
+    "@nuxtjs/i18n",
   ],
   hotjar: {
     hotjarId: 5242761,
     scriptVersion: 6,
-    debug: false
+    debug: false,
   },
 
   pinia: {
-    storesDirs: ['./stores/**'],
-    
+    storesDirs: ["./stores/**"],
   },
   supabase: {
     url: process.env.PROJECT_URL,
@@ -48,16 +48,29 @@ export default defineNuxtConfig({
       },
     },
   },
-    runtimeConfig: {
-       supabase_secret_key: process.env.SUPABASE_SECRET_KEY,
-       openai_api_key: process.env.OPENAI_API_KEY,
-       whapi_api_secret:process.env.WHAPI_API_SECRET,
-       public : {
-          url_base: process.env.URL_BASE,
-          api_base: process.env.API_BASE,
-          supabase_url: process.env.PROJECT_URL,
-          supabase_public_key: process.env.SUPABASE_KEY,
-       }
-    }
-
-})
+  runtimeConfig: {
+    supabase_secret_key: process.env.SUPABASE_SECRET_KEY,
+    openai_api_key: process.env.OPENAI_API_KEY,
+    whapi_api_secret: process.env.WHAPI_API_SECRET,
+    public: {
+      url_base: process.env.URL_BASE,
+      api_base: process.env.API_BASE,
+      supabase_url: process.env.PROJECT_URL,
+      supabase_public_key: process.env.SUPABASE_KEY,
+    },
+  },
+  i18n: {
+    locales: [
+      { code: "en", language: "en-US", file: "en.json" },
+      { code: "fr", language: "fr-FR", file: "fr.json" },
+    ],
+    strategy: "no_prefix",
+    defaultLocale: "fr",
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: "i18n_redirected",
+      redirectOn: "root", 
+    },
+    lazy: true,
+  },
+});

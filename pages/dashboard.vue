@@ -6,13 +6,12 @@
 </template>
 
 <script setup>
+const { t } = useI18n();
+
 definePageMeta({
   middleware: "auth",
 });
 useHead({
-  title:
-    "Findora - Votre tableau de bord pour une Gestion des contacts sans effort",
+  title: t('dashboard.title'),
 });
-
-
 </script>

@@ -158,7 +158,7 @@ const ajouterClientsParLots = async (contacts) => {
       <div>
         <p class="pb-3 flex justify-between items-center z-10">
           <span class="text-sm text-slate-950 dark:text-white font-[500]">
-            Importer des contacts via Excel
+            {{ $t('contact.import_excel.import_title') }}
           </span>
           <button
             class="flex items-center justify-center rounded-full p-2 text-slate-800 dark:text-white bg-[#ffbd59]/10 dark:bg-[#ffbd59]/20 transition duration-300 ease-in-out hover:bg-[#ffbd59]/20 dark:hover:bg-[#ffbd59]/30"
@@ -167,7 +167,7 @@ const ajouterClientsParLots = async (contacts) => {
           </button>
         </p>
         <p class="text-xs text-slate-700 dark:text-slate-300 font-[300]">
-          Importez vos contacts depuis vos fichiers Excel en un seul clic.
+          {{ $t('contact.import_excel.import_description') }}
         </p>
       </div>
     </div>
@@ -177,10 +177,12 @@ const ajouterClientsParLots = async (contacts) => {
         <template #header>
           <div>
             <h5>
-              <UBadge color="gray" variant="soft" size="lg">Importation</UBadge>
+              <UBadge color="gray" variant="soft" size="lg">
+                {{ $t('contact.import_excel.import_badge') }}
+              </UBadge>
             </h5>
             <span class="text-gray-500 dark:text-gray-300 text-sm">
-              Votre fichier doit être au format Excel
+              {{ $t('contact.import_excel.file_format_requirement') }}
             </span>
           </div>
         </template>
@@ -189,15 +191,14 @@ const ajouterClientsParLots = async (contacts) => {
           <div class="col-span-full flex items-center justify-center gap-4">
             <p>
               <span class="text-gray-500 dark:text-gray-300 text-xs">
-                Pour des raisons de compatibilité, nous avons préparé un
-                exemple.
+                {{ $t('contact.import_excel.compatibility_note') }}
                 <a
                   href="/image/exemple_excel.png"
                   target="_blank"
                   class="rounded-md"
                 >
                   <UBadge color="emerald" variant="solid" size="sm">
-                    Cliquez ici
+                    {{ $t('contact.import_excel.click_here') }}
                   </UBadge> </a
                 >.
               </span>
@@ -209,7 +210,7 @@ const ajouterClientsParLots = async (contacts) => {
               for="file"
               class="text-gray-500 dark:text-gray-300 font-semibold"
             >
-              Votre fichier
+              {{ $t('contact.import_excel.file_label') }}
             </label>
             <InputFiled
               type="file"
@@ -219,7 +220,7 @@ const ajouterClientsParLots = async (contacts) => {
             />
           </div>
 
-          <!-- Barre de progression -->
+          <!-- Progress bar -->
           <div v-if="progressInfo.isVisible" class="col-span-full">
             <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
               <div 
@@ -228,7 +229,11 @@ const ajouterClientsParLots = async (contacts) => {
               ></div>
             </div>
             <p class="text-xs text-gray-500 dark:text-gray-300 mt-1">
-              Progression: {{ progressInfo.current }} / {{ progressInfo.total }} contacts ({{ progressInfo.percentage }}%)
+              {{ $t('contact.import_excel.progress_text', {
+                current: progressInfo.current,
+                total: progressInfo.total,
+                percentage: progressInfo.percentage
+              }) }}
             </p>
           </div>
 
@@ -241,7 +246,7 @@ const ajouterClientsParLots = async (contacts) => {
               type="button"
               :disabled="!fileData"
             >
-              Importer
+              {{ $t('contact.import_excel.import_button') }}
             </UButton>
           </div>
         </form>
@@ -249,7 +254,11 @@ const ajouterClientsParLots = async (contacts) => {
     </UModal>
 
     <div v-if="isAlertOpen">
-      <AlertModal title="Erreur" type="error" @close-alert="closeErrorAlert">
+      <AlertModal 
+        :title="$t('contact.import_excel.error_title')" 
+        type="error" 
+        @close-alert="closeErrorAlert"
+      >
         <template #message>
           <p>{{ errorMessage }}</p>
         </template>
@@ -257,7 +266,6 @@ const ajouterClientsParLots = async (contacts) => {
     </div>
   </div>
 </template>
-
 <style scoped>
 .error {
   color: red;

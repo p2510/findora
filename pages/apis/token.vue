@@ -1,20 +1,22 @@
 <template>
-  <section class="mt-14 h-[45rem] md:h-screen overflow-y-auto">
+  <section class="mt-14 h-[45rem] md:h-screen overflow-y-auto pb-48">
     <ApiNav />
     <section
       class="bg-gradient-to-br from-slate-300/5 to-slate-300/20 mt-8 p-5 rounded-2xl dark:bg-gradient-to-br dark:from-slate-700/5 dark:to-slate-700/20"
     >
-      <h4 class="text-md text-slate-950 dark:text-slate-100">Votre API Key</h4>
+      <h4 class="text-md text-slate-950 dark:text-slate-100">
+        {{ $t("api.token.your_api_key") }}
+      </h4>
       <p class="text-xs text-slate-500 dark:text-slate-300">
-        Cette clé vous permet de vous authentifier et d'effectuer des actions.
-        Elle est confidentielle et sensible. <br />
-        Veuillez ne pas la partager ou la rendre publique.
+        {{ $t("api.token.api_key_description") }}
       </p>
       <div
         class="bg-slate-300/40 mt-5 px-4 py-2 rounded-xl space-y-4 dark:bg-slate-700/40"
       >
         <div class="flex justify-between">
-          <p class="text-slate-800 text-sm dark:text-slate-200">Votre clé</p>
+          <p class="text-slate-800 text-sm dark:text-slate-200">
+            {{ $t("api.token.your_key") }}
+          </p>
           <div
             class="flex gap-2 divide-x-2 divide-slate-500 items-center dark:divide-slate-400"
           >
@@ -30,13 +32,13 @@
                 class="text-sm text-slate-800 hover:text-slate-600 transition duration-300 ease-in-out dark:text-slate-200 dark:hover:text-slate-400"
                 v-if="!isCopied"
               >
-                Copier
+                {{ $t("api.token.copy") }}
               </span>
               <span
                 class="text-sm text-green-600 hover:text-green-500 transition duration-300 ease-in-out dark:text-green-500 dark:hover:text-green-400"
                 v-else
               >
-                Copié !
+                {{ $t("api.token.copied") }}
               </span>
             </button>
           </div>
@@ -57,7 +59,7 @@
             <i
               class="text-sm xl:text-md not-italic text-center"
               :class="isGenerate ? 'animate-pulse' : ''"
-              >Générer une clé API</i
+              >{{ $t("api.token.generate_api_key") }}</i
             >
           </span>
         </button>
@@ -65,9 +67,9 @@
           <span
             class="text-center flex items-center justify-center w-full gap-2 rounded-lg transition-all duration-200 ease-in-out py-3 pl-4 pr-10 text-white bg-red-900 hover:bg-red-800 dark:bg-red-800 dark:hover:bg-red-700"
           >
-            <i class="text-sm xl:text-md not-italic text-center"
-              >Révoquer la clé API</i
-            >
+            <i class="text-sm xl:text-md not-italic text-center">{{
+              $t("api.token.revoke_api_key")
+            }}</i>
           </span>
         </button>
       </div>
@@ -77,13 +79,10 @@
       class="bg-gradient-to-br from-slate-300/5 to-slate-300/20 mt-8 p-5 rounded-2xl dark:bg-gradient-to-br dark:from-slate-700/5 dark:to-slate-700/20"
     >
       <h4 class="text-md text-slate-950 dark:text-slate-100">
-        Utilisation de votre clé API
+        {{ $t("api.token.api_key_usage") }}
       </h4>
       <p class="text-xs text-slate-500 dark:text-slate-300">
-        Pour toutes vos requêtes API, vous devez inclure votre clé
-        d'authentification dans les en-têtes de vos demandes. Cela vous permet
-        d'effectuer des actions sécurisées sur l'API. Voici un exemple de
-        comment ajouter la clé dans les en-têtes :
+        {{ $t("api.token.api_key_usage_description") }}
       </p>
       <div
         class="bg-slate-300/40 mt-5 px-4 py-2 rounded-xl space-y-4 dark:bg-slate-700/40"
@@ -91,11 +90,11 @@
         <pre
           class="text-xs text-slate-500 p-4 rounded-lg bg-gray-900 overflow-x-auto shadow-md dark:bg-gray-800 dark:text-slate-400"
         >
-  <span class="text-slate-500">// Exemple d'utilisation du token dans une requête API en Javascript</span> <br>
+  <span class="text-slate-500">{{ $t('api.token.api_example') }}</span> <br>
   fetch('https://api.myfindora.com/endpoint', {
     <span class="text-yellow-400">method</span>: <span class="text-green-400">'GET'</span>,
     <span class="text-yellow-400">headers</span>: {
-      <span class="text-red-400">'Authorization'</span>: <span class="text-green-400">Bearer \${apiKey}</span>,
+      <span class="text-red-400">'Authorization'</span>: <span class="text-green-400">Bearer ${apiKey}</span>,
       <span class="text-red-400">'Content-Type'</span>: <span class="text-green-400">'application/json'</span>
     }
   })
@@ -105,25 +104,26 @@
 </pre>
 
         <p class="text-xs text-slate-500 dark:text-slate-300">
-          Remplacez <code>\${apiKey.value}</code> par votre clé API personnelle
-          pour chaque requête.
+          {{ $t("api.token.replace_api_key") }}
         </p>
       </div>
     </section>
   </section>
 </template>
-
 <script setup>
-import { onMounted } from "vue";
+import { onMounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { useUser } from "@/stores/user";
+const { t } = useI18n();
 const users = useUser();
 definePageMeta({
   middleware: ["auth"],
   alias: "/api/jeton",
 });
 useHead({
-  title:
-    "Findora APIs - Intégrez nos endpoints dans votre SaaS ou avec vos propres solutions.",
+  title: t(
+    "api.token.title"
+  ),
 });
 const showToken = ref(false);
 const isCopied = ref(false);

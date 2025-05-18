@@ -9,18 +9,19 @@
         >
           2
         </span>
-        <span class="font-[500]">Connaissance de base</span>
+        <span class="font-[500]">{{
+          $t("agent.config.know.basic_knowledge")
+        }}</span>
       </h3>
       <form @submit.prevent="saveAgentKnow" class="grid grid-cols-12">
         <div class="col-span-full flex flex-col gap-6">
           <!-- Section Connaissances de base -->
           <div class="w-full">
-            <label class="text-md text-slate-800 dark:text-slate-300"
-              >Connaissances de base</label
-            >
+            <label class="text-md text-slate-800 dark:text-slate-300">{{
+              $t("agent.config.know.basic_knowledge")
+            }}</label>
             <p class="text-xs text-slate-600 pb-2 dark:text-slate-400">
-              Ajoutez des informations liées à produit, site web, service ou
-              réseaux sociaux...
+              {{ $t("agent.config.know.basic_knowledge_placeholder") }}
             </p>
 
             <div
@@ -33,19 +34,29 @@
                   v-model="info.type"
                   class="rounded-md text-sm p-2 bg-transparent outline-none border-[1.5px] border-solid focus:rounded-lg dark:bg-slate-700 dark:text-white w-full"
                 >
-                  <option value="presentation">Présentation</option>
-                  <option value="produit">Produit</option>
-                  <option value="service">Service</option>
-                  <option value="site web">Site Web</option>
-                  <option value="faq">FAQ</option>
-                  <option value="réseaux sociaux">Réseaux Sociaux</option>
+                  <option value="presentation">
+                    {{ $t("agent.config.know.presentation") }}
+                  </option>
+                  <option value="produit">
+                    {{ $t("agent.config.know.product") }}
+                  </option>
+                  <option value="service">
+                    {{ $t("agent.config.know.service") }}
+                  </option>
+                  <option value="site web">
+                    {{ $t("agent.config.know.website") }}
+                  </option>
+                  <option value="faq">{{ $t("agent.config.know.faq") }}</option>
+                  <option value="réseaux sociaux">
+                    {{ $t("agent.config.know.social_media") }}
+                  </option>
                 </select>
               </div>
               <div class="">
                 <textarea
                   v-model="info.content"
                   class="rounded-md text-sm px-2 p-2 bg-transparent outline-none border-[1.5px] border-solid focus:rounded-lg dark:bg-slate-700 dark:text-white w-full transition duration-300 ease-in-out focus:border-[#f3c775]"
-                  placeholder="Entrez le contenu lié au type sélectionné"
+                  :placeholder="$t('agent.config.know.enter_content')"
                   rows="6"
                   :disabled="!configStore.config?.name"
                 ></textarea>
@@ -59,7 +70,7 @@
                   @click="removeKnowledge(index)"
                   class="bg-red-500 hover:bg-red-700 text-white rounded-md py-2 px-3 transition duration-300 ease-in-out"
                 >
-                  Supprimer
+                  {{ $t("agent.config.know.delete") }}
                 </button>
               </div>
             </div>
@@ -72,7 +83,7 @@
                 @click="addKnowledge"
                 class="bg-emerald-500 hover:bg-emerald-700 text-white rounded-md py-2 px-3 transition duration-300 ease-in-out"
               >
-                Ajouter une connaissance
+                {{ $t("agent.config.know.add_knowledge") }}
               </button>
             </div>
           </div>
@@ -86,7 +97,7 @@
             variant="soft"
             color="emerald"
           >
-            <span> Sauvegarder</span>
+            <span>{{ $t("agent.config.know.save") }}</span>
           </UButton>
         </div>
       </form>
@@ -95,7 +106,7 @@
     <!-- Alertes -->
     <div v-if="isAlertOpen">
       <AlertModal
-        title="Informations incorrectes"
+        :title="$t('agent.config.know.incorrect_information')"
         type="error"
         @close-alert="closeErrorAlert"
       >
@@ -106,7 +117,7 @@
     </div>
     <div v-if="isSuccessOpen">
       <AlertModal
-        title="Informations enregistrées"
+        :title="$t('agent.config.know.information_saved')"
         type="success"
         @close-alert="closeSuccessAlert"
       >
@@ -119,11 +130,13 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, watchEffect, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { useUser } from "@/stores/user";
 import { useAgentConfig } from "@/stores/agent/config";
 import { useAgentKnow } from "@/stores/agent/know";
 
+const { t } = useI18n();
 const users = useUser();
 const knowStore = useAgentKnow();
 const configStore = useAgentConfig();
@@ -195,16 +208,19 @@ const saveAgentKnow = async () => {
     }
   } catch (err) {
     isRequestInProgress.value = false;
-    errorMessage.value = "Une erreur s'est produite lors de l'enregistrement.";
+    errorMessage.value = t("agent.config.know.error_occurred");
     isAlertOpen.value = true;
   } finally {
     isRequestInProgress.value = false;
   }
 };
+
 onMounted(async () => {
   console.log(knowStore.knowledge);
   if (knowStore.knowledge.metadata.length == 0) {
-    const url = `${useRuntimeConfig().public.url_base}/api/agent/know/list?user_id=${users.info.uuid}`;
+    const url = `${
+      useRuntimeConfig().public.url_base
+    }/api/agent/know/list?user_id=${users.info.uuid}`;
     try {
       const response = await fetch(url, {
         method: "GET",
@@ -225,11 +241,11 @@ onMounted(async () => {
         knowledgeBase.value = json.data?.metadata;
       }
     } catch (err) {
-      errorMessage.value =
-        "Une erreur s'est produite lors de l'enregistrement.";
+      errorMessage.value = t("agent.config.know.error_occurred");
     }
   }
 });
+
 watchEffect(() => {
   if (knowStore.knowledge.metadata && knowStore.knowledge.metadata.length > 0) {
     knowledgeBase.value = knowStore.knowledge.metadata;

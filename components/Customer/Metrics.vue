@@ -16,7 +16,7 @@
       <div>
         <p class="pb-3 flex justify-between items-center z-10">
           <span class="text-sm text-slate-950 dark:text-white font-[500]">
-            Gérer un groupe
+            {{ $t("contact.groups.manage_title") }}
           </span>
           <button
             class="flex items-center justify-center rounded-full p-2 text-slate-800 dark:text-white bg-[#ffbd59]/10 dark:bg-[#ffbd59]/20 transition duration-300 ease-in-out hover:bg-[#ffbd59]/20 dark:hover:bg-[#ffbd59]/30"
@@ -25,8 +25,7 @@
           </button>
         </p>
         <p class="text-xs text-slate-700 dark:text-slate-300 font-[300]">
-          Créer plusieurs groupes de contacts pour mieux cibler dans vos
-          campagnes
+          {{ $t("contact.groups.manage_description") }}
         </p>
       </div>
     </div>
@@ -34,14 +33,14 @@
     <UModal v-model="isOpen">
       <div class="p-4 bg-white dark:bg-neutral-900 rounded-md">
         <h3 class="text-slate-700 dark:text-white text-sm pb-2">
-          Créer un Nouveau Groupe
+          {{ $t("contact.groups.create_title") }}
         </h3>
         <form class="space-y-2" @submit.prevent="addGroup">
           <InputFieldSimple
             v-model="formData.name"
             type="text"
             custom-class="hover:shadow-sm bg-[#dfb260]/30 dark:bg-[#dfb260]/20 p-2 rounded-md text-slate-700 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-300"
-            placeholder="Nom du groupe"
+            :placeholder="$t('contact.groups.name_placeholder')"
           />
           <div v-if="errors.name.length" class="error text-red-500 text-xs">
             {{ errors.name[0] }}
@@ -54,13 +53,13 @@
               variant="solid"
               color="emerald"
             >
-              Nouveau Groupe
+              {{ $t("contact.groups.create_button") }}
             </UButton>
           </div>
         </form>
 
         <h3 class="text-slate-700 dark:text-white text-md font-[500] pt-5 pb-2">
-          Vos Groupes
+          {{ $t("contact.groups.your_groups") }}
         </h3>
         <div class="grid grid-cols-12 gap-2">
           <span

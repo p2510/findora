@@ -4,11 +4,11 @@
       class="text-slate-900 dark:text-white text-2xl lg:text-4xl pb-2 flex items-center justify-between"
     >
       <p>
-        Lancez une nouvelle
+        {{ $t('whatsapp.send.launch_new_campaign') }}
         <span
           class="bg-clip-text text-transparent bg-gradient-to-r from-[#25D366] to-[#1e6337] dark:from-[#25D366] dark:to-[#1e6337]"
         >
-          campagne
+          {{ $t('whatsapp.send.campaign') }}
         </span>
       </p>
       <p
@@ -18,7 +18,7 @@
           <i class="font-semibold not-italic">{{
             users.subscription.max_campaigns
           }}</i>
-          Campagnes restantes
+          {{ $t('whatsapp.send.remaining_campaigns') }}
         </span>
       </p>
     </h4>
@@ -26,7 +26,7 @@
     <form class="grid grid-cols-12 gap-4 pt-6" @submit.prevent="handleSubmit">
       <div class="col-span-full space-y-3 relative">
         <label for="content" class="text-gray-500 dark:text-gray-300"
-          >Créons le contenu de votre campagne !</label
+          >{{ $t('whatsapp.send.create_campaign_content') }}</label
         >
         <div class="relative">
           <textarea
@@ -35,6 +35,7 @@
             class="border-2 border-slate-200 text-sm p-4 rounded-3xl bg-slate-100/60 dark:bg-slate-800/60 outline-none text-slate-800 dark:text-white w-full"
             rows="8"
             minlength="3"
+            :placeholder="$t('whatsapp.send.type_message')"
           >
           </textarea>
           <div class="absolute top-2 right-2 flex flex-wrap gap-1">
@@ -53,14 +54,14 @@
             type="button"
             class="bg-slate-700 hover:bg-slate-800 transition ease-in-out duration-300 px-2 py-[3px] rounded-md z-40 absolute text-sm bottom-4 left-4 text-white"
           >
-            Aperçu
+            {{ $t('whatsapp.send.preview') }}
           </button>
           <button
             @click="showIA = true"
             type="button"
             class="animate-pulse bg-gradient-to-tr px-2 py-[3px] rounded-md from-yellow-400 to-yellow-600 z-40 absolute text-sm bottom-4 right-4 text-white"
           >
-            Générer avec IA
+            {{ $t('whatsapp.send.generate_with_ai') }}
           </button>
         </div>
       </div>
@@ -77,7 +78,7 @@
         >
           <p class="flex justify-between">
             <span class="text-lg text-slate-800 dark:text-white"
-              >Envoyer maintenant</span
+              >{{ $t('whatsapp.send.send_now') }}</span
             >
             <UIcon
               v-if="!isScheduled"
@@ -88,7 +89,7 @@
           <span
             class="hidden md:block text-xs text-slate-800 dark:text-gray-300"
           >
-            Si vous souhaitez envoyer à vos contacts dès maintenant.
+            {{ $t('whatsapp.send.send_now_placeholder') }}
           </span>
         </button>
         <button
@@ -98,7 +99,7 @@
         >
           <p class="flex justify-between">
             <span class="text-lg text-slate-800 dark:text-white"
-              >Programmer</span
+              >{{ $t('whatsapp.send.schedule') }}</span
             >
             <UIcon
               v-if="isScheduled"
@@ -109,7 +110,7 @@
           <span
             class="hidden md:block text-xs text-slate-800 dark:text-gray-300"
           >
-            Si vous souhaitez l'envoyer plus tard à vos contacts.
+            {{ $t('whatsapp.send.schedule_placeholder') }}
           </span>
         </button>
 
@@ -122,13 +123,13 @@
           class="flex justify-around items-center gap-2 p-4"
         >
           <UIcon name="i-heroicons-paper-airplane" class="h-6 w-6" />
-          <span>Lancer</span>
+          <span>{{ $t('whatsapp.send.launch') }}</span>
         </UButton>
       </div>
 
       <div v-if="isScheduled" class="col-span-full space-y-3">
         <label for="scheduleDate" class="text-gray-500 dark:text-gray-300"
-          >Choisissez la date</label
+          >{{ $t('whatsapp.send.choose_date') }}</label
         >
         <input
           v-model="formData.scheduleDate"
@@ -141,7 +142,7 @@
 
     <div v-if="isAlertOpen">
       <AlertModal
-        title="Informations incorrectes"
+        :title="$t('whatsapp.send.incorrect_information')"
         type="error"
         @close-alert="closeErrorAlert"
       >
@@ -154,7 +155,7 @@
     </div>
     <div v-if="isSuccessOpen">
       <AlertModal
-        title="Campagne validée"
+        :title="$t('whatsapp.send.campaign_validated')"
         type="success"
         @close-alert="closeSuccessAlert"
       >
@@ -170,11 +171,11 @@
           <div>
             <h5>
               <UBadge color="gray" variant="soft" size="lg"
-                >Générer avec IA</UBadge
+                >{{ $t('whatsapp.send.generate_with_ai_header') }}</UBadge
               >
             </h5>
             <span class="text-gray-500 dark:text-gray-300 text-sm">
-              Décrivrez ce que vous voulez pour votre campagne
+              {{ $t('whatsapp.send.generate_with_ai_placeholder') }}
             </span>
           </div>
         </template>
@@ -199,7 +200,7 @@
               variant="solid"
               color="black"
             >
-              Génerer
+              {{ $t('whatsapp.send.generate') }}
             </UButton>
           </div>
         </form>
@@ -211,10 +212,10 @@
         <template #header>
           <div>
             <h5>
-              <UBadge color="gray" variant="soft" size="lg">Aperçu </UBadge>
+              <UBadge color="gray" variant="soft" size="lg">{{ $t('whatsapp.send.preview_header') }} </UBadge>
             </h5>
             <span class="text-gray-500 dark:text-gray-300 text-sm">
-              Découvrez en avance un aperçu
+              {{ $t('whatsapp.send.preview_placeholder') }}
             </span>
           </div>
         </template>
@@ -224,12 +225,12 @@
             class="border-2 border-slate-200 p-4 rounded-lg bg-slate-50 dark:bg-slate-800"
           >
             <h3 class="text-md text-slate-800 dark:text-white mb-2">
-              Aperçu du message
+              {{ $t('whatsapp.send.message_preview') }}
             </h3>
             <div class="flex items-center gap-4 mb-2">
               <div class="flex-1">
                 <label class="text-sm text-slate-500 dark:text-slate-400"
-                  >Destinataire</label
+                  >{{ $t('whatsapp.send.recipient') }}</label
                 >
                 <select
                   v-model="previewCustomerIndex"
@@ -269,11 +270,12 @@
     </UModal>
   </section>
 </template>
-
 <script setup>
 import { ref, watch, computed } from "vue";
+import { useI18n } from 'vue-i18n';
 import { useUser } from "@/stores/user";
 import { useWhatsapp } from "@/stores/whatsapp";
+const { t } = useI18n();
 const whatsappStore = useWhatsapp();
 const users = useUser();
 const supabase = useSupabaseClient();
@@ -306,9 +308,9 @@ const generatedContent = ref(""); // Contient le texte complet généré par l'I
 
 // Variables disponibles pour la personnalisation
 const availableVariables = [
-  { key: "name", label: "Nom" },
-  { key: "email", label: "Email" },
-  { key: "phone", label: "Téléphone" },
+  { key: "name", label: t('whatsapp.send.name') },
+  { key: "email", label: t('whatsapp.send.email') },
+  { key: "phone", label: t('whatsapp.send.phone') },
 ];
 
 // Insérer une variable à la position du curseur dans le textarea
@@ -390,7 +392,7 @@ let handleSubmit = async () => {
   if (isScheduled.value && !formData.value.scheduleDate) {
     isProgress.value = false;
     isAlertOpen.value = true;
-    errorMessage.value = "Veuillez choisir une date avant de programmer. ";
+    errorMessage.value = t('whatsapp.send.please_choose_date');
 
     return;
   }
@@ -421,7 +423,7 @@ let handleSubmit = async () => {
       if (json && json.success) {
         isProgress.value = false;
         isSuccessOpen.value = true;
-        successMessage.value = "Votre campagne a bien été envoyée.";
+        successMessage.value = t('whatsapp.send.campaign_sent');
         users.subscription.max_campaigns =
           users.subscription.max_campaigns - formData.value.customers.length;
       } else {
@@ -441,7 +443,7 @@ let handleSubmit = async () => {
       isProgress.value = false;
       isAlertOpen.value = true;
       errorMessage.value =
-        "La date choisie est déjà passée. Veuillez en sélectionner une autre.";
+        t('whatsapp.send.chosen_date_passed');
       return;
     }
     const { data: subscription, error } = await supabase
@@ -451,7 +453,7 @@ let handleSubmit = async () => {
     if (subscription.max_campaigns < formData.value.customers.length) {
       isProgress.value = false;
       isAlertOpen.value = true;
-      errorMessage.value = "Le volume de message est insuffisant";
+      errorMessage.value = t('whatsapp.send.insufficient_message_volume');
       return;
     }
 
@@ -493,7 +495,7 @@ let handleSubmit = async () => {
           .select();
 
         isSuccessOpen.value = true;
-        successMessage.value = "Votre campagne a bien été programmée.";
+        successMessage.value = t('whatsapp.send.campaign_scheduled');
         formData.value.customers = [];
         formData.value.content = "";
         formData.value.scheduleDate = null;

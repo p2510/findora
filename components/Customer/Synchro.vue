@@ -58,7 +58,7 @@ let synchronize = async () => {
       <div>
         <p class="pb-3 flex justify-between items-center z-10">
           <span class="text-sm text-slate-950 dark:text-white font-[500]">
-            Synchroniser les contacts
+            {{ $t("contact.sync.sync_title") }}
           </span>
           <button
             class="flex items-center justify-center rounded-full p-2 text-slate-800 dark:text-white bg-[#ffbd59]/10 dark:bg-[#ffbd59]/20 transition duration-300 ease-in-out hover:bg-[#ffbd59]/20 dark:hover:bg-[#ffbd59]/30"
@@ -67,7 +67,7 @@ let synchronize = async () => {
           </button>
         </p>
         <p class="text-xs text-slate-700 dark:text-slate-300 font-[300]">
-          Migrer tous vos contacts whatsapp vers Findora en un seul clic.
+          {{ $t("contact.sync.sync_description") }}
         </p>
       </div>
     </div>
@@ -77,12 +77,12 @@ let synchronize = async () => {
         <template #header>
           <div>
             <h5>
-              <UBadge color="gray" variant="soft" size="lg"
-                >Synchronisation</UBadge
-              >
+              <UBadge color="gray" variant="soft" size="lg">
+                {{ $t("contact.sync.sync_badge") }}
+              </UBadge>
             </h5>
             <span class="text-gray-500 dark:text-gray-300 text-sm">
-              Migrer tous vos contacts whatsapp vers Findora
+              {{ $t("contact.sync.modal_description") }}
             </span>
           </div>
         </template>
@@ -95,14 +95,18 @@ let synchronize = async () => {
             variant="soft"
             color="emerald"
           >
-            Synchroniser maintenant
+            {{ $t("contact.sync.sync_button") }}
           </UButton>
         </div>
       </UCard>
     </UModal>
 
     <div v-if="isAlertOpen">
-      <AlertModal title="Erreur" type="error" @close-alert="closeErrorAlert">
+      <AlertModal
+        :title="$t('contact.sync.error_title')"
+        type="error"
+        @close-alert="closeErrorAlert"
+      >
         <template #message>
           <p>{{ errorMessage }}</p>
         </template>
@@ -110,7 +114,6 @@ let synchronize = async () => {
     </div>
   </div>
 </template>
-
 <style scoped>
 .error {
   color: red;

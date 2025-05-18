@@ -4,11 +4,13 @@
     @submit.prevent="submit"
   >
     <UBadge color="gray" variant="soft" size="lg" class="w-1/2">
-      Informations d'authentification
+      {{ $t("setting.user.authentication_information") }}
     </UBadge>
     <!-- Email -->
     <div class="col-span-full flex justify-between items-center pt-4">
-      <label class="text-slate-800 basis-1/2">E-mail</label>
+      <label class="text-slate-800 basis-1/2">{{
+        $t("setting.user.email")
+      }}</label>
       <div class="basis-1/2">
         <InputFiled
           type="email"
@@ -25,7 +27,9 @@
 
     <!-- Password -->
     <div class="col-span-full flex justify-between items-center pt-4">
-      <label class="text-slate-800 basis-1/2">Mot de passe</label>
+      <label class="text-slate-800 basis-1/2">{{
+        $t("setting.user.password")
+      }}</label>
       <div class="basis-1/2">
         <InputFiled
           type="password"
@@ -42,7 +46,9 @@
 
     <!-- Confirm Password -->
     <div class="col-span-full flex justify-between items-center pt-4">
-      <label class="text-slate-800 basis-1/2">Confirmer mot de passe</label>
+      <label class="text-slate-800 basis-1/2">{{
+        $t("setting.user.confirm_password")
+      }}</label>
       <div class="basis-1/2">
         <InputFiled
           type="password"
@@ -66,12 +72,12 @@
         variant="solid"
         color="yellow"
       >
-        Mettre à jour
+        {{ $t("setting.user.update") }}
       </UButton>
     </div>
     <div v-if="isAlertOpen">
       <AlertModal
-        title="Informations incorrectes"
+        :title="$t('setting.user.incorrect_information')"
         type="error"
         @close-alert="closeErrorAlert"
       >
@@ -84,10 +90,11 @@
     </div>
   </form>
 </template>
-
 <script setup>
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { useUser } from "@/stores/user";
+const { t } = useI18n();
 const users = useUser();
 const { errors, validateForm, handleServerErrors } = useFormValidationUser();
 const supabase = useSupabaseClient();
@@ -133,8 +140,7 @@ let submit = async () => {
     });
     if (error) {
       if (error.code === "23505") {
-        errorMessage.value =
-          "Ce utilisateur existe déjà avec cet adresse E-mail.";
+        errorMessage.value = t("setting.user.user_exists_with_email");
       } else {
         handleServerErrors(error);
         errorMessage.value = error.message;
@@ -148,15 +154,19 @@ let submit = async () => {
       DataForms.value.confirm_password = "";
       isRequestInProgress.value = false;
       isOpen.value = false;
-      alert("Compte mise à jour");
+      alert(t("setting.user.account_updated"));
       emit("submit");
     }
   } catch {
-    handleServerErrors({ code: "23514", message: "Erreur serveur" });
+    handleServerErrors({
+      code: "23514",
+      message: t("setting.user.server_error"),
+    });
     isRequestInProgress.value = false;
   }
 };
 </script>
+
 <style scoped>
 .error {
   color: red;

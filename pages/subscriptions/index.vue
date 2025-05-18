@@ -1,6 +1,5 @@
 <template>
   <div>
-
     <div class="mt-4 space-y-4 pr-4">
       <div
         v-if="
@@ -10,7 +9,7 @@
               new Date(users.subscription.start_at).getMonth() + 1
             ) > new Date())
         "
-      > 
+      >
         <PurchaseSubscriptionFree />
       </div>
       <div v-else>
@@ -33,7 +32,7 @@
               <h2
                 class="font-semibold text-xl text-gray-900 dark:text-white leading-tight"
               >
-                Mon abonnement
+                {{ $t("subscription.my_subscription") }}
               </h2>
             </div>
           </template>
@@ -43,7 +42,7 @@
               <UInput
                 v-model="search"
                 icon="i-heroicons-magnifying-glass-20-solid"
-                placeholder="Recherche par nom, téléphone, ou email..."
+                :placeholder="$t('subscription.search_placeholder')"
                 class="border-[#f3c775] border-[1px] rounded-lg basis-1/2"
                 variant="none"
               />
@@ -52,7 +51,9 @@
 
           <div class="flex justify-between items-center w-full px-4 py-3">
             <div class="flex items-center gap-1.5">
-              <span class="text-sm leading-5">Ligne par page :</span>
+              <span class="text-sm leading-5"
+                >{{ $t("subscription.rows_per_page") }} :</span
+              >
 
               <USelect
                 v-model="pageCount"
@@ -78,7 +79,7 @@
             @select="select"
             :empty-state="{
               icon: 'i-heroicons-circle-stack-20-solid',
-              label: 'Oups , Aucun abonnement trouvé',
+              label: $t('subscription.no_subscription_found'),
             }"
           >
             <template #created_at-data="{ row }">
@@ -94,14 +95,14 @@
               <UBadge
                 v-if="row.status == 'success'"
                 size="sm"
-                label="Payer"
+                :label="$t('subscription.paid')"
                 color="emerald"
                 variant="solid"
               />
               <UBadge
                 v-else
                 size="sm"
-                label="Échouer"
+                :label="$t('subscription.failed')"
                 color="red"
                 variant="solid"
               />
@@ -121,15 +122,15 @@
             <div class="flex flex-wrap justify-between items-center">
               <div>
                 <span class="text-sm leading-5">
-                  Affichage
+                  {{ $t("subscription.showing") }}
                   <span class="font-medium">{{ pageFrom }}</span>
-                  à
+                  {{ $t("subscription.to") }}
                   <span class="font-medium">{{ pageTo }}</span>
-                  sur
+                  {{ $t("subscription.of") }}
                   <span class="font-medium">{{
                     filteredPurchases.length
                   }}</span>
-                  résultats
+                  {{ $t("subscription.results") }}
                 </span>
               </div>
               <UPagination
@@ -154,7 +155,7 @@
 
     <div v-if="isSuccessOpen">
       <AlertModal
-        title="Abonnement"
+        :title="$t('subscription.subscription_title')"
         type="success"
         @close-alert="closeSuccessAlert"
       >
@@ -166,7 +167,11 @@
       </AlertModal>
     </div>
     <div v-if="isAlertOpen">
-      <AlertModal title="Erreur" type="error" @close-alert="closeErrorAlert">
+      <AlertModal
+        :title="$t('subscription.error_title')"
+        type="error"
+        @close-alert="closeErrorAlert"
+      >
         <template #message>
           <p>
             {{ errorMessage }}
@@ -179,16 +184,18 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
+import { useUser } from "@/stores/user";
+const { t } = useI18n();
+
 definePageMeta({
   middleware: "auth",
   alias: "/abonnement",
 });
 useHead({
-  title: "Findora - Abonnement",
- 
+  title: t("subscription.findora_subscription"),
 });
 
-import { useUser } from "@/stores/user";
 const users = useUser();
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
@@ -200,10 +207,10 @@ const search = ref("");
 
 // Table Columns
 const columns = [
-  { key: "id", label: "ID" },
-  { key: "created_at", label: "Date", sortable: true },
-  { key: "type", label: "Type d'abonnement" },
-  { key: "status", label: "Statut" },
+  { key: "id", label: t("subscription.id") },
+  { key: "created_at", label: t("subscription.date"), sortable: true },
+  { key: "type", label: t("subscription.subscription_type") },
+  { key: "status", label: t("subscription.status") },
 ];
 const selectedColumns = ref(columns);
 const columnsTable = computed(() =>
@@ -263,6 +270,4 @@ const isSuccessOpen = ref(false);
 let closeSuccessAlert = () => {
   isSuccessOpen.value = false;
 };
-
-
 </script>

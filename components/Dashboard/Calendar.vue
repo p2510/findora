@@ -1,127 +1,125 @@
 <template>
-  <div class="space-y-5 pb-2">
-    <div class="px-8  bg-neutral-100 ">
-  
-      <div class="sm:h-full lg:h-[40vh] 2xl:h-[52vh] grid grid-cols-12 pt-4 gap-4   ">
-        <div
-          class="h-full  overflow-y-scroll col-span-full bg-white text-slate-800 rounded-md shadow-md hover:shadow-lg transition duration-300 ease-in-out"
-        >
-          <p class="pl-5 py-3 text-lg font-semibold text-neutral-800">
-            Calendrier de campagne
-          </p>
-          <hr />
-          <section class="py-3">
-            <!-- Ici commence le calendrier -->
-            <div class="calendar-container">
-              <div class="calendar-header">
-                <h2 class="calendar-title">{{ getFormattedCurrentMonth() }}</h2>
-                <div class="calendar-nav">
-                  <button class="calendar-nav-btn" @click="previousMonth">
-                    <UIcon name="i-heroicons-chevron-left" class="w-4 h-4" />
-                  </button>
-                  <button class="calendar-nav-today" @click="goToToday">
-                    Aujourd'hui
-                  </button>
-                  <button class="calendar-nav-btn" @click="nextMonth">
-                    <UIcon name="i-heroicons-chevron-right" class="w-4 h-4" />
-                  </button>
-                </div>
+<div class="space-y-5 pb-2">
+  <div class="px-8 bg-neutral-100">
+    <div class="sm:h-full lg:h-[40vh] 2xl:h-[52vh] grid grid-cols-12 pt-4 gap-4">
+      <div
+        class="h-full overflow-y-scroll col-span-full bg-white text-slate-800 rounded-md shadow-md hover:shadow-lg transition duration-300 ease-in-out"
+      >
+        <p class="pl-5 py-3 text-lg font-semibold text-neutral-800">
+          {{ $t('calendar.campaign_calendar') }}
+        </p>
+        <hr />
+        <section class="py-3">
+          <!-- Ici commence le calendrier -->
+          <div class="calendar-container">
+            <div class="calendar-header">
+              <h2 class="calendar-title">{{ getFormattedCurrentMonth() }}</h2>
+              <div class="calendar-nav">
+                <button class="calendar-nav-btn" @click="previousMonth">
+                  <UIcon name="i-heroicons-chevron-left" class="w-4 h-4" />
+                </button>
+                <button class="calendar-nav-today" @click="goToToday">
+                  {{ $t('calendar.today') }}
+                </button>
+                <button class="calendar-nav-btn" @click="nextMonth">
+                  <UIcon name="i-heroicons-chevron-right" class="w-4 h-4" />
+                </button>
               </div>
-              <div class="calendar-grid">
-                <div
-                  class="calendar-weekday"
-                  v-for="day in weekdays"
-                  :key="day"
-                >
-                  {{ day }}
-                </div>
+            </div>
+            <div class="calendar-grid">
+              <div
+                class="calendar-weekday"
+                v-for="day in weekdays"
+                :key="day"
+              >
+                {{ $t(`calendar.days.${day.toLowerCase()}`) }}
               </div>
-              <div class="calendar-days">
+            </div>
+            <div class="calendar-days">
+              <div
+                v-for="(day, index) in calendarDays"
+                :key="index"
+                :class="[
+                  'calendar-day',
+                  { 'other-month': !day.isCurrentMonth },
+                  { today: day.isToday },
+                ]"
+              >
+                <div class="calendar-day-number">{{ day.date.date() }}</div>
                 <div
-                  v-for="(day, index) in calendarDays"
-                  :key="index"
-                  :class="[
-                    'calendar-day',
-                    { 'other-month': !day.isCurrentMonth },
-                    { today: day.isToday },
-                  ]"
+                  v-if="
+                    getCampaignsForDay(day).length === 0 && day.isCurrentMonth
+                  "
+                  class="empty-day"
                 >
-                  <div class="calendar-day-number">{{ day.date.date() }}</div>
-                  <div
-                    v-if="
-                      getCampaignsForDay(day).length === 0 && day.isCurrentMonth
-                    "
-                    class="empty-day"
-                  >
-                    Aucune campagne
+                  {{ $t('calendar.no_campaign') }}
+                </div>
+                <div
+                  v-for="campaign in getCampaignsForDay(day)"
+                  :key="campaign.id"
+                  class="campaign-event"
+                >
+                  <div>{{ truncateText(campaign.content, 25) }}</div>
+                  <div class="campaign-count">
+                    {{ campaign.customers.length }} {{ $t('calendar.contacts') }}
                   </div>
-                  <div
-                    v-for="campaign in getCampaignsForDay(day)"
-                    :key="campaign.id"
-                    class="campaign-event"
-                  >
-                    <div>{{ truncateText(campaign.content, 25) }}</div>
-                    <div class="campaign-count">
-                      {{ campaign.customers.length }} contacts
+                  <div class="campaign-details">
+                    <div>
+                      <strong>{{ $t('calendar.send_date') }}:</strong>
+                      {{ formatDateTime(campaign.send_date) }}
                     </div>
-                    <div class="campaign-details">
-                      <div>
-                        <strong>Date d'envoi:</strong>
-                        {{ formatDateTime(campaign.send_date) }}
-                      </div>
-                      <div>
-                        <strong>Message:</strong> {{ campaign.content }}
-                      </div>
-                      <div>
-                        <strong>Contacts:</strong>
-                        {{ campaign.customers.length }}
-                      </div>
-                      <div class="customer-list">
-                        <div
-                          v-for="customer in campaign.customers.slice(0, 5)"
-                          :key="customer.id"
-                          class="customer-item"
-                        >
-                          <div class="customer-icon">
-                            {{ getInitials(customer.name) }}
-                          </div>
-                          <div>{{ customer.name }} ({{ customer.phone }})</div>
+                    <div>
+                      <strong>{{ $t('calendar.message') }}:</strong> {{ campaign.content }}
+                    </div>
+                    <div>
+                      <strong>{{ $t('calendar.contacts') }}:</strong>
+                      {{ campaign.customers.length }}
+                    </div>
+                    <div class="customer-list">
+                      <div
+                        v-for="customer in campaign.customers.slice(0, 5)"
+                        :key="customer.id"
+                        class="customer-item"
+                      >
+                        <div class="customer-icon">
+                          {{ getInitials(customer.name) }}
                         </div>
-                        <div
-                          v-if="campaign.customers.length > 5"
-                          class="customer-item"
-                        >
-                          Et {{ campaign.customers.length - 5 }} autres
-                          contacts...
-                        </div>
+                        <div>{{ customer.name }} ({{ customer.phone }})</div>
+                      </div>
+                      <div
+                        v-if="campaign.customers.length > 5"
+                        class="customer-item"
+                      >
+                        {{ $t('calendar.and_x_more', { count: campaign.customers.length - 5 }) }}
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-              <div class="legend">
-                <div class="legend-item">
-                  <div
-                    class="legend-color"
-                    style="background-color: #ffbd59"
-                  ></div>
-                  <span>Campagne programmée</span>
-                </div>
-                <div class="legend-item">
-                  <div
-                    class="legend-color"
-                    style="background-color: rgba(255, 189, 89, 0.2)"
-                  ></div>
-                  <span>Aujourd'hui</span>
                 </div>
               </div>
             </div>
-            <!-- Fin du calendrier -->
-          </section>
-        </div>
+            <div class="legend">
+              <div class="legend-item">
+                <div
+                  class="legend-color"
+                  style="background-color: #ffbd59"
+                ></div>
+                <span>{{ $t('calendar.scheduled_campaign') }}</span>
+              </div>
+              <div class="legend-item">
+                <div
+                  class="legend-color"
+                  style="background-color: rgba(255, 189, 89, 0.2)"
+                ></div>
+                <span>{{ $t('calendar.today') }}</span>
+              </div>
+            </div>
+          </div>
+          <!-- Fin du calendrier -->
+        </section>
       </div>
     </div>
   </div>
+</div>
 </template>
 
 <script setup>

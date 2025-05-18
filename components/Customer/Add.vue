@@ -1,9 +1,11 @@
 <script setup>
 import { ref, defineEmits } from "vue";
+import { useI18n } from "vue-i18n";
 import { useCustomer } from "@/stores/customer";
 import { useStat } from "@/stores/stat";
 import { formatPhone } from "@/utils/shared/format";
 
+const { t } = useI18n();
 const stat = useStat();
 const customerStore = useCustomer();
 const supabase = useSupabaseClient();
@@ -60,8 +62,7 @@ let AddCustomer = async () => {
 
     if (error) {
       if (error.code === "23505") {
-        errorMessage.value =
-          "Ce contact existe déjà avec cette adresse e-mail.";
+        errorMessage.value = t("customer.add.contact_exists_with_email");
       } else {
         handleServerErrors(error);
         errorMessage.value = error.message;
@@ -83,7 +84,10 @@ let AddCustomer = async () => {
       emit("submit"); // Émettre un événement pour informer que le contact a été créé
     }
   } catch (err) {
-    handleServerErrors({ code: "23514", message: "Erreur serveur" });
+    handleServerErrors({
+      code: "23514",
+      message: t("customer.add.server_error"),
+    });
     isRequestInProgress.value = false;
   }
 };
@@ -95,7 +99,7 @@ let AddCustomer = async () => {
       class="flex gap-2 items-center justify-between"
     >
       <UIcon name="i-heroicons-plus" class="w-5 h-5 text-neutral-800" />
-      <span>Créer un nouveau contact</span>
+      <span>{{ $t("customer.add.create_new_contact") }}</span>
     </PrimaryButton>
 
     <UModal v-model="isOpen">
@@ -114,17 +118,17 @@ let AddCustomer = async () => {
                 size="lg"
                 v-if="!isEntreprise"
               >
-                Particulier
+                {{ $t("customer.add.individual") }}
               </UBadge>
               <UBadge color="amber" variant="soft" size="lg" v-else>
-                Entreprise
+                {{ $t("customer.add.company") }}
               </UBadge>
             </h5>
             <span class="text-gray-500 text-sm" v-if="!isEntreprise">
-              Vous êtes sur le point de créer un contact particulier.
+              {{ $t("customer.add.creating_individual_contact") }}
             </span>
             <span class="text-gray-500 text-sm" v-else>
-              Vous êtes sur le point de créer un contact entreprise.
+              {{ $t("customer.add.creating_company_contact") }}
             </span>
           </div>
         </template>
@@ -133,10 +137,10 @@ let AddCustomer = async () => {
           <div class="col-span-full flex items-center justify-center gap-4">
             <p>
               <span class="text-gray-500 text-sm" v-if="!isEntreprise">
-                Activez pour passer à un contact entreprise
+                {{ $t("customer.add.switch_to_company_contact") }}
               </span>
               <span class="text-gray-500 text-sm" v-else>
-                Activez pour passer à un contact particulier
+                {{ $t("customer.add.switch_to_individual_contact") }}
               </span>
             </p>
             <UToggle
@@ -155,10 +159,10 @@ let AddCustomer = async () => {
               class="text-gray-500 text-sm"
               v-if="!isEntreprise"
             >
-              Nom & Prénom
+              {{ $t("customer.add.full_name") }}
             </label>
             <label for="name" class="text-gray-500 text-sm" v-else>
-              Nom de l'entreprise
+              {{ $t("customer.add.company_name") }}
             </label>
             <InputFieldSimple
               type="text"
@@ -173,7 +177,9 @@ let AddCustomer = async () => {
 
           <!-- Email -->
           <div class="col-span-full space-y-[1px]">
-            <label for="email" class="text-gray-500 text-sm">Email</label>
+            <label for="email" class="text-gray-500 text-sm">{{
+              $t("customer.add.email")
+            }}</label>
             <InputFieldSimple
               type="email"
               custom-class="hover:shadow-sm p-2 rounded-lg"
@@ -186,21 +192,21 @@ let AddCustomer = async () => {
 
           <!-- Numéro de téléphone -->
           <div class="col-span-full space-y-[1px] w-full">
-            <label for="phone" class="text-gray-500 text-sm"
-              >Numéro de téléphone</label
-            >
+            <label for="phone" class="text-gray-500 text-sm">{{
+              $t("customer.add.phone_number")
+            }}</label>
 
             <MazPhoneNumberInput
               block
               :translations="{
                 countrySelector: {
-                  placeholder: 'Code pays',
-                  error: 'Sélectionnez un pays',
-                  searchPlaceholder: 'Trouver un pays',
+                  placeholder: $t('customer.add.country_code'),
+                  error: $t('customer.add.select_country'),
+                  searchPlaceholder: $t('customer.add.find_country'),
                 },
                 phoneInput: {
-                  placeholder: 'Numéro de téléphone',
-                  example: 'Exemple:',
+                  placeholder: $t('customer.add.phone_number'),
+                  example: $t('customer.add.example'),
                 },
               }"
               countryCode="CI"
@@ -215,7 +221,9 @@ let AddCustomer = async () => {
 
           <!-- Adresse -->
           <div class="col-span-full space-y-[1px]">
-            <label for="address" class="text-gray-500 text-sm">Adresse</label>
+            <label for="address" class="text-gray-500 text-sm">{{
+              $t("customer.add.address")
+            }}</label>
             <InputFieldSimple
               type="text"
               custom-class="hover:shadow-sm p-2 rounded-lg"
@@ -232,7 +240,7 @@ let AddCustomer = async () => {
               variant="soft"
               color="emerald"
             >
-              Créer un nouveau contact
+              {{ $t("customer.add.create_new_contact") }}
             </UButton>
           </div>
         </form>
@@ -242,7 +250,7 @@ let AddCustomer = async () => {
     <!-- Alerte d'erreur -->
     <div v-if="isAlertOpen">
       <AlertModal
-        title="Informations incorrectes"
+        :title="$t('customer.add.incorrect_information')"
         type="error"
         @close-alert="closeErrorAlert"
       >

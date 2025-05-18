@@ -1,183 +1,185 @@
 <template>
   <div class="mt-14 space-y-4 pr-4">
     <CustomerMetrics />
-<div class="">
-    <UCard
-      class="w-full sm:h-full lg:h-[50vh] 2xl:h-[60vh] overflow-y-scroll"
-      :ui="{
-        base: '',
-        ring: '',
-        divide: 'divide-y divide-gray-200 dark:divide-gray-700',
-        header: { padding: 'px-4 py-5' },
-        body: {
-          padding: '',
-          base: 'divide-y divide-gray-200 dark:divide-gray-700',
-        },
-        footer: { padding: 'p-4' },
-      }"
-    >
-      <template #header>
-        <div class="flex justify-between items-center">
-          <h2 class="flex flex-col gap-[2px]">
-            <span
-              class="font-semibold text-lg text-neutral-800 dark:text-white leading-tight"
-              >Gérez vos contacts</span
-            >
-            <span v-if="customerStore?.customer" class="text-gray-500 text-xs"
-              >{{ customerStore?.customer.length }} contact(s)</span
-            >
-          </h2>
-          <div class="flex gap-2">
-            <CustomerAdd @submit="fetchCustomers" />
-          </div>
-        </div>
-      </template>
-
-      <!-- Filtres -->
-      <div class="flex items-center justify-between gap-3 px-4 py-3">
-        <div class="flex items-center justify-between gap-3 basis-1/2">
-          <UInput
-            v-model="search"
-            icon="i-heroicons-magnifying-glass-20-solid"
-            placeholder="Rechercher par nom, téléphone ou e-mail..."
-            class="border-[#ffbd59] border-[1px] rounded-lg basis-1/2"
-            variant="none"
-          />
-          <USelectMenu
-            v-model="selectedType"
-            :options="customerTypes"
-            multiple
-            placeholder="Type de contact"
-            variant="none"
-            class="w-40 border-[#ffbd59] border-[1px] rounded-lg basis-1/2"
-          >
-            <template #label>
-              <span v-if="selectedType.length" class="truncate"
-                >{{ selectedType.length }} sélectionné(s)</span
-              >
-              <span v-else>Type de contact</span>
-            </template>
-          </USelectMenu>
-        </div>
-
-        <AssignGroup class="basis-1/2" :customers="selectedRows" />
-      </div>
-      <!-- En-tête et boutons d'action -->
-      <div class="flex justify-between items-center w-full px-4 py-3">
-        <div class="flex items-center gap-1.5">
-          <span class="text-sm leading-5">Lignes par page :</span>
-
-          <USelect
-            v-model="pageCount"
-            :options="[3, 5, 10, 20, 30, 40,100,2000,10000]"
-            class="me-2 w-20"
-            size="sm"
-          />
-
-          <button
-            @click="deleteMultiple"
-            v-show="selectedRows.length > 0"
-            class="p-2 text-white bg-red-600 hover:bg-red-700 transition duration-300 ease-in-out rounded-md flex items-center gap-2"
-          >
-            <span class="text-xs">Supprimer</span>
-            <UIcon name="i-heroicons-archive-box-x-mark" class="w-4 h-4" />
-          </button>
-        </div>
-
-        <UButton
-          icon="i-heroicons-funnel"
-          color="gray"
-          size="xs"
-          :disabled="search === '' && selectedType.length === 0"
-          @click="resetFilters"
-        >
-          Réinitialiser
-        </UButton>
-      </div>
-
-      <!-- Table -->
-      <UTable
-        v-model="selectedRows"
-        :rows="paginatedCustomers"
-        :columns="columnsTable"
-        :loading="status === 'pending'"
-        sort-asc-icon="i-heroicons-arrow-up"
-        sort-desc-icon="i-heroicons-arrow-down"
-        class="w-full h-full overflow-y-hidden"
+    <div class="">
+      <UCard
+        class="w-full sm:h-full lg:h-[50vh] 2xl:h-[60vh] overflow-y-scroll"
         :ui="{
-          td: { base: 'max-w-[0] truncate ' },
-          default: { checkbox: { color: 'gray' } },
-        }"
-        @select="select"
-        :empty-state="{
-          icon: 'i-heroicons-circle-stack-20-solid',
-          label: 'Oups, Aucun contact trouvé',
+          base: '',
+          ring: '',
+          divide: 'divide-y divide-gray-200 dark:divide-gray-700',
+          header: { padding: 'px-4 py-5' },
+          body: {
+            padding: '',
+            base: 'divide-y divide-gray-200 dark:divide-gray-700',
+          },
+          footer: { padding: 'p-4' },
         }"
       >
-        <template #phone-data="{ row }">
-          <span>+{{ row.phone }}</span>
-        </template>
-        <template #customer_type-data="{ row }">
-          <UBadge
-            v-if="row.customer_type == 'Entreprise'"
-            size="xs"
-            label="Entreprise"
-            color="emerald"
-            variant="subtle"
-          />
-          <UBadge
-            v-else
-            size="xs"
-            label="Particulier"
-            color="orange"
-            variant="subtle"
-          />
-        </template>
-
-        <template #actions-data="{ row }">
-          <UDropdown :items="items(row)">
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-ellipsis-horizontal-20-solid"
-            />
-          </UDropdown>
-        </template>
-      </UTable>
-
-      <!-- Nombre de lignes et pagination -->
-      <template #footer>
-        <div class="flex flex-wrap justify-between items-center">
-          <div>
-            <span class="text-sm leading-5">
-              Affichage de
-              <span class="font-medium">{{ pageFrom }}</span>
-              à
-              <span class="font-medium">{{ pageTo }}</span>
-              sur
-              <span class="font-medium">{{ filteredCustomers.length }}</span>
-              résultats
-            </span>
+        <template #header>
+          <div class="flex justify-between items-center">
+            <h2 class="flex flex-col gap-[2px]">
+              <span
+                class="font-semibold text-lg text-neutral-800 dark:text-white leading-tight"
+                >{{ $t("customer.manage_contacts") }}</span
+              >
+              <span v-if="customerStore?.customer" class="text-gray-500 text-xs"
+                >{{ customerStore?.customer.length }}
+                {{ $t("customer.contact(s)") }}</span
+              >
+            </h2>
+            <div class="flex gap-2">
+              <CustomerAdd @submit="fetchCustomers" />
+            </div>
           </div>
-          <UPagination
-            v-model="page"
-            :page-count="pageCount"
-            :total="filteredCustomers.length"
-            :ui="{
-              wrapper: 'flex items-center gap-1',
-              rounded: '!rounded-full min-w-[32px] justify-center',
-              default: {
-                activeButton: {
-                  variant: 'outline',
-                },
-              },
-            }"
-          />
-        </div>
-      </template>
-    </UCard>
-    </div>
+        </template>
 
+        <!-- Filtres -->
+        <div class="flex items-center justify-between gap-3 px-4 py-3">
+          <div class="flex items-center justify-between gap-3 basis-1/2">
+            <UInput
+              v-model="search"
+              icon="i-heroicons-magnifying-glass-20-solid"
+              :placeholder="$t('customer.search_by_name_phone_email')"
+              class="border-[#ffbd59] border-[1px] rounded-lg basis-1/2"
+              variant="none"
+            />
+            <USelectMenu
+              v-model="selectedType"
+              :options="customerTypes"
+              multiple
+              :placeholder="$t('customer.contact_type')"
+              variant="none"
+              class="w-40 border-[#ffbd59] border-[1px] rounded-lg basis-1/2"
+            >
+              <template #label>
+                <span v-if="selectedType.length" class="truncate"
+                  >{{ selectedType.length }} {{ $t("customer.selected") }}</span
+                >
+                <span v-else>{{ $t("customer.contact_type") }}</span>
+              </template>
+            </USelectMenu>
+          </div>
+
+          <AssignGroup class="basis-1/2" :customers="selectedRows" />
+        </div>
+        <!-- En-tête et boutons d'action -->
+        <div class="flex justify-between items-center w-full px-4 py-3">
+          <div class="flex items-center gap-1.5">
+            <span class="text-sm leading-5"
+              >{{ $t("customer.rows_per_page") }} :</span
+            >
+
+            <USelect
+              v-model="pageCount"
+              :options="[3, 5, 10, 20, 30, 40, 100]"
+              class="me-2 w-20"
+              size="sm"
+            />
+
+            <button
+              @click="deleteMultiple"
+              v-show="selectedRows.length > 0"
+              class="p-2 text-white bg-red-600 hover:bg-red-700 transition duration-300 ease-in-out rounded-md flex items-center gap-2"
+            >
+              <span class="text-xs">{{ $t("customer.delete") }}</span>
+              <UIcon name="i-heroicons-archive-box-x-mark" class="w-4 h-4" />
+            </button>
+          </div>
+
+          <UButton
+            icon="i-heroicons-funnel"
+            color="gray"
+            size="xs"
+            :disabled="search === '' && selectedType.length === 0"
+            @click="resetFilters"
+          >
+            {{ $t("customer.reset") }}
+          </UButton>
+        </div>
+
+        <!-- Table -->
+        <UTable
+          v-model="selectedRows"
+          :rows="paginatedCustomers"
+          :columns="columnsTable"
+          :loading="status === 'pending'"
+          sort-asc-icon="i-heroicons-arrow-up"
+          sort-desc-icon="i-heroicons-arrow-down"
+          class="w-full h-full overflow-y-hidden"
+          :ui="{
+            td: { base: 'max-w-[0] truncate ' },
+            default: { checkbox: { color: 'gray' } },
+          }"
+          @select="select"
+          :empty-state="{
+            icon: 'i-heroicons-circle-stack-20-solid',
+            label: $t('customer.no_contact_found'),
+          }"
+        >
+          <template #phone-data="{ row }">
+            <span>+{{ row.phone }}</span>
+          </template>
+          <template #customer_type-data="{ row }">
+            <UBadge
+              v-if="row.customer_type == 'Entreprise'"
+              size="xs"
+              :label="$t('customer.company')"
+              color="emerald"
+              variant="subtle"
+            />
+            <UBadge
+              v-else
+              size="xs"
+              :label="$t('customer.individual')"
+              color="orange"
+              variant="subtle"
+            />
+          </template>
+
+          <template #actions-data="{ row }">
+            <UDropdown :items="items(row)">
+              <UButton
+                color="gray"
+                variant="ghost"
+                icon="i-heroicons-ellipsis-horizontal-20-solid"
+              />
+            </UDropdown>
+          </template>
+        </UTable>
+
+        <!-- Nombre de lignes et pagination -->
+        <template #footer>
+          <div class="flex flex-wrap justify-between items-center">
+            <div>
+              <span class="text-sm leading-5">
+                {{ $t("customer.showing") }}
+                <span class="font-medium">{{ pageFrom }}</span>
+                {{ $t("customer.to") }}
+                <span class="font-medium">{{ pageTo }}</span>
+                {{ $t("customer.of") }}
+                <span class="font-medium">{{ filteredCustomers.length }}</span>
+                {{ $t("customer.results") }}
+              </span>
+            </div>
+            <UPagination
+              v-model="page"
+              :page-count="pageCount"
+              :total="filteredCustomers.length"
+              :ui="{
+                wrapper: 'flex items-center gap-1',
+                rounded: '!rounded-full min-w-[32px] justify-center',
+                default: {
+                  activeButton: {
+                    variant: 'outline',
+                  },
+                },
+              }"
+            />
+          </div>
+        </template>
+      </UCard>
+    </div>
     <!--Show customer-->
     <UModal v-model="isOpenShow">
       <div class="p-4 space-y-5">
@@ -211,8 +213,8 @@
           >
             {{
               selectedCustomer.customer_type == "Particulier"
-                ? "Particulier"
-                : "Entreprise"
+                ? $t("customer.individual")
+                : $t("customer.company")
             }}
           </UBadge>
         </div>
@@ -243,8 +245,7 @@
         </div>
       </div>
     </UModal>
-
-    <!-- Modifier un contact -->
+    <!--edit customer-->
     <USlideover v-model="isOpenEdit">
       <UCard
         class="flex flex-col flex-1"
@@ -274,17 +275,17 @@
                 size="lg"
                 v-if="!isEntreprise"
               >
-                Particulier
+                {{ $t("customer.individual") }}
               </UBadge>
               <UBadge color="amber" variant="soft" size="lg" v-else>
-                Entreprise
+                {{ $t("customer.company") }}
               </UBadge>
             </h5>
             <span class="text-gray-500 text-sm" v-if="!isEntreprise">
-              Vous allez modifier un contact particulier.
+              {{ $t("customer.edit_individual_contact") }}
             </span>
             <span class="text-gray-500 text-sm" v-else>
-              Vous allez modifier un contact entreprise.
+              {{ $t("customer.edit_company_contact") }}
             </span>
           </div>
         </template>
@@ -293,10 +294,10 @@
           <div class="col-span-full flex items-center justify-center gap-4">
             <p>
               <span class="text-gray-500 text-sm" v-if="!isEntreprise">
-                Activez pour passer à un contact entreprise
+                {{ $t("customer.switch_to_company_contact") }}
               </span>
               <span class="text-gray-500 text-sm" v-else>
-                Activez pour passer à un contact particulier
+                {{ $t("customer.switch_to_individual_contact") }}
               </span>
             </p>
             <UToggle
@@ -313,10 +314,10 @@
               class="text-gray-500 text-sm"
               v-if="!isEntreprise"
             >
-              Nom et Prénom
+              {{ $t("customer.full_name") }}
             </label>
             <label for="name" class="text-gray-500 text-sm" v-else>
-              Nom de l'entreprise
+              {{ $t("customer.company_name") }}
             </label>
             <InputFieldSimple
               type="text"
@@ -330,7 +331,9 @@
           </div>
 
           <div class="col-span-full space-y-[1px]">
-            <label for="email" class="text-gray-500 text-sm">Email</label>
+            <label for="email" class="text-gray-500 text-sm">{{
+              $t("customer.email")
+            }}</label>
             <InputFieldSimple
               type="email"
               custom-class="hover:shadow-sm p-2 rounded-lg"
@@ -342,19 +345,19 @@
           </div>
           <div class="col-span-full space-y-[1px]">
             <label for="phone" class="text-gray-500 text-sm">
-              Numéro de téléphone
+              {{ $t("customer.phone_number") }}
             </label>
             <MazPhoneNumberInput
               block
               :translations="{
                 countrySelector: {
-                  placeholder: 'Code du pays',
-                  error: 'Sélectionnez un pays',
-                  searchPlaceholder: 'Trouvez un pays',
+                  placeholder: $t('customer.country_code'),
+                  error: $t('customer.select_country'),
+                  searchPlaceholder: $t('customer.find_country'),
                 },
                 phoneInput: {
-                  placeholder: 'Numéro de téléphone',
-                  example: 'Exemple :',
+                  placeholder: $t('customer.phone_number'),
+                  example: $t('customer.example'),
                 },
               }"
               countryCode="CI"
@@ -367,7 +370,9 @@
             </div>
           </div>
           <div class="col-span-full space-y-[1px]">
-            <label for="address" class="text-gray-500 text-sm">Adresse</label>
+            <label for="address" class="text-gray-500 text-sm">{{
+              $t("customer.address")
+            }}</label>
             <InputFieldSimple
               type="text"
               custom-class="hover:shadow-sm p-2 rounded-lg"
@@ -382,7 +387,7 @@
               variant="solid"
               color="amber"
             >
-              Mettre à jour ce contact
+              {{ $t("customer.update_contact") }}
             </UButton>
           </div>
         </form>
@@ -423,13 +428,14 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { formatPhone, unformatPhone } from "@/utils/shared/format";
+const { t } = useI18n();
 
 definePageMeta({
   middleware: "auth",
-  alias: "/contacts",
+  alias: "/contacts",  
 });
 useHead({
-  title: "Gérez vos contacts WhatsApp avec Findora – Ultra simple et rapide !",
+  title:t('contact.title'),
 });
 import { useCustomer } from "@/stores/customer";
 const customerStore = useCustomer();
@@ -441,13 +447,13 @@ const { errors, validateForm, handleServerErrors } = useFormValidation();
 let selectedRows = ref([]);
 // Colonnes du tableau
 const columns = [
-  { key: "id", label: "ID", sortable: false },
-  { key: "name", label: "Nom", sortable: true },
-  { key: "phone", label: "Téléphone", sortable: true },
-  { key: "email", label: "Email", sortable: true },
-  { key: "address", label: "Adresse", sortable: true },
-  { key: "customer_type", label: "Type", sortable: true },
-  { key: "actions", label: "Actions", sortable: false },
+  { key: "id", label: t('customer.id'), sortable: false },
+  { key: "name", label: t('customer.name'), sortable: true },
+  { key: "phone", label: t('customer.phone'), sortable: true },
+  { key: "email", label: t('customer.email'), sortable: true },
+  { key: "address", label: t('customer.address'), sortable: true },
+  { key: "customer_type", label: t('customer.type'), sortable: true },
+  { key: "actions", label: t('customer.actions'), sortable: false },
 ];
 const selectedColumns = ref(columns);
 const columnsTable = computed(() =>
@@ -458,8 +464,8 @@ const columnsTable = computed(() =>
 const search = ref("");
 const selectedType = ref([]);
 const customerTypes = [
-  { key: "Entreprise", label: "Entreprise", value: "Entreprise" },
-  { key: "Particulier", label: "Particulier", value: "Particulier" },
+  { key: "Entreprise", label: t('customer.company'), value: "Entreprise" },
+  { key: "Particulier", label: t('customer.individual'), value: "Particulier" },
 ];
 const resetFilters = () => {
   search.value = "";
@@ -468,7 +474,7 @@ const resetFilters = () => {
 
 // Pagination
 const page = ref(1);
-const pageCount = ref(10);
+const pageCount = ref(100);
 const pageFrom = computed(() => (page.value - 1) * pageCount.value + 1);
 const pageTo = computed(() => {
   if (!filteredCustomers.value || filteredCustomers.value.length === 0) {
@@ -572,7 +578,7 @@ const selectedCustomer = ref([]);
 const items = (row) => [
   [
     {
-      label: "Voir",
+      label: t('customer.view'),
       icon: "i-heroicons-eye-20-solid",
       click: () => {
         isOpenShow.value = true;
@@ -586,7 +592,7 @@ const items = (row) => [
       },
     },
     {
-      label: "Modifier",
+      label: t('customer.edit'),
       icon: "i-heroicons-pencil-square-20-solid",
       click: () => {
         isOpenEdit.value = true;
@@ -605,7 +611,7 @@ const items = (row) => [
       },
     },
     {
-      label: "Supprimer",
+      label: t('customer.delete'),
       icon: "i-heroicons-trash-20-solid",
       click: () => deleteCustomer(row.id),
     },

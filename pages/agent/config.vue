@@ -12,12 +12,15 @@
 
 <script setup>
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
+
 definePageMeta({
   middleware: ["auth", "is-ultra"],
   alias: "/agent/config",
 });
 useHead({
-  title:
-    "Configurez votre agent IA pour qu'il s'adapte à vos besoins et ambitions..",
+  title: t("agent.config.configure_your_ai_agent"),
 });
 </script>

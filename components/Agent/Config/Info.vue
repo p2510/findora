@@ -10,13 +10,15 @@
           >
             1
           </span>
-          <span class="font-[500]">Information Agent</span>
+          <span class="font-[500]">{{
+            $t("agent.config.info.agent_information")
+          }}</span>
         </p>
         <p class="flex gap-2 items-center" v-if="configStore.config?.name">
-          <span class="text-sm text-slate-600 dark:text-slate-300"
-            >Status de l'agent</span
-          >
-          
+          <span class="text-sm text-slate-600 dark:text-slate-300">{{
+            $t("agent.config.info.agent_status")
+          }}</span>
+
           <UToggle
             v-model="active"
             size="2xl"
@@ -29,11 +31,11 @@
       <form @submit.prevent="saveAgentConfig" class="grid grid-cols-12">
         <div class="col-span-full flex flex-col gap-6">
           <div class="w-1/4">
-            <label class="text-md text-slate-800 dark:text-white"
-              >Nom d'agent</label
-            >
+            <label class="text-md text-slate-800 dark:text-white">{{
+              $t("agent.config.info.agent_name")
+            }}</label>
             <p class="text-xs text-slate-600 dark:text-slate-300 pb-2">
-              Le nom de votre agent
+              {{ $t("agent.config.info.agent_name_placeholder") }}
             </p>
             <input
               v-model="agentName"
@@ -45,11 +47,11 @@
 
           <!-- Sélection de la Personnalité -->
           <div>
-            <label class="text-md text-slate-800 dark:text-white"
-              >Personnalité</label
-            >
+            <label class="text-md text-slate-800 dark:text-white">{{
+              $t("agent.config.info.personality")
+            }}</label>
             <p class="text-xs text-slate-600 dark:text-slate-300 pb-2">
-              La personnalité de votre agent
+              {{ $t("agent.config.info.personality_placeholder") }}
             </p>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div
@@ -64,9 +66,14 @@
                 "
               >
                 <UIcon :name="personality.icon" class="w-8 h-8 mb-2" />
-                <span class="font-[500]">{{ personality.name }}</span>
+
+                <span class="font-[500]">{{
+                  $t("agent.config.info.personality_name", {
+                    name: transPersonality(personality.name),
+                  })
+                }}</span>
                 <p class="opacity-60 text-xs text-center mt-1">
-                  {{ personality.description }}
+                  {{ $t(`agent.config.info.${personality.name}_description`) }}
                 </p>
               </div>
             </div>
@@ -74,11 +81,11 @@
 
           <!-- Sélection de l'Objectif -->
           <div>
-            <label class="text-md text-slate-800 dark:text-white"
-              >Objectif</label
-            >
+            <label class="text-md text-slate-800 dark:text-white">{{
+              $t("agent.config.info.goal")
+            }}</label>
             <p class="text-xs text-slate-600 dark:text-slate-300 pb-2">
-              Définissez le rôle principal de votre agent.
+              {{ $t("agent.config.info.goal_placeholder") }}
             </p>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div
@@ -93,9 +100,28 @@
                 "
               >
                 <UIcon :name="goal.icon" class="w-8 h-8 mb-2" />
-                <span class="font-[500]">{{ goal.name }}</span>
-                <p class="opacity-60 text-xs text-center mt-1">
-                  {{ goal.description }}
+                <span class="font-[500]">{{
+                  $t(`agent.config.info.goal_name`, {
+                    name: transGoal(goal.name),
+                  })
+                }}</span>
+                <p
+                  class="opacity-60 text-xs text-center mt-1"
+                  v-if="goal.name == 'Support Client'"
+                >
+                  {{ $t(`agent.config.info.customer_support_description`) }}
+                </p>
+                <p
+                  class="opacity-60 text-xs text-center mt-1"
+                  v-else-if="goal.name == 'Ventes & Closing'"
+                >
+                  {{ $t(`agent.config.info.sales_closing_description`) }}
+                </p>
+                <p
+                  class="opacity-60 text-xs text-center mt-1"
+                  v-else-if="goal.name == 'Interne'"
+                >
+                  {{ $t(`agent.config.info.internal_description`) }}
                 </p>
               </div>
             </div>
@@ -110,8 +136,10 @@
             variant="soft"
             color="emerald"
           >
-            <span v-if="configStore.config?.name">Mettre à jour</span>
-            <span v-else> Sauvegarder</span>
+            <span v-if="configStore.config?.name">{{
+              $t("agent.config.info.update")
+            }}</span>
+            <span v-else>{{ $t("agent.config.info.save") }}</span>
           </UButton>
         </div>
       </form>
@@ -119,7 +147,7 @@
 
     <div v-if="isAlertOpen">
       <AlertModal
-        title="Informations incorrectes"
+        :title="$t('agent.config.info.incorrect_information')"
         type="error"
         @close-alert="closeErrorAlert"
       >
@@ -132,7 +160,7 @@
     </div>
     <div v-if="isSuccessOpen">
       <AlertModal
-        title="Informations enregistrées"
+        :title="$t('agent.config.info.information_saved')"
         type="success"
         @close-alert="closeSuccessAlert"
       >
@@ -145,9 +173,11 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useUser } from "@/stores/user";
 import { useAgentConfig } from "@/stores/agent/config";
+const { t } = useI18n();
+const { locale } = useI18n();
 const supabase = useSupabaseClient();
 const users = useUser();
 const configStore = useAgentConfig();
@@ -160,44 +190,64 @@ const isRequestInProgress = ref(false);
 const personalities = ref([
   {
     name: "Professionnel",
-    description:
-      "Un ton formel et structuré, idéal pour les interactions B2B et les communications d'entreprise. L'agent répond avec précision et clarté.",
+    description: t("agent.config.info.professional_description"),
     icon: "heroicons:briefcase",
   },
   {
     name: "Concise",
-    description:
-      "Des réponses courtes et directes, parfaites pour les utilisateurs qui recherchent des informations rapides et efficaces.",
+    description: t("agent.config.info.concise_description"),
     icon: "heroicons:sparkles",
   },
   {
     name: "Amical",
-    description:
-      "Un ton chaleureux et engageant, adapté aux interactions informelles et aux relations clients.",
+    description: t("agent.config.info.friendly_description"),
     icon: "heroicons:face-smile",
   },
 ]);
+let transPersonality = (name) => {
+  if (locale.value == "en") {
+    if (name == "Professionnel") {
+      return "Professional";
+    } else if (name == "Concise") {
+      return "Concise";
+    } else if (name == "Amical") {
+      return "Friendly";
+    }
+  } else if (locale.value == "fr") {
+    return name;
+  }
+};
 
 const agentGoals = ref([
   {
     name: "Support Client",
-    description:
-      "Répond aux questions des clients et fournit une assistance efficace.",
+    description: t("agent.config.info.customer_support_description"),
     icon: "heroicons:chat-bubble-left-right",
   },
   {
     name: "Ventes & Closing",
-    description:
-      "Aide à la conversion des prospects en clients et optimise les ventes.",
+    description: t("agent.config.info.sales_closing_description"),
     icon: "heroicons:currency-dollar",
   },
   {
     name: "Interne",
-    description:
-      "Soutient les équipes internes avec des réponses adaptées et des ressources.",
+    description: t("agent.config.info.internal_description"),
     icon: "heroicons:user-group",
   },
 ]);
+let transGoal = (name) => {
+  if (locale.value == "en") {
+    if (name == "Support Client") {
+      return "Customer support";
+    } else if (name == "Ventes & Closing") {
+      return "Sales & Closing";
+    } else if (name == "Interne") {
+      return "Internal";
+    }
+  } else if (locale.value == "fr") {
+    return name;
+  }
+};
 
 const errorMessage = ref("");
 const isAlertOpen = ref(false);
@@ -212,9 +262,10 @@ let closeSuccessAlert = () => {
 
 const saveAgentConfig = async () => {
   if (!agentName.value || !selectedPersonality.value || !selectedGoal.value) {
-    alert("Veuillez remplir tous les champs avant de sauvegarder.");
+    errorMessage.value = t("agent.config.info.fill_all_fields");
+    isAlertOpen.value = true;
     return;
-  } 
+  }
 
   isRequestInProgress.value = true;
 
@@ -249,18 +300,19 @@ const saveAgentConfig = async () => {
     }
   } catch (err) {
     isRequestInProgress.value = false;
-    errorMessage.value = "Une erreur s'est produite lors de l'enregistrement.";
+    errorMessage.value = t("agent.config.info.error_occurred");
     isAlertOpen.value = true;
   } finally {
     isRequestInProgress.value = false;
   }
 };
+
 let active = ref(configStore.config?.status);
 onMounted(async () => {
-
-  
-  if (!configStore.config?.name) {  
-    const url = `${useRuntimeConfig().public.url_base}/api/agent/config/list?user_id=${users.info.uuid}`;
+  if (!configStore.config?.name) {
+    const url = `${
+      useRuntimeConfig().public.url_base
+    }/api/agent/config/list?user_id=${users.info.uuid}`;
     try {
       const response = await fetch(url, {
         method: "GET",
@@ -281,18 +333,13 @@ onMounted(async () => {
         selectedGoal.value = json.data?.goal;
         selectedPersonality.value = json.data?.personality;
         status.value = json.data?.status;
-        active.value=json.data?.status
-        
-       
+        active.value = json.data?.status;
       }
     } catch (err) {
-      errorMessage.value =
-        "Une erreur s'est produite lors de l'enregistrement.";
+      errorMessage.value = t("agent.config.info.error_occurred");
     }
   }
-
 });
-
 
 watch(active, async (oldValue, newValue) => {
   if (oldValue != newValue) {
@@ -322,8 +369,7 @@ watch(active, async (oldValue, newValue) => {
         isAlertOpen.value = true;
       }
     } catch (err) {
-      errorMessage.value =
-        "Une erreur s'est produite lors de l'enregistrement.";
+      errorMessage.value = t("agent.config.info.error_occurred");
       isAlertOpen.value = true;
     }
   }

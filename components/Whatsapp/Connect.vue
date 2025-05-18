@@ -24,15 +24,19 @@
         </svg>
       </span>
       <transition name="slide-up" mode="out-in">
-        <span v-if="step == 0"> Préparer le serveur</span>
-        <span v-else-if="step == 1"> Connecter mon whatsapp</span>
+        <span v-if="step == 0">{{
+          $t("whatsapp.connect.prepare_server")
+        }}</span>
+        <span v-else-if="step == 1">{{
+          $t("whatsapp.connect.connect_whatsapp")
+        }}</span>
       </transition>
     </button>
     <UModal v-model="showModal" :dismissible="false">
       <section class="flex justify-center py-4">
         <div class="bg-white p-6 text-center space-y-4">
           <h3 class="text-center text-md pt-3 text-slate-800">
-            Scanez le QR code
+            {{ $t("whatsapp.connect.scan_qr_code") }}
             <span class="mt-4 bg-slate-100 p-2 rounded-full text-slate-800">
               {{ expire }}
             </span>
@@ -44,32 +48,32 @@
             @click="updateAuthorize"
             class="mt-4 px-10 py-2 underline text-slate-950 hover:text-slate-700 transition-all duration-300 ease-in-out"
           >
-            Cliquez ici après avoir scanné le QR code.
+            {{ $t("whatsapp.connect.click_after_scan") }}
           </button>
         </div>
       </section>
     </UModal>
     <div v-if="isAlertOpen">
       <AlertModal
-        title="Synchronisation"
+        :title="$t('whatsapp.connect.synchronization')"
         type="error"
         @close-alert="closeErrorAlert"
       >
         <template #message>
           <p>
-            La préparation est en cours, veuillez patienter 5 secondes et
-            réessayer.
+            {{ $t("whatsapp.connect.synchronization_message") }}
           </p>
         </template>
       </AlertModal>
     </div>
   </div>
 </template>
-
 <script setup>
 import { defineEmits } from "vue";
+import { useI18n } from "vue-i18n";
 import { useUser } from "@/stores/user";
 import { useWhatsapp } from "@/stores/whatsapp";
+const { t } = useI18n();
 const users = useUser();
 const whatsappStore = useWhatsapp();
 const supabase = useSupabaseClient();
@@ -143,6 +147,7 @@ let updateAuthorize = async () => {
   }
 };
 </script>
+
 <style scoped>
 .slide-up-enter-active,
 .slide-up-leave-active {
