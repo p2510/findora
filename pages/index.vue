@@ -53,7 +53,7 @@
               <span>{{ $t("login.no_account") }} </span>
               <a
                 target="_blank"
-                href="https://myfindora.com/creer-un-compte"
+                href="https://airtable.com/app36NTV9VwhLj46v/pag7NOSoamHB30MJm/form"
                 class="pl-2 font-semibold text-slate-800 dark:text-slate-200 text-xs underline hover:text-slate-950 transition duration-300 ease-in-out"
               >
                 {{ $t("login.signup") }}
