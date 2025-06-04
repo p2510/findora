@@ -29,15 +29,32 @@
           $t("whatsapp.send.create_campaign_content")
         }}</label>
         <div class="relative">
-          <textarea
-            v-model="formData.content"
-            autofocus
-            class="border-2 border-slate-200 text-sm p-4 rounded-3xl bg-slate-100/60 dark:bg-slate-800/60 outline-none text-slate-800 dark:text-white w-full"
-            rows="8"
-            minlength="3"
-            :placeholder="$t('whatsapp.send.type_message')"
-          >
-          </textarea>
+          <div class="relative">
+            <textarea
+              v-model="formData.content"
+              autofocus
+              class="border-2 border-slate-200 text-sm p-4 pb-16 rounded-3xl bg-slate-100/60 dark:bg-slate-800/60 outline-none text-slate-800 dark:text-white w-full"
+              rows="6"
+              minlength="3"
+              :placeholder="$t('whatsapp.send.type_message')"
+            >
+            </textarea>
+            <button
+              @click="showPreview = true"
+              type="button"
+              class="bg-slate-700 hover:bg-slate-800 transition ease-in-out duration-300 px-2 py-[3px] rounded-md z-40 absolute text-sm bottom-4 left-4 text-white"
+            >
+              {{ $t("whatsapp.send.preview") }}
+            </button>
+            <button
+              @click="showIA = true"
+              type="button"
+              class="animate-pulse bg-gradient-to-tr px-2 py-[3px] rounded-md from-yellow-400 to-yellow-600 z-40 absolute text-sm bottom-4 right-4 text-white"
+            >
+              {{ $t("whatsapp.send.generate_with_ai") }}
+            </button>
+          </div>
+
           <!-- Section pour l'upload de média -->
           <!-- Section pour l'upload de média -->
           <div class="col-span-full space-y-3">
@@ -176,20 +193,6 @@
               </div>
             </div>
           </div>
-          <button
-            @click="showPreview = true"
-            type="button"
-            class="bg-slate-700 hover:bg-slate-800 transition ease-in-out duration-300 px-2 py-[3px] rounded-md z-40 absolute text-sm bottom-24 left-4 text-white"
-          >
-            {{ $t("whatsapp.send.preview") }}
-          </button>
-          <button
-            @click="showIA = true"
-            type="button"
-            class="animate-pulse bg-gradient-to-tr px-2 py-[3px] rounded-md from-yellow-400 to-yellow-600 z-40 absolute text-sm bottom-24 right-4 text-white"
-          >
-            {{ $t("whatsapp.send.generate_with_ai") }}
-          </button>
         </div>
       </div>
 
@@ -334,22 +337,6 @@
       </UCard>
     </UModal>
     <!-- Message preview section -->
-    <!-- Dans le modal de prévisualisation, ajoutez après le message -->
-    <div
-      v-if="formData.media"
-      class="mt-3 p-2 bg-slate-100 dark:bg-slate-700 rounded"
-    >
-      <div class="flex items-center gap-2">
-        <UIcon
-          :name="getMediaIcon(formData.mediaType)"
-          :class="getMediaIconColor(formData.mediaType)"
-          class="w-4 h-4"
-        />
-        <span class="text-xs text-slate-600 dark:text-slate-400">
-          {{ formData.mediaName }} ({{ formatFileSize(formData.mediaSize) }})
-        </span>
-      </div>
-    </div>
   </section>
 </template>
 <script setup>
@@ -388,27 +375,27 @@ const handleMediaUpload = (event, type) => {
   if (!file) return;
 
   // Vérifier l'extension
-  const extension = file.name.split('.').pop().toLowerCase();
+  const extension = file.name.split(".").pop().toLowerCase();
   if (!allowedExtensions[type].includes(extension)) {
-    errorMessage.value = t('whatsapp.send.invalid_file_type');
+    errorMessage.value = t("whatsapp.send.invalid_file_type");
     isAlertOpen.value = true;
-    event.target.value = '';
+    event.target.value = "";
     return;
   }
 
   // Vérifier la taille du fichier
   const maxSize = mediaLimits[type];
   if (file.size > maxSize) {
-    errorMessage.value = t('whatsapp.send.file_too_large', { 
-      max: formatFileSize(maxSize) 
+    errorMessage.value = t("whatsapp.send.file_too_large", {
+      max: formatFileSize(maxSize),
     });
     isAlertOpen.value = true;
-    event.target.value = '';
+    event.target.value = "";
     return;
   }
 
   // Créer une prévisualisation pour images et vidéos
-  if (type === 'image' || type === 'video') {
+  if (type === "image" || type === "video") {
     const reader = new FileReader();
     reader.onload = (e) => {
       formData.value.mediaPreview = e.target.result;
@@ -431,14 +418,13 @@ const removeMedia = () => {
   formData.value.mediaName = null;
   formData.value.mediaSize = null;
   formData.value.mediaPreview = null;
-  
+
   // Reset tous les inputs file
-  ['image-upload', 'video-upload', 'document-upload'].forEach(id => {
+  ["image-upload", "video-upload", "document-upload"].forEach((id) => {
     const input = document.getElementById(id);
-    if (input) input.value = '';
+    if (input) input.value = "";
   });
 };
-
 const getMediaIcon = (type) => {
   const icons = {
     image: "i-heroicons-photo",
@@ -594,28 +580,29 @@ let handleSubmit = async () => {
     return;
   }
 
-  if (!isScheduled.value) {
-    const url = `${
-      useRuntimeConfig().public.url_base
-    }/api/whatsapp/send-message`;
+  try {
+    // Créer FormData pour les deux cas (direct et programmé)
+    const requestData = new FormData();
+    requestData.append("customers", JSON.stringify(formData.value.customers));
+    requestData.append("content", formData.value.content);
+    requestData.append("token", whatsappStore.whatsapp_backlogs.token);
+    requestData.append("user_id", users.info.uuid);
 
-    try {
-      // Créer FormData pour envoyer fichier + données
-      const requestData = new FormData();
-      requestData.append("customers", JSON.stringify(formData.value.customers));
-      requestData.append("content", formData.value.content);
-      requestData.append("token", whatsappStore.whatsapp_backlogs.token);
-      requestData.append("user_id", users.info.uuid);
+    // Ajouter le média si présent
+    if (formData.value.media) {
+      requestData.append("media", formData.value.media);
+      requestData.append("mediaType", formData.value.mediaType);
+    }
 
-      // Ajouter le média si présent
-      if (formData.value.media) {
-        requestData.append("media", formData.value.media);
-        requestData.append("mediaType", formData.value.mediaType);
-      }
+    if (!isScheduled.value) {
+      // ENVOI IMMÉDIAT - Utilise l'API existante
+      const url = `${
+        useRuntimeConfig().public.url_base
+      }/api/whatsapp/send-message`;
 
       const response = await fetch(url, {
         method: "POST",
-        body: requestData, // Envoyer FormData au lieu de JSON
+        body: requestData,
       });
 
       if (!response.ok) {
@@ -648,57 +635,29 @@ let handleSubmit = async () => {
         errorMessage.value = json.message;
         isAlertOpen.value = true;
       }
-    } catch (error) {
-      isProgress.value = false;
-      errorMessage.value = error.message;
-      isAlertOpen.value = true;
-    }
-  } else {
-    // Pour les campagnes programmées
-    if (formData.value.media) {
-      // Upload vers Supabase Storage
-      const fileName = `campaigns/${Date.now()}-${formData.value.mediaName}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("whatsapp-media")
-        .upload(fileName, formData.value.media);
+    } else {
+      // CAMPAGNE PROGRAMMÉE - Utiliser une API similaire
+      requestData.append("scheduleDate", formData.value.scheduleDate);
 
-      if (uploadError) {
+      const url = `${
+        useRuntimeConfig().public.url_base
+      }/api/whatsapp/send-message-schedule`;
+
+      const response = await fetch(url, {
+        method: "POST",
+        body: requestData,
+      });
+
+      if (!response.ok) {
         isProgress.value = false;
-        errorMessage.value = t("whatsapp.send.media_upload_error");
-        isAlertOpen.value = true;
-        return;
+        throw new Error(`Response status: ${response.status}`);
       }
 
-      // Obtenir l'URL publique
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("whatsapp-media").getPublicUrl(fileName);
+      const json = await response.json();
 
-      // Sauvegarder la campagne avec l'URL du média
-      const { data, error } = await supabase
-        .from("whatsapp_campaigns_schedule")
-        .insert({
-          customers: formData.value.customers,
-          content: formData.value.content,
-          user_id: users.info.uuid,
-          token: whatsappStore.whatsapp_backlogs.token,
-          send_date: formData.value.scheduleDate,
-          is_sent: false,
-          media_url: publicUrl,
-          media_type: formData.value.mediaType,
-        });
-
-      if (error) {
-        isProgress.value = false;
-        errorMessage.value = error.message;
-        isAlertOpen.value = true;
-      } else {
+      if (json && json.success) {
         // Mise à jour du quota et réinitialisation
         users.subscription.max_campaigns -= formData.value.customers.length;
-        await supabase
-          .from("subscriptions")
-          .update({ max_campaigns: users.subscription.max_campaigns })
-          .eq("user_id", users.info.uuid);
 
         isSuccessOpen.value = true;
         successMessage.value = t("whatsapp.send.campaign_scheduled");
@@ -713,8 +672,16 @@ let handleSubmit = async () => {
           mediaPreview: null,
         };
         isProgress.value = false;
+      } else {
+        isProgress.value = false;
+        errorMessage.value = json.message;
+        isAlertOpen.value = true;
       }
     }
+  } catch (error) {
+    isProgress.value = false;
+    errorMessage.value = error.message;
+    isAlertOpen.value = true;
   }
 };
 

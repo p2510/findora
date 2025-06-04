@@ -1,244 +1,166 @@
+// server/api/whatsapp/schedule-campaign.post.js
 import { createClient } from "@supabase/supabase-js";
+import formidable from "formidable";
+import fs from "fs/promises";
 
 export default defineEventHandler(async (event) => {
   const apiKey = useRuntimeConfig().supabase_secret_key;
   const supabase = createClient(useRuntimeConfig().public.supabase_url, apiKey);
+  
+  // Parser le FormData
+  const form = formidable({
+    maxFileSize: 100 * 1024 * 1024, // 100MB max
+  });
 
-  // Fonction pour personnaliser le message avec les données du client
-  const personalizeMessage = (content, customer) => {
-    let personalizedContent = content;
-
-    Object.keys(customer).forEach((key) => {
-      const regex = new RegExp(`{${key}}`, "g");
-      personalizedContent = personalizedContent.replace(
-        regex,
-        customer[key] || ""
-      );
-    });
-
-    return personalizedContent;
-  };
-
-  // Fonction pour envoyer un message texte
-  const sendTextMessage = async (customer, content, token) => {
-    const personalizedContent = personalizeMessage(content, customer);
-    
-    const url = "https://gate.whapi.cloud/messages/text";
-    const options = {
-      method: "POST",
-      headers: {
-        accept: "application/json",
-        "content-type": "application/json",
-        authorization: "Bearer " + token,
-      },
-      body: JSON.stringify({
-        typing_time: 0,
-        to: customer.phone,
-        body: personalizedContent,
-      }),
-    };
-
-    try {
-      const response = await fetch(url, options);
-      const jsonResponse = await response.json();
-      console.log(`Message texte envoyé à ${customer.phone}:`, jsonResponse);
-      return { success: true, response: jsonResponse };
-    } catch (err) {
-      console.error(`Erreur lors de l'envoi à ${customer.phone}:`, err);
-      return { success: false, error: err.message };
-    }
-  };
-
-  // Fonction pour envoyer un message avec média (version URL comme dans le premier code)
-  const sendMediaMessage = async (customer, content, token, mediaUrl, mediaType) => {
-    const personalizedContent = personalizeMessage(content, customer);
-    
-    console.log(`📸 Tentative d'envoi ${mediaType} à ${customer.phone}`);
-    console.log(`   URL du média: ${mediaUrl}`);
-    console.log(`   Type: ${mediaType}`);
-    
-    // Vérifier que l'URL est valide et accessible
-    if (!mediaUrl || (!mediaUrl.startsWith('http://') && !mediaUrl.startsWith('https://'))) {
-      console.error(`❌ URL invalide: ${mediaUrl}`);
-      return { success: false, error: 'URL du média invalide' };
-    }
-    
-    let endpoint;
-    const body = {
-      to: customer.phone,
-      media: mediaUrl,
-    };
-    
-    // Ajouter le caption si présent
-    if (personalizedContent && personalizedContent.trim() !== '') {
-      body.caption = personalizedContent;
-    }
-    
-    // Déterminer l'endpoint selon le type
-    switch(mediaType) {
-      case 'image':
-        endpoint = 'https://gate.whapi.cloud/messages/image';
-        break;
-      case 'video':
-        endpoint = 'https://gate.whapi.cloud/messages/video';
-        break;
-      case 'document':
-        endpoint = 'https://gate.whapi.cloud/messages/document';
-        // Pour les documents, extraire le nom du fichier depuis l'URL
-        const filename = mediaUrl.split('/').pop().split('-').slice(1).join('-');
-        body.filename = filename;
-        break;
-      default:
-        console.error(`Type de média non supporté: ${mediaType}`);
-        return { success: false, error: 'Type de média non supporté' };
-    }
-    
-    const options = {
-      method: "POST",
-      headers: {
-        accept: "application/json",
-        "content-type": "application/json",
-        authorization: "Bearer " + token,
-      },
-      body: JSON.stringify(body),
-    };
-
-    try {
-      const response = await fetch(endpoint, options);
-      const jsonResponse = await response.json();
-      
-      if (!response.ok) {
-        console.error(`❌ Erreur API WhatsApp:`, jsonResponse);
-        return { 
-          success: false, 
-          error: jsonResponse.error?.message || jsonResponse.message || 'Erreur API WhatsApp',
-          details: jsonResponse
-        };
-      }
-      
-      console.log(`✅ Message ${mediaType} envoyé avec succès à ${customer.phone}`);
-      return { success: true, response: jsonResponse };
-    } catch (err) {
-      console.error(`❌ Erreur lors de l'envoi du ${mediaType} à ${customer.phone}:`, err);
-      return { success: false, error: err.message };
-    }
-  };
-
-  // Fonction générique pour envoyer un message (texte ou média)
-  const sendMessageToCustomer = async (customer, content, token, mediaUrl = null, mediaType = null) => {
-    if (mediaUrl && mediaType) {
-      return await sendMediaMessage(customer, content, token, mediaUrl, mediaType);
-    } else {
-      return await sendTextMessage(customer, content, token);
-    }
-  };
-
-  // Fonction pour envoyer des messages avec pauses
-  const sendMessagesWithPause = async (customers, content, token, mediaUrl, mediaType) => {
-    const messagesPerInterval = 10;
-    const intervalBetweenMessages = Math.floor(Math.random() * 3 + 1) * 1000;
-    const intervalBetweenSeries = Math.floor(Math.random() * 4 + 3) * 1000;
-    let i = 0;
-
-    const results = [];
-    
-    for (const customer of customers) {
-      const result = await sendMessageToCustomer(
-        customer,
-        content,
-        token,
-        mediaUrl,
-        mediaType
-      );
-      results.push(result);
-      i++;
-
-      if (i % messagesPerInterval === 0) {
-        console.log(
-          `Pause de ${
-            intervalBetweenSeries / 1000
-          }s après ${messagesPerInterval} messages.`
-        );
-        await new Promise((resolve) =>
-          setTimeout(resolve, intervalBetweenSeries)
-        );
-      }
-
-      await new Promise((resolve) =>
-        setTimeout(resolve, intervalBetweenMessages)
-      );
-    }
-    
-    return results;
-  };
-
-  // Récupération des campagnes planifiées à envoyer aujourd'hui
-  const today = new Date().toISOString().split("T")[0];
-
-  const { data: campaigns, error } = await supabase
-    .from("whatsapp_campaigns_schedule")
-    .select("*")
-    .eq("is_sent", false)
-    .eq("send_date", today)
-    .limit(2);
-
-  if (error) {
-    console.error("Erreur lors de la récupération des campagnes:", error);
+  let fields, files;
+  try {
+    [fields, files] = await form.parse(event.node.req);
+  } catch (error) {
     return {
       success: false,
-      message: "Erreur lors de la récupération des campagnes",
+      message: "Erreur lors du parsing des données",
+      error: error.message,
     };
   }
 
-  if (!campaigns || campaigns.length === 0) {
+  // Extraire les données
+  const customers = JSON.parse(fields.customers[0]);
+  const content = fields.content[0];
+  const token = fields.token[0];
+  const user_id = fields.user_id[0];
+  const scheduleDate = fields.scheduleDate[0];
+  const mediaType = fields.mediaType ? fields.mediaType[0] : null;
+  const mediaFile = files.media ? files.media[0] : null;
+
+  // Vérification de l'abonnement
+  let isValid = false;
+  let maxCampaigns = 0;
+  let subscriptionId = null;
+  
+  try {
+    const { data: subscription, error } = await supabase
+      .from("subscriptions")
+      .select("subscription_type, start_at, max_campaigns, id")
+      .eq("user_id", user_id)
+      .order("start_at", { ascending: false })
+      .limit(1)
+      .single();
+      
+    if (error) throw error;
+    
+    if (subscription) {
+      const expirationDate = new Date(subscription.start_at);
+      expirationDate.setMonth(expirationDate.getMonth() + 1);
+      const isExpired = expirationDate < new Date();
+      
+      if (!isExpired && subscription.max_campaigns >= customers.length) {
+        isValid = true;
+      }
+      maxCampaigns = subscription.max_campaigns;
+      subscriptionId = subscription.id;
+    }
+  } catch (error) {
     return {
       success: false,
-      message: "Aucune campagne à envoyer aujourd'hui.",
+      message: "Erreur lors de la vérification de l'abonnement.",
+      error,
     };
   }
 
-  let successCount = 0;
-  let failureCount = 0;
+  if (!isValid) {
+    return {
+      success: false,
+      message: "Abonnement expiré ou volume insuffisant.",
+    };
+  }
 
-  for (const campaign of campaigns) {
-    const { customers, content, token, media_url, media_type } = campaign;
-    
-    const results = await sendMessagesWithPause(
-      customers,
-      content,
-      token,
-      media_url,
-      media_type
-    );
-    
-    // Compter les succès et échecs
-    successCount += results.filter(r => r.success).length;
-    failureCount += results.filter(r => !r.success).length;
+  let mediaUrl = null;
 
-    const { error: updateError } = await supabase
-      .from("whatsapp_campaigns_schedule")
-      .update({ is_sent: true })
-      .eq("id", campaign.id);
-
-    if (updateError) {
-      console.error(
-        "Erreur lors de la mise à jour de la campagne:",
-        updateError
-      );
+  // Si un média est présent, l'uploader vers Supabase Storage
+  if (mediaFile) {
+    try {
+      const fileBuffer = await fs.readFile(mediaFile.filepath);
+      const fileName = `campaigns/${Date.now()}-${mediaFile.originalFilename}`;
+      
+      // Upload avec la clé service (pas de problème RLS)
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('whatsapp-media')
+        .upload(fileName, fileBuffer, {
+          contentType: mediaFile.mimetype,
+          upsert: false
+        });
+        
+      if (uploadError) {
+        console.error("Erreur upload Supabase:", uploadError);
+        throw new Error("Erreur lors de l'upload du fichier: " + uploadError.message);
+      }
+      
+      // Obtenir l'URL publique
+      const { data: { publicUrl } } = supabase.storage
+        .from('whatsapp-media')
+        .getPublicUrl(fileName);
+        
+      mediaUrl = publicUrl;
+      console.log("Fichier uploadé sur Supabase:", mediaUrl);
+      
+    } catch (error) {
+      // Nettoyer le fichier temporaire
+      await fs.unlink(mediaFile.filepath).catch(console.error);
       return {
         success: false,
-        message: "Erreur lors de la mise à jour de la campagne",
+        message: "Erreur lors de l'upload du média",
+        error: error.message,
       };
+    } finally {
+      // Toujours nettoyer le fichier temporaire
+      if (mediaFile?.filepath) {
+        await fs.unlink(mediaFile.filepath).catch(console.error);
+      }
     }
   }
 
-  return {
-    success: true,
-    message: "Campagnes envoyées avec succès.",
-    stats: {
-      sent: successCount,
-      failed: failureCount,
-      total: successCount + failureCount
+  // Sauvegarder la campagne programmée
+  try {
+    const { data, error } = await supabase
+      .from("whatsapp_campaigns_schedule")
+      .insert({
+        customers: customers,
+        content: content,
+        user_id: user_id,
+        token: token,
+        send_date: scheduleDate,
+        is_sent: false,
+        media_url: mediaUrl,
+        media_type: mediaType,
+      });
+
+    if (error) {
+      console.error("Erreur insertion campagne:", error);
+      return {
+        success: false,
+        message: "Erreur lors de la sauvegarde de la campagne: " + error.message,
+      };
     }
-  };
+
+    // Mettre à jour le quota
+    const { error: updateError } = await supabase
+      .from("subscriptions")
+      .update({ max_campaigns: maxCampaigns - customers.length })
+      .eq("id", subscriptionId);
+
+    if (updateError) {
+      console.error("Erreur mise à jour quota:", updateError);
+    }
+
+    return {
+      success: true,
+      message: "Campagne programmée avec succès pour le " + scheduleDate,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: "Erreur lors de la programmation de la campagne",
+      error: error.message,
+    };
+  }
 });

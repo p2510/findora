@@ -291,7 +291,17 @@
       "campaign_sent": "Your campaign has been successfully sent.",
       "campaign_scheduled": "Your campaign has been successfully scheduled.",
       "insufficient_message_volume": "The message volume is insufficient",
-      "chosen_date_passed": "The chosen date has already passed. Please select another one."
+      "chosen_date_passed": "The chosen date has already passed. Please select another one.",
+      "attach_media": "Attach a file",
+      "image": "Image",
+      "video": "Video",
+      "document": "Document",
+      "media_limits": "File type limits:",
+      "invalid_file_type": "Unsupported file type",
+      "file_too_large": "The file is too large (max {max})",
+      "media_upload_error": "Error while uploading the file",
+      "change_media": "Change file",
+      "choose_media": "Choose a file"
     },
     "customer": {
       "selected_contacts": "selected",
