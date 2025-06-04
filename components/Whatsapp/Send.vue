@@ -4,11 +4,11 @@
       class="text-slate-900 dark:text-white text-2xl lg:text-4xl pb-2 flex items-center justify-between"
     >
       <p>
-        {{ $t('whatsapp.send.launch_new_campaign') }}
+        {{ $t("whatsapp.send.launch_new_campaign") }}
         <span
           class="bg-clip-text text-transparent bg-gradient-to-r from-[#25D366] to-[#1e6337] dark:from-[#25D366] dark:to-[#1e6337]"
         >
-          {{ $t('whatsapp.send.campaign') }}
+          {{ $t("whatsapp.send.campaign") }}
         </span>
       </p>
       <p
@@ -18,16 +18,16 @@
           <i class="font-semibold not-italic">{{
             users.subscription.max_campaigns
           }}</i>
-          {{ $t('whatsapp.send.remaining_campaigns') }}
+          {{ $t("whatsapp.send.remaining_campaigns") }}
         </span>
       </p>
     </h4>
 
     <form class="grid grid-cols-12 gap-4 pt-6" @submit.prevent="handleSubmit">
       <div class="col-span-full space-y-3 relative">
-        <label for="content" class="text-gray-500 dark:text-gray-300"
-          >{{ $t('whatsapp.send.create_campaign_content') }}</label
-        >
+        <label for="content" class="text-gray-500 dark:text-gray-300">{{
+          $t("whatsapp.send.create_campaign_content")
+        }}</label>
         <div class="relative">
           <textarea
             v-model="formData.content"
@@ -38,30 +38,157 @@
             :placeholder="$t('whatsapp.send.type_message')"
           >
           </textarea>
-          <div class="absolute top-2 right-2 flex flex-wrap gap-1">
-            <button
-              v-for="variable in availableVariables"
-              :key="variable.key"
-              type="button"
-              @click="insertVariable(variable.key)"
-              class="text-xs px-2 py-1 rounded-md bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
-            >
-              {{ variable.label }}
-            </button>
+          <!-- Section pour l'upload de média -->
+          <!-- Section pour l'upload de média -->
+          <div class="col-span-full space-y-3">
+            <label class="text-gray-500 dark:text-gray-300">
+              {{ $t("whatsapp.send.attach_media") }}
+            </label>
+
+            <div class="flex flex-wrap items-center gap-4">
+              <!-- Boutons d'upload par type -->
+              <div class="flex gap-2">
+                <!-- Image -->
+                <label
+                  for="image-upload"
+                  class="cursor-pointer flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/20 hover:bg-emerald-200 dark:hover:bg-emerald-900/30 transition-colors"
+                >
+                  <UIcon
+                    name="i-heroicons-photo"
+                    class="w-5 h-5 text-emerald-600"
+                  />
+                  <span class="text-sm">{{ $t("whatsapp.send.image") }}</span>
+                </label>
+                <input
+                  id="image-upload"
+                  type="file"
+                  @change="(e) => handleMediaUpload(e, 'image')"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  class="hidden"
+                />
+
+                <!-- Vidéo -->
+                <label
+                  for="video-upload"
+                  class="cursor-pointer flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-100 dark:bg-blue-900/20 hover:bg-blue-200 dark:hover:bg-blue-900/30 transition-colors"
+                >
+                  <UIcon
+                    name="i-heroicons-video-camera"
+                    class="w-5 h-5 text-blue-600"
+                  />
+                  <span class="text-sm">{{ $t("whatsapp.send.video") }}</span>
+                </label>
+                <input
+                  id="video-upload"
+                  type="file"
+                  @change="(e) => handleMediaUpload(e, 'video')"
+                  accept="video/mp4,video/3gpp"
+                  class="hidden"
+                />
+
+                <!-- Document -->
+                <label
+                  for="document-upload"
+                  class="cursor-pointer flex items-center gap-2 px-3 py-2 rounded-lg bg-orange-100 dark:bg-orange-900/20 hover:bg-orange-200 dark:hover:bg-orange-900/30 transition-colors"
+                >
+                  <UIcon
+                    name="i-heroicons-document"
+                    class="w-5 h-5 text-orange-600"
+                  />
+                  <span class="text-sm">{{
+                    $t("whatsapp.send.document")
+                  }}</span>
+                </label>
+                <input
+                  id="document-upload"
+                  type="file"
+                  @change="(e) => handleMediaUpload(e, 'document')"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip"
+                  class="hidden"
+                />
+              </div>
+
+              <!-- Affichage du fichier sélectionné -->
+              <div
+                v-if="formData.media"
+                class="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-lg"
+              >
+                <UIcon
+                  :name="getMediaIcon(formData.mediaType)"
+                  :class="getMediaIconColor(formData.mediaType)"
+                  class="w-5 h-5"
+                />
+                <div class="flex flex-col">
+                  <span
+                    class="text-sm font-medium text-slate-700 dark:text-slate-200"
+                    >{{ formData.mediaName }}</span
+                  >
+                  <span class="text-xs text-slate-500 dark:text-slate-400">{{
+                    formatFileSize(formData.mediaSize)
+                  }}</span>
+                </div>
+                <button
+                  type="button"
+                  @click="removeMedia"
+                  class="ml-4 p-1 rounded-full hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors"
+                >
+                  <UIcon
+                    name="i-heroicons-x-mark"
+                    class="w-4 h-4 text-red-600"
+                  />
+                </button>
+              </div>
+            </div>
+
+            <!-- Prévisualisation du média -->
+            <div v-if="formData.media && formData.mediaPreview" class="mt-4">
+              <div
+                v-if="formData.mediaType === 'image'"
+                class="relative inline-block rounded-lg overflow-hidden shadow-md"
+              >
+                <img
+                  :src="formData.mediaPreview"
+                  alt="Preview"
+                  class="max-w-md max-h-64 object-cover"
+                />
+              </div>
+              <div
+                v-else-if="formData.mediaType === 'video'"
+                class="relative inline-block rounded-lg overflow-hidden shadow-md"
+              >
+                <video
+                  :src="formData.mediaPreview"
+                  controls
+                  class="max-w-md max-h-64"
+                />
+              </div>
+              <div
+                v-else-if="formData.mediaType === 'document'"
+                class="p-8 bg-slate-100 dark:bg-slate-800 rounded-lg inline-block"
+              >
+                <UIcon
+                  :name="getDocumentIcon(formData.mediaName)"
+                  class="w-16 h-16 text-slate-600 dark:text-slate-400 mx-auto"
+                />
+                <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                  {{ formData.mediaName }}
+                </p>
+              </div>
+            </div>
           </div>
           <button
             @click="showPreview = true"
             type="button"
-            class="bg-slate-700 hover:bg-slate-800 transition ease-in-out duration-300 px-2 py-[3px] rounded-md z-40 absolute text-sm bottom-4 left-4 text-white"
+            class="bg-slate-700 hover:bg-slate-800 transition ease-in-out duration-300 px-2 py-[3px] rounded-md z-40 absolute text-sm bottom-24 left-4 text-white"
           >
-            {{ $t('whatsapp.send.preview') }}
+            {{ $t("whatsapp.send.preview") }}
           </button>
           <button
             @click="showIA = true"
             type="button"
-            class="animate-pulse bg-gradient-to-tr px-2 py-[3px] rounded-md from-yellow-400 to-yellow-600 z-40 absolute text-sm bottom-4 right-4 text-white"
+            class="animate-pulse bg-gradient-to-tr px-2 py-[3px] rounded-md from-yellow-400 to-yellow-600 z-40 absolute text-sm bottom-24 right-4 text-white"
           >
-            {{ $t('whatsapp.send.generate_with_ai') }}
+            {{ $t("whatsapp.send.generate_with_ai") }}
           </button>
         </div>
       </div>
@@ -77,9 +204,9 @@
           @click="sendNow"
         >
           <p class="flex justify-between">
-            <span class="text-lg text-slate-800 dark:text-white"
-              >{{ $t('whatsapp.send.send_now') }}</span
-            >
+            <span class="text-lg text-slate-800 dark:text-white">{{
+              $t("whatsapp.send.send_now")
+            }}</span>
             <UIcon
               v-if="!isScheduled"
               name="i-heroicons-check-circle"
@@ -89,7 +216,7 @@
           <span
             class="hidden md:block text-xs text-slate-800 dark:text-gray-300"
           >
-            {{ $t('whatsapp.send.send_now_placeholder') }}
+            {{ $t("whatsapp.send.send_now_placeholder") }}
           </span>
         </button>
         <button
@@ -98,9 +225,9 @@
           @click="programCampaign"
         >
           <p class="flex justify-between">
-            <span class="text-lg text-slate-800 dark:text-white"
-              >{{ $t('whatsapp.send.schedule') }}</span
-            >
+            <span class="text-lg text-slate-800 dark:text-white">{{
+              $t("whatsapp.send.schedule")
+            }}</span>
             <UIcon
               v-if="isScheduled"
               name="i-heroicons-check-circle"
@@ -110,7 +237,7 @@
           <span
             class="hidden md:block text-xs text-slate-800 dark:text-gray-300"
           >
-            {{ $t('whatsapp.send.schedule_placeholder') }}
+            {{ $t("whatsapp.send.schedule_placeholder") }}
           </span>
         </button>
 
@@ -123,14 +250,14 @@
           class="flex justify-around items-center gap-2 p-4"
         >
           <UIcon name="i-heroicons-paper-airplane" class="h-6 w-6" />
-          <span>{{ $t('whatsapp.send.launch') }}</span>
+          <span>{{ $t("whatsapp.send.launch") }}</span>
         </UButton>
       </div>
 
       <div v-if="isScheduled" class="col-span-full space-y-3">
-        <label for="scheduleDate" class="text-gray-500 dark:text-gray-300"
-          >{{ $t('whatsapp.send.choose_date') }}</label
-        >
+        <label for="scheduleDate" class="text-gray-500 dark:text-gray-300">{{
+          $t("whatsapp.send.choose_date")
+        }}</label>
         <input
           v-model="formData.scheduleDate"
           type="date"
@@ -170,12 +297,12 @@
         <template #header>
           <div>
             <h5>
-              <UBadge color="gray" variant="soft" size="lg"
-                >{{ $t('whatsapp.send.generate_with_ai_header') }}</UBadge
-              >
+              <UBadge color="gray" variant="soft" size="lg">{{
+                $t("whatsapp.send.generate_with_ai_header")
+              }}</UBadge>
             </h5>
             <span class="text-gray-500 dark:text-gray-300 text-sm">
-              {{ $t('whatsapp.send.generate_with_ai_placeholder') }}
+              {{ $t("whatsapp.send.generate_with_ai_placeholder") }}
             </span>
           </div>
         </template>
@@ -200,79 +327,34 @@
               variant="solid"
               color="black"
             >
-              {{ $t('whatsapp.send.generate') }}
+              {{ $t("whatsapp.send.generate") }}
             </UButton>
           </div>
         </form>
       </UCard>
     </UModal>
     <!-- Message preview section -->
-    <UModal v-model="showPreview" v-if="formData.customers.length > 0">
-      <UCard class="dark:bg-neutral-900 dark:text-white">
-        <template #header>
-          <div>
-            <h5>
-              <UBadge color="gray" variant="soft" size="lg">{{ $t('whatsapp.send.preview_header') }} </UBadge>
-            </h5>
-            <span class="text-gray-500 dark:text-gray-300 text-sm">
-              {{ $t('whatsapp.send.preview_placeholder') }}
-            </span>
-          </div>
-        </template>
-
-        <div class="col-span-full mb-4">
-          <div
-            class="border-2 border-slate-200 p-4 rounded-lg bg-slate-50 dark:bg-slate-800"
-          >
-            <h3 class="text-md text-slate-800 dark:text-white mb-2">
-              {{ $t('whatsapp.send.message_preview') }}
-            </h3>
-            <div class="flex items-center gap-4 mb-2">
-              <div class="flex-1">
-                <label class="text-sm text-slate-500 dark:text-slate-400"
-                  >{{ $t('whatsapp.send.recipient') }}</label
-                >
-                <select
-                  v-model="previewCustomerIndex"
-                  class="w-full p-2 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-white"
-                >
-                  <option
-                    v-for="(customer, index) in formData.customers"
-                    :key="index"
-                    :value="index"
-                  >
-                    {{ customer.name || "Client " + (index + 1) }} ({{
-                      customer.phone
-                    }})
-                  </option>
-                </select>
-              </div>
-            </div>
-            <div class="p-3 bg-white dark:bg-slate-900 rounded-lg">
-              <div class="w-full">
-                <div
-                  class="w-full bg-[#E1FFC7] dark:bg-emerald-800/80 p-3 rounded-lg"
-                >
-                  <p class="text-slate-800 dark:text-white whitespace-pre-wrap">
-                    {{ previewMessage }}
-                  </p>
-                  <p
-                    class="text-xs text-slate-500 dark:text-slate-400 text-right mt-1"
-                  >
-                    {{ formatTime(new Date()) }}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </UCard>
-    </UModal>
+    <!-- Dans le modal de prévisualisation, ajoutez après le message -->
+    <div
+      v-if="formData.media"
+      class="mt-3 p-2 bg-slate-100 dark:bg-slate-700 rounded"
+    >
+      <div class="flex items-center gap-2">
+        <UIcon
+          :name="getMediaIcon(formData.mediaType)"
+          :class="getMediaIconColor(formData.mediaType)"
+          class="w-4 h-4"
+        />
+        <span class="text-xs text-slate-600 dark:text-slate-400">
+          {{ formData.mediaName }} ({{ formatFileSize(formData.mediaSize) }})
+        </span>
+      </div>
+    </div>
   </section>
 </template>
 <script setup>
 import { ref, watch, computed } from "vue";
-import { useI18n } from 'vue-i18n';
+import { useI18n } from "vue-i18n";
 import { useUser } from "@/stores/user";
 import { useWhatsapp } from "@/stores/whatsapp";
 const { t } = useI18n();
@@ -283,7 +365,122 @@ const formData = ref({
   customers: [],
   content: "",
   scheduleDate: null,
+  media: null, // Fichier média
+  mediaType: null, // 'image', 'video' ou 'document'
+  mediaName: null, // Nom du fichier
+  mediaSize: null, // Taille du fichier
+  mediaPreview: null, // URL de prévisualisation
 });
+// Limites de taille par type de média (en bytes)
+const mediaLimits = {
+  image: 5 * 1024 * 1024, // 5MB
+  video: 16 * 1024 * 1024, // 16MB
+  document: 100 * 1024 * 1024, // 100MB
+};
+// Extensions autorisées par type
+const allowedExtensions = {
+  image: ["jpg", "jpeg", "png", "webp"],
+  video: ["mp4", "3gpp"],
+  document: ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt", "zip"],
+};
+const handleMediaUpload = (event, type) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Vérifier l'extension
+  const extension = file.name.split('.').pop().toLowerCase();
+  if (!allowedExtensions[type].includes(extension)) {
+    errorMessage.value = t('whatsapp.send.invalid_file_type');
+    isAlertOpen.value = true;
+    event.target.value = '';
+    return;
+  }
+
+  // Vérifier la taille du fichier
+  const maxSize = mediaLimits[type];
+  if (file.size > maxSize) {
+    errorMessage.value = t('whatsapp.send.file_too_large', { 
+      max: formatFileSize(maxSize) 
+    });
+    isAlertOpen.value = true;
+    event.target.value = '';
+    return;
+  }
+
+  // Créer une prévisualisation pour images et vidéos
+  if (type === 'image' || type === 'video') {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      formData.value.mediaPreview = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  } else {
+    formData.value.mediaPreview = true; // Flag pour afficher l'icône de document
+  }
+
+  // Stocker les informations du fichier
+  formData.value.media = file;
+  formData.value.mediaType = type;
+  formData.value.mediaName = file.name;
+  formData.value.mediaSize = file.size;
+};
+
+const removeMedia = () => {
+  formData.value.media = null;
+  formData.value.mediaType = null;
+  formData.value.mediaName = null;
+  formData.value.mediaSize = null;
+  formData.value.mediaPreview = null;
+  
+  // Reset tous les inputs file
+  ['image-upload', 'video-upload', 'document-upload'].forEach(id => {
+    const input = document.getElementById(id);
+    if (input) input.value = '';
+  });
+};
+
+const getMediaIcon = (type) => {
+  const icons = {
+    image: "i-heroicons-photo",
+    video: "i-heroicons-video-camera",
+    document: "i-heroicons-document",
+  };
+  return icons[type] || "i-heroicons-paper-clip";
+};
+
+const getMediaIconColor = (type) => {
+  const colors = {
+    image: "text-emerald-600",
+    video: "text-blue-600",
+    document: "text-orange-600",
+  };
+  return colors[type] || "text-gray-600";
+};
+
+const getDocumentIcon = (filename) => {
+  const ext = filename.split(".").pop().toLowerCase();
+  const iconMap = {
+    pdf: "i-heroicons-document-text",
+    doc: "i-heroicons-document-text",
+    docx: "i-heroicons-document-text",
+    xls: "i-heroicons-table-cells",
+    xlsx: "i-heroicons-table-cells",
+    ppt: "i-heroicons-presentation-chart-bar",
+    pptx: "i-heroicons-presentation-chart-bar",
+    txt: "i-heroicons-document",
+    zip: "i-heroicons-archive-box",
+  };
+  return iconMap[ext] || "i-heroicons-document";
+};
+
+const formatFileSize = (bytes) => {
+  if (bytes === 0) return "0 Bytes";
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+};
+
 let isProgress = ref(false);
 const isScheduled = ref(false);
 const errorMessage = ref("");
@@ -308,9 +505,9 @@ const generatedContent = ref(""); // Contient le texte complet généré par l'I
 
 // Variables disponibles pour la personnalisation
 const availableVariables = [
-  { key: "name", label: t('whatsapp.send.name') },
-  { key: "email", label: t('whatsapp.send.email') },
-  { key: "phone", label: t('whatsapp.send.phone') },
+  { key: "name", label: t("whatsapp.send.name") },
+  { key: "email", label: t("whatsapp.send.email") },
+  { key: "phone", label: t("whatsapp.send.phone") },
 ];
 
 // Insérer une variable à la position du curseur dans le textarea
@@ -386,14 +583,14 @@ function typewriterEffect(text) {
   typeNextChar();
 }
 
-// send or program
+// handleSubmit pour inclure le média
 let handleSubmit = async () => {
   isProgress.value = true;
+
   if (isScheduled.value && !formData.value.scheduleDate) {
     isProgress.value = false;
     isAlertOpen.value = true;
-    errorMessage.value = t('whatsapp.send.please_choose_date');
-
+    errorMessage.value = t("whatsapp.send.please_choose_date");
     return;
   }
 
@@ -403,14 +600,22 @@ let handleSubmit = async () => {
     }/api/whatsapp/send-message`;
 
     try {
+      // Créer FormData pour envoyer fichier + données
+      const requestData = new FormData();
+      requestData.append("customers", JSON.stringify(formData.value.customers));
+      requestData.append("content", formData.value.content);
+      requestData.append("token", whatsappStore.whatsapp_backlogs.token);
+      requestData.append("user_id", users.info.uuid);
+
+      // Ajouter le média si présent
+      if (formData.value.media) {
+        requestData.append("media", formData.value.media);
+        requestData.append("mediaType", formData.value.mediaType);
+      }
+
       const response = await fetch(url, {
         method: "POST",
-        body: JSON.stringify({
-          customers: formData.value.customers,
-          content: formData.value.content, // Le contenu contient les variables qui seront remplacées côté serveur
-          token: whatsappStore.whatsapp_backlogs.token,
-          user_id: users.info.uuid,
-        }),
+        body: requestData, // Envoyer FormData au lieu de JSON
       });
 
       if (!response.ok) {
@@ -423,9 +628,21 @@ let handleSubmit = async () => {
       if (json && json.success) {
         isProgress.value = false;
         isSuccessOpen.value = true;
-        successMessage.value = t('whatsapp.send.campaign_sent');
+        successMessage.value = t("whatsapp.send.campaign_sent");
         users.subscription.max_campaigns =
           users.subscription.max_campaigns - formData.value.customers.length;
+
+        // Réinitialiser le formulaire
+        formData.value = {
+          customers: [],
+          content: "",
+          scheduleDate: null,
+          media: null,
+          mediaType: null,
+          mediaName: null,
+          mediaSize: null,
+          mediaPreview: null,
+        };
       } else {
         isProgress.value = false;
         errorMessage.value = json.message;
@@ -437,72 +654,66 @@ let handleSubmit = async () => {
       isAlertOpen.value = true;
     }
   } else {
-    const today = new Date();
-    const chosenDate = new Date(formData.value.scheduleDate);
-    if (chosenDate < today) {
-      isProgress.value = false;
-      isAlertOpen.value = true;
-      errorMessage.value =
-        t('whatsapp.send.chosen_date_passed');
-      return;
-    }
-    const { data: subscription, error } = await supabase
-      .from("subscriptions")
-      .select("max_campaigns")
-      .single();
-    if (subscription.max_campaigns < formData.value.customers.length) {
-      isProgress.value = false;
-      isAlertOpen.value = true;
-      errorMessage.value = t('whatsapp.send.insufficient_message_volume');
-      return;
-    }
+    // Pour les campagnes programmées
+    if (formData.value.media) {
+      // Upload vers Supabase Storage
+      const fileName = `campaigns/${Date.now()}-${formData.value.mediaName}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("whatsapp-media")
+        .upload(fileName, formData.value.media);
 
-    try {
-      const chunkArray = (array, size) => {
-        return Array.from(
-          { length: Math.ceil(array.length / size) },
-          (_, index) => array.slice(index * size, index * size + size)
-        );
-      };
-      const customerChunks = chunkArray(formData.value.customers, 10);
-      const insertPromises = customerChunks.map(async (chunk) => {
-        return supabase.from("whatsapp_campaigns_schedule").insert({
-          customers: chunk,
-          content: formData.value.content, // Le contenu contient les variables qui seront remplacées lors de l'envoi
+      if (uploadError) {
+        isProgress.value = false;
+        errorMessage.value = t("whatsapp.send.media_upload_error");
+        isAlertOpen.value = true;
+        return;
+      }
+
+      // Obtenir l'URL publique
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("whatsapp-media").getPublicUrl(fileName);
+
+      // Sauvegarder la campagne avec l'URL du média
+      const { data, error } = await supabase
+        .from("whatsapp_campaigns_schedule")
+        .insert({
+          customers: formData.value.customers,
+          content: formData.value.content,
           user_id: users.info.uuid,
           token: whatsappStore.whatsapp_backlogs.token,
           send_date: formData.value.scheduleDate,
           is_sent: false,
+          media_url: publicUrl,
+          media_type: formData.value.mediaType,
         });
-      });
-      const results = await Promise.all(insertPromises);
 
-      if (results.length > 0 && results[0].error) {
-        errorMessage.value = results[0].error.message;
+      if (error) {
+        isProgress.value = false;
+        errorMessage.value = error.message;
         isAlertOpen.value = true;
-        isRequestInProgress.value = false;
       } else {
-        // Réinitialisation des champs si la soumission a réussi
-        users.subscription.max_campaigns =
-          users.subscription.max_campaigns - formData.value.customers.length;
-
+        // Mise à jour du quota et réinitialisation
+        users.subscription.max_campaigns -= formData.value.customers.length;
         await supabase
           .from("subscriptions")
-          .update({
-            max_campaigns: users.subscription.max_campaigns,
-          })
-          .eq("user_id", users.info.uuid)
-          .select();
+          .update({ max_campaigns: users.subscription.max_campaigns })
+          .eq("user_id", users.info.uuid);
 
         isSuccessOpen.value = true;
-        successMessage.value = t('whatsapp.send.campaign_scheduled');
-        formData.value.customers = [];
-        formData.value.content = "";
-        formData.value.scheduleDate = null;
+        successMessage.value = t("whatsapp.send.campaign_scheduled");
+        formData.value = {
+          customers: [],
+          content: "",
+          scheduleDate: null,
+          media: null,
+          mediaType: null,
+          mediaName: null,
+          mediaSize: null,
+          mediaPreview: null,
+        };
         isProgress.value = false;
       }
-    } catch (err) {
-      isProgress.value = false;
     }
   }
 };

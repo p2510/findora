@@ -291,7 +291,17 @@
       "campaign_sent": "Votre campagne a bien été envoyée.",
       "campaign_scheduled": "Votre campagne a bien été programmée.",
       "insufficient_message_volume": "Le volume de message est insuffisant",
-      "chosen_date_passed": "La date choisie est déjà passée. Veuillez en sélectionner une autre."
+      "chosen_date_passed": "La date choisie est déjà passée. Veuillez en sélectionner une autre.",
+      "attach_media": "Joindre un fichier",
+      "image": "Image",
+      "video": "Vidéo",
+      "document": "Document",
+      "media_limits": "Limites par type de fichier :",
+      "invalid_file_type": "Type de fichier non autorisé",
+      "file_too_large": "Le fichier est trop volumineux (max {max})",
+      "media_upload_error": "Erreur lors de l'upload du fichier",
+      "change_media": "Changer le fichier",
+      "choose_media": "Choisir un fichier"
     },
     "customer": {
       "selected_contacts": "sélectionné(s)",
