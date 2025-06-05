@@ -301,7 +301,8 @@
       "file_too_large": "Le fichier est trop volumineux (max {max})",
       "media_upload_error": "Erreur lors de l'upload du fichier",
       "change_media": "Changer le fichier",
-      "choose_media": "Choisir un fichier"
+      "choose_media": "Choisir un fichier",
+      "preview_for": "Aperçu pour"
     },
     "customer": {
       "selected_contacts": "sélectionné(s)",

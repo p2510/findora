@@ -301,7 +301,8 @@
       "file_too_large": "The file is too large (max {max})",
       "media_upload_error": "Error while uploading the file",
       "change_media": "Change file",
-      "choose_media": "Choose a file"
+      "choose_media": "Choose a file",
+      "preview_for": "Preview for"
     },
     "customer": {
       "selected_contacts": "selected",
