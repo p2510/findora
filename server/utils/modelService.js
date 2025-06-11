@@ -135,11 +135,12 @@ export class ModelService {
     messages.push({ role: "user", content: message });
 
     // Mapping des providers vers leurs endpoints
+    // Note: HF-Inference utilise un endpoint différent
     const providerEndpoints = {
       'cerebras': 'https://router.huggingface.co/cerebras/v3/openai/chat/completions',
       'cohere': 'https://router.huggingface.co/cohere/v3/openai/chat/completions',
       'fireworks': 'https://router.huggingface.co/fireworks/v3/openai/chat/completions',
-      'HF-Inference': 'https://router.huggingface.co/HF-Inference/v3/openai/chat/completions',
+      'HF-Inference': 'https://api-inference.huggingface.co/models/', // Format différent
       'hyperbolic': 'https://router.huggingface.co/hyperbolic/v3/openai/chat/completions',
       'nebius': 'https://router.huggingface.co/nebius/v3/openai/chat/completions',
       'novita': 'https://router.huggingface.co/novita/v3/openai/chat/completions',
