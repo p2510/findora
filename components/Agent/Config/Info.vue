@@ -184,6 +184,13 @@ const configStore = useAgentConfig();
 const agentName = ref(configStore.config?.name);
 const selectedPersonality = ref(configStore.config?.personality);
 const selectedGoal = ref(configStore.config?.goal);
+
+// Variables pour le provider (gérées en backend mais récupérées pour l'affichage)
+const selectedProvider = ref(configStore.config?.model_provider || 'openai');
+const modelName = ref(configStore.config?.model_name || 'gpt-4o');
+const huggingfaceToken = ref(configStore.config?.huggingface_token || '');
+const huggingfaceEndpoint = ref(configStore.config?.huggingface_endpoint || '');
+
 let status = ref(configStore.config?.status);
 const isRequestInProgress = ref(false);
 
@@ -279,6 +286,11 @@ const saveAgentConfig = async () => {
         personality: selectedPersonality.value,
         goal: selectedGoal.value,
         user_id: users.info.uuid,
+        // Conserver les valeurs du provider mais ne pas les afficher
+        model_provider: selectedProvider.value,
+        model_name: modelName.value,
+        huggingface_token: huggingfaceToken.value,
+        huggingface_endpoint: huggingfaceEndpoint.value,
       }),
     });
 
@@ -334,6 +346,11 @@ onMounted(async () => {
         selectedPersonality.value = json.data?.personality;
         status.value = json.data?.status;
         active.value = json.data?.status;
+        // Récupérer les valeurs du provider sans les afficher
+        selectedProvider.value = json.data?.model_provider || 'openai';
+        modelName.value = json.data?.model_name || 'gpt-4o';
+        huggingfaceToken.value = json.data?.huggingface_token || '';
+        huggingfaceEndpoint.value = json.data?.huggingface_endpoint || '';
       }
     } catch (err) {
       errorMessage.value = t("agent.config.info.error_occurred");

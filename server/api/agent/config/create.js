@@ -1,19 +1,27 @@
+// server/api/agent/config/create.js
 import { createClient } from "@supabase/supabase-js";
-import OpenAI from "openai";
+import { ModelService } from "~/server/utils/modelService";
 
 export default defineEventHandler(async (event) => {
   const supabaseUrl = "https://puxvccwmxfpgyocglioe.supabase.co";
   const supabaseKey =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1eHZjY3dteGZwZ3lvY2dsaW9lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczMjcyNzA4NCwiZXhwIjoyMDQ4MzAzMDg0fQ.amjPfsZkysKczrI29qJmgabu-NQjyj-Sza3sWmcm4iA";
-  const client = new OpenAI({
-    apiKey:
-      "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",
-  });
+  
   const validPersonalities = ["Professionnel", "Concise", "Amical"];
   const validGoals = ["Support Client", "Ventes & Closing", "Interne"];
+  const validProviders = ["openai", "huggingface"];
 
   const requestBody = await readBody(event);
-  const { name, personality, goal, user_id } = JSON.parse(requestBody);
+  const { 
+    name, 
+    personality, 
+    goal, 
+    user_id,
+    model_provider = 'openai',
+    model_name,
+    huggingface_endpoint,
+    huggingface_token
+  } = JSON.parse(requestBody);
 
   if (!user_id) {
     return {
@@ -38,6 +46,21 @@ export default defineEventHandler(async (event) => {
     };
   }
 
+  if (!validProviders.includes(model_provider)) {
+    return {
+      success: false,
+      message: `Provider invalide. Choisissez parmi : ${validProviders.join(", ")}`,
+    };
+  }
+
+  // Vérifications spécifiques pour Hugging Face
+  if (model_provider === 'huggingface' && !huggingface_token) {
+    return {
+      success: false,
+      message: "Le token Hugging  est requis pour utiliser ce provider",
+    };
+  }
+
   try {
     const supabaseAgent = createClient(supabaseUrl, supabaseKey, {
       db: {
@@ -57,6 +80,19 @@ export default defineEventHandler(async (event) => {
       throw new Error(fetchError.message);
     }
 
+    // Configuration complète de l'agent
+    const agentConfigData = {
+      name,
+      personality,
+      goal,
+      status: true,
+      model_provider,
+      model_name: model_name || (model_provider === 'openai' ? 'gpt-4o' : 'meta-llama/Llama-2-7b-chat-hf'),
+      huggingface_endpoint,
+      huggingface_token,
+      user_id
+    };
+
     // Si un agent existe déjà, mettre à jour ses informations
     if (existingAgent) {
       // Récupérer la knowledge_base associée à cet utilisateur
@@ -72,28 +108,33 @@ export default defineEventHandler(async (event) => {
 
       const metadata = knowledgeBase?.metadata || [];
 
-      const myAssistant = await client.beta.assistants.update(
-        existingAgent.assistant_id,
-        {
-          instructions: generatePrompt(name, personality, goal, metadata),
-        }
+      // Utiliser ModelService pour gérer les différents providers
+      const modelService = new ModelService(agentConfigData);
+      const assistant = await modelService.createOrUpdateAssistant(
+        generatePrompt(name, personality, goal, metadata),
+        existingAgent.assistant_id
       );
-      const assistantId = myAssistant.id;
+      
+      const assistantId = assistant.id;
       if (!assistantId) {
         throw new Error(
           "Erreur : impossible de récupérer l'ID de l'assistant."
         );
       }
+
       const { data, error } = await supabaseAgent
         .from("agent_configs")
-        .update([
-          {
-            name,
-            personality,
-            goal,
-            status: true,
-          },
-        ])
+        .update({
+          name,
+          personality,
+          goal,
+          status: true,
+          model_provider,
+          model_name: agentConfigData.model_name,
+          huggingface_endpoint,
+          huggingface_token,
+          assistant_id: assistantId
+        })
         .eq("user_id", user_id)
         .select("*")
         .single();
@@ -115,21 +156,20 @@ export default defineEventHandler(async (event) => {
         .select("token")
         .eq("user_id", user_id)
         .single();
+      
       if (whatsappError) {
         throw new Error("Erreur lors de la récupération des données WhatsApp.");
       }
 
-      // Créer un nouvel assistant OpenAI
-      const myAssistant = await client.beta.assistants.create({
-        name: name,
-        instructions: generatePrompt(name, personality, goal, []),
-        model: "gpt-4o",
-        temperature: 0.4,
-      });
+      // Créer un nouvel assistant selon le provider
+      const modelService = new ModelService(agentConfigData);
+      const assistant = await modelService.createOrUpdateAssistant(
+        generatePrompt(name, personality, goal, [])
+      );
 
-      const assistantId = myAssistant.id;
+      const assistantId = assistant.id;
       if (!assistantId) {
-        throw new Error("Erreur : impossible de créer l'assistant OpenAI.");
+        throw new Error("Erreur : impossible de créer l'assistant.");
       }
 
       // Configurer Whatsapp Webhooks
@@ -176,6 +216,10 @@ export default defineEventHandler(async (event) => {
             goal,
             status: true,
             assistant_id: assistantId,
+            model_provider,
+            model_name: agentConfigData.model_name,
+            huggingface_endpoint,
+            huggingface_token
           },
         ])
         .select("*")

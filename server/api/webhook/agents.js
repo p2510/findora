@@ -1,9 +1,11 @@
+// server/api/webhook/agents.js
 import { createClient } from "@supabase/supabase-js";
-import OpenAI from "openai";
+import { ModelService } from "~/server/utils/modelService";
 import axios from "axios";
 import path from "path";
 import fs from "fs";
 import { promises as fsPromises } from "fs";
+import OpenAI from "openai";
 
 export default defineEventHandler(async (event) => {
   // Configuration constants
@@ -14,8 +16,8 @@ export default defineEventHandler(async (event) => {
   const DEFAULT_BOT_RESPONSE = "Nous vous repondrons dans un instant";
   const MAX_EXCHANGES = 15; // Limite maximale d'échanges
   let SUPPORT_PHONE = "2250500145177"; // Numéro pour les notifications
+  
   // Expressions régulières pour détecter les demandes de conseiller
-
   const ADVISOR_REQUEST_PATTERNS = [
     // Demandes explicites d'un conseiller
     /(?<!\w)conseill?e?r(?!\w)/i,
@@ -61,7 +63,8 @@ export default defineEventHandler(async (event) => {
     /(?<!\w)numéro(?!\w).{0,15}(téléphone|appeler)/i,
     /(?<!\w)(téléphone|appeler).{0,15}numéro(?!\w)/i,
   ];
-  // Initialiser les clients OpenAI et Supabase
+
+  // Initialiser OpenAI pour la transcription audio (nécessaire même avec HF)
   const openai = new OpenAI({
     apiKey:
       "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",
@@ -120,10 +123,10 @@ export default defineEventHandler(async (event) => {
       return { success: false, message: "Crédit insuffisant" };
     }
 
-    // Récupérer les informations de l'agent
+    // Récupérer les informations de l'agent (avec model_provider)
     const { data: agent, error: agentError } = await supabase
       .from("agent_configs")
-      .select("status, assistant_id, id, user_id")
+      .select("*")
       .eq("user_id", userId)
       .single();
 
@@ -136,9 +139,8 @@ export default defineEventHandler(async (event) => {
       return { success: false, message: "Agent inactif" };
     }
 
-    // Définir les limites de tokens avec des valeurs par défaut
-    const maxCompletionTokens = 7000;
-    const maxPromptTokens = 5000;
+    // Initialiser ModelService avec la configuration de l'agent
+    const modelService = new ModelService(agent);
 
     // Vérifier l'état de l'API WhatsApp
     const healthResponse = await fetch("https://gate.whapi.cloud/health", {
@@ -153,7 +155,7 @@ export default defineEventHandler(async (event) => {
       return { success: false, message: "Canal WhatsApp non autorisé" };
     }
 
-    // Vérifier l'état de l'API WhatsApp
+    // Récupérer les informations utilisateur
     const usersResponse = await fetch(
       `https://manager.whapi.cloud/channels/${channelId}`,
       {
@@ -168,6 +170,15 @@ export default defineEventHandler(async (event) => {
     if (usersResponse) {
       SUPPORT_PHONE = usersResponse?.phone;
     }
+
+    // Récupérer le prompt de la knowledge base
+    const { data: knowledgeBase } = await supabase
+      .from("knowledge_base")
+      .select("prompt")
+      .eq("agent_id", agent.id)
+      .single();
+
+    const prompt = knowledgeBase?.prompt || "";
 
     function isRequestingAdvisor(message) {
       return ADVISOR_REQUEST_PATTERNS.some((pattern) => pattern.test(message));
@@ -223,10 +234,10 @@ export default defineEventHandler(async (event) => {
                 `Fichier audio téléchargé et enregistré à: ${tempFilePath}`
               );
 
-              // Transcrire le fichier audio
+              // Transcrire le fichier audio (toujours avec OpenAI même si on utilise HF pour le chat)
               const transcription = await openai.audio.transcriptions.create({
                 file: fs.createReadStream(tempFilePath),
-                model: "whisper-1", // ou "gpt-4o-transcribe" si disponible
+                model: "whisper-1",
                 response_format: "text",
               });
 
@@ -242,7 +253,6 @@ export default defineEventHandler(async (event) => {
               "Erreur lors du traitement du message vocal:",
               voiceError
             );
-            // Afficher plus de détails sur l'erreur pour le débogage
             console.error("Détails de l'erreur:", voiceError.stack);
             if (voiceError.response) {
               console.error("Réponse d'erreur:", voiceError.response.data);
@@ -293,8 +303,6 @@ export default defineEventHandler(async (event) => {
                 },
               ]);
 
-              // Mettre à jour le statut de la conversation pour indiquer qu'elle nécessite un humain
-
               processedMessages.push({
                 phone: senderPhone,
                 status: "delegated",
@@ -310,7 +318,7 @@ export default defineEventHandler(async (event) => {
                 console.error(terminationResult.message);
               }
 
-              return; // Sortir de cette itération de la boucle
+              return;
             } catch (notifError) {
               console.error(
                 "Erreur lors de l'envoi de notification:",
@@ -374,7 +382,7 @@ export default defineEventHandler(async (event) => {
                 console.error(terminationResult.message);
               }
 
-              return; // Sortir de cette itération de la boucle
+              return;
             } catch (notifError) {
               console.error(
                 "Erreur lors de l'envoi de notification:",
@@ -384,7 +392,6 @@ export default defineEventHandler(async (event) => {
           }
 
           // Stocker le message de l'utilisateur
-
           await supabase.from("messages").insert([
             {
               conversation_id: conversationId,
@@ -394,90 +401,101 @@ export default defineEventHandler(async (event) => {
             },
           ]);
 
-          // Gérer le thread OpenAI existant ou en créer un nouveau
-          const { data: threadData, error: threadError } = await supabase
-            .from("openai_threads")
-            .select("thread_id")
-            .eq("conversation_id", conversationId)
-            .single();
-
-          let threadId;
-
-          if (threadError || !threadData) {
-            // Créer un nouveau thread OpenAI
-            const thread = await openai.beta.threads.create({
-              messages: [
-                {
-                  role: "user",
-                  content: messageContent,
-                },
-              ],
-            });
-
-            threadId = thread.id;
-
-            // Sauvegarder l'ID du thread
-            await supabase.from("openai_threads").insert([
-              {
-                thread_id: threadId,
-                conversation_id: conversationId,
-                user_id: userId,
-              },
-            ]);
-          } else {
-            threadId = threadData.thread_id;
-
-            // Ajouter le message au thread existant
-            await openai.beta.threads.messages.create(threadId, {
-              role: "user",
-              content: messageContent,
-            });
-          }
-
-          // Exécuter le thread avec l'assistant OpenAI
-          const run = await openai.beta.threads.runs.create(threadId, {
-            assistant_id: agent.assistant_id,
-            max_completion_tokens: maxCompletionTokens,
-            max_prompt_tokens: maxPromptTokens,
-          });
-
-          // Attendre que l'exécution soit terminée
-          const finalRun = await waitForRunCompletion(openai, threadId, run.id);
-
-          // Récupérer la réponse du modèle
           let aiResponse = DEFAULT_BOT_RESPONSE;
+          let threadId = null;
 
-          console.log("debut de lunch");
-          console.log(finalRun);
-          if (finalRun.status === "completed") {
-            console.log("vlose");
-            const messages = await openai.beta.threads.messages.list(threadId);
-            // Obtenir le message le plus récent de l'assistant
-            const assistantMessages = messages.data.filter(
-              (msg) => msg.role === "assistant"
-            );
+          try {
+            if (agent.model_provider === 'openai') {
+              // Logique OpenAI existante
+              const { data: threadData, error: threadError } = await supabase
+                .from("openai_threads")
+                .select("thread_id")
+                .eq("conversation_id", conversationId)
+                .single();
 
-            if (assistantMessages.length > 0) {
-              const latestMessage = assistantMessages[0];
-              aiResponse = latestMessage.content[0].text.value;
-              console.log(latestMessage.content[0]);
+              if (threadError || !threadData) {
+                // Créer un nouveau thread via ModelService
+                const result = await modelService.sendMessage(messageContent, {
+                  threadId: null,
+                  assistantId: agent.assistant_id
+                });
+                
+                aiResponse = result.response;
+                threadId = result.threadId;
+
+                // Sauvegarder l'ID du thread
+                if (threadId) {
+                  await supabase.from("openai_threads").insert([
+                    {
+                      thread_id: threadId,
+                      conversation_id: conversationId,
+                      user_id: userId,
+                    },
+                  ]);
+                }
+              } else {
+                threadId = threadData.thread_id;
+                
+                // Envoyer le message via ModelService
+                const result = await modelService.sendMessage(messageContent, {
+                  threadId,
+                  assistantId: agent.assistant_id
+                });
+                
+                aiResponse = result.response;
+              }
+            } else if (agent.model_provider === 'huggingface') {
+              // Logique Hugging Face
+              // Récupérer l'historique de la conversation
+              const { data: conversationHistory } = await supabase
+                .from("messages")
+                .select("content, response")
+                .eq("conversation_id", conversationId)
+                .order("created_at", { ascending: true })
+                .limit(10); // Limiter pour éviter de dépasser les limites de tokens
+
+              const result = await modelService.sendMessage(messageContent, {
+                prompt,
+                conversationHistory: conversationHistory || []
+              });
+              
+              aiResponse = result.response;
             }
-          } else if (finalRun.status === "incomplete") {
-            console.warn("Run incomplet:", finalRun.incomplete_details);
-            aiResponse =
-              "Désolé, je n'ai pas pu traiter complètement votre demande en raison de limitations techniques.";
 
-            // Envoyer une notification au propriétaire
-            const notificationMessage = `Alerte: Une conversation avec ${senderName} (${senderPhone}) a atteint la limite . Veuillez intervenir pour poursuivre l'échange.`;
+            // Vérifier si la réponse est valide
+            if (!aiResponse || aiResponse === DEFAULT_BOT_RESPONSE) {
+              console.warn("Réponse IA vide ou par défaut, utilisation du message par défaut");
+              aiResponse = "Je suis désolé, je n'ai pas pu traiter votre demande. Un conseiller va prendre le relais.";
+              
+              // Envoyer une notification au propriétaire
+              const notificationMessage = `Alerte: Problème de réponse IA pour ${senderName} (${senderPhone}). Intervention nécessaire.`;
+              
+              try {
+                await sendWhatsAppMessage(
+                  token,
+                  SUPPORT_PHONE,
+                  notificationMessage
+                );
+              } catch (notifError) {
+                console.error(
+                  "Erreur lors de l'envoi de notification:",
+                  notifError
+                );
+              }
+            }
 
+          } catch (aiError) {
+            console.error("Erreur lors de l'obtention de la réponse IA:", aiError);
+            aiResponse = "Je suis désolé, je rencontre des difficultés techniques. Un conseiller va vous répondre rapidement.";
+            
+            // Notifier le propriétaire
+            const notificationMessage = `Erreur IA: ${aiError.message} pour ${senderName} (${senderPhone})`;
+            
             try {
               await sendWhatsAppMessage(
                 token,
                 SUPPORT_PHONE,
                 notificationMessage
-              );
-              console.log(
-                "Notification envoyée au propriétaire concernant la limite de tokens"
               );
             } catch (notifError) {
               console.error(
@@ -505,6 +523,7 @@ export default defineEventHandler(async (event) => {
             phone: senderPhone,
             status: response.sent ? "sent" : "failed",
             aiResponse: aiResponse !== DEFAULT_BOT_RESPONSE,
+            provider: agent.model_provider
           });
         } catch (err) {
           console.error(
@@ -643,23 +662,6 @@ export default defineEventHandler(async (event) => {
     } catch (error) {
       throw new Error(`Échec d'envoi du message WhatsApp: ${error.message}`);
     }
-  }
-
-  // Fonction pour attendre la fin de l'exécution d'un run
-  async function waitForRunCompletion(openai, threadId, runId) {
-    let runStatus = await openai.beta.threads.runs.retrieve(threadId, runId);
-
-    // Attendre que le run soit terminé
-    while (
-      runStatus.status === "in_progress" ||
-      runStatus.status === "queued"
-    ) {
-      // Attendre 1 seconde avant de vérifier à nouveau
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      runStatus = await openai.beta.threads.runs.retrieve(threadId, runId);
-    }
-
-    return runStatus;
   }
 
   async function terminateAndDecrementLimit(

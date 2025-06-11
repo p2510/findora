@@ -1,14 +1,12 @@
+// server/api/agent/know/create.js
 import { createClient } from "@supabase/supabase-js";
-import OpenAI from "openai";
+import { ModelService } from "~/server/utils/modelService";
 
 export default defineEventHandler(async (event) => {
   const supabaseUrl = "https://puxvccwmxfpgyocglioe.supabase.co";
   const supabaseKey =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1eHZjY3dteGZwZ3lvY2dsaW9lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczMjcyNzA4NCwiZXhwIjoyMDQ4MzAzMDg0fQ.amjPfsZkysKczrI29qJmgabu-NQjyj-Sza3sWmcm4iA";
-  const client = new OpenAI({
-    apiKey:
-      "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",
-  });
+  
   const requestBody = await readBody(event);
   const { metadata, user_id } = JSON.parse(requestBody);
 
@@ -68,36 +66,36 @@ export default defineEventHandler(async (event) => {
       throw new Error(knowledgeFetchError.message);
     }
 
+    // Utiliser ModelService pour gérer les différents providers
+    const modelService = new ModelService(existingAgent);
+    const generatedPrompt = generatePrompt(
+      existingAgent.name,
+      existingAgent.personality,
+      existingAgent.goal,
+      metadata
+    );
+
     if (existingKnowledge) {
-      const myAssistant = await client.beta.assistants.update(
-        existingAgent.assistant_id,
-        {
-          instructions: generatePrompt(
-            existingAgent.name,
-            existingAgent.personality,
-            existingAgent.goal,
-            metadata
-          ),
-        }
+      // Mise à jour de l'assistant selon le provider
+      const assistant = await modelService.createOrUpdateAssistant(
+        generatedPrompt,
+        existingAgent.assistant_id
       );
-      const assistantId = myAssistant.id;
+      
+      const assistantId = assistant.id;
       if (!assistantId) {
         throw new Error(
           "Erreur : impossible de récupérer l'ID de l'assistant."
         );
       }
+
       const { data: knowledgeData, error: knowledgeError } = await supabaseAgent
         .from("knowledge_base")
         .update([
           {
             agent_id: existingAgent.id,
             metadata: metadata,
-            prompt: generatePrompt(
-              existingAgent.name,
-              existingAgent.personality,
-              existingAgent.goal,
-              metadata
-            ),
+            prompt: generatedPrompt,
           },
         ])
         .eq("agent_id", existingAgent.id)
@@ -115,29 +113,23 @@ export default defineEventHandler(async (event) => {
         data: knowledgeData,
       };
     } else {
-      const myAssistant = await client.beta.assistants.create({
-        instructions: generatePrompt(
-          existingAgent.name,
-          existingAgent.personality,
-          existingAgent.goal,
-          metadata
-        ),
-        name: user_id,
-        temperature: 0.7,
-        model: "gpt-4o",
-      });
-      const assistantId = myAssistant.id;
-
+      // Création d'un nouvel assistant selon le provider
+      const assistant = await modelService.createOrUpdateAssistant(
+        generatedPrompt
+      );
+      
+      const assistantId = assistant.id;
       if (!assistantId) {
         throw new Error(
           "Erreur : impossible de récupérer l'ID de l'assistant."
         );
       }
+
       const { data: updatedAgentConfig, error: agentConfigUpdateError } =
         await supabaseAgent
           .from("agent_configs")
-          .update({ assistant_id: assistantId }) // Met à jour assistant_id
-          .eq("id", existingAgent.id) // Filtre par agent_id
+          .update({ assistant_id: assistantId })
+          .eq("id", existingAgent.id)
           .select("*")
           .single();
 
@@ -148,12 +140,7 @@ export default defineEventHandler(async (event) => {
             {
               agent_id: existingAgent.id,
               metadata: metadata,
-              prompt: generatePrompt(
-                existingAgent.name,
-                existingAgent.personality,
-                existingAgent.goal,
-                metadata
-              ),
+              prompt: generatedPrompt,
             },
           ])
           .select("*")
@@ -162,6 +149,7 @@ export default defineEventHandler(async (event) => {
       if (knowledgeCreateError) {
         throw new Error(knowledgeCreateError.message);
       }
+      
       return {
         success: true,
         message:
@@ -203,7 +191,7 @@ function generatePrompt(agentName, personality, goal, knowledgeBase) {
 Tu es ${agentName}, un assistant virtuel conçu pour aider les utilisateurs. Tu dois toujours rester dans ton rôle et suivre les directives ci-dessous.
 
 ### DIRECTIVES IMPORTANTES :
-0. Parle comme si tu étais un membre de n'équipe en utilisant le je ou parfois le nous
+0. Parle comme si tu étais un membre de l'équipe en utilisant le je ou parfois le nous
 1. Réponds toujours dans la langue de l'utilisateur
 2. Ne sors JAMAIS de ton contexte ou de ton rôle défini
 3. Ne mentionne jamais que tu es un assistant IA
@@ -251,7 +239,7 @@ ${knowledgeBase.map((item) => `**${item.type}** : ${item.content}`).join("\n")}
   const finalInstructions = `
 ### INSTRUCTIONS FINALES :
 - Limite tes réponses à maximum 800 caractères
-- Répond exactement dans la langue où tu recois le message.
+- Répond exactement dans la langue où tu reçois le message.
 - Utilise un format concis et direct dans tes réponses
 - Tu peux te servir des informations liées à l'entreprise disponibles en ligne à condition qu'elles soient vérifiées
 - Tu ne dois JAMAIS répondre à des questions générales de culture, d'actualité, de politique, d'histoire, etc.

@@ -222,7 +222,7 @@
             <!-- Options d'envoi -->
             <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm overflow-hidden sticky top-6">
               <div class="px-6 py-4 border-b border-gray-200 dark:border-slate-700">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Options d'envoi</h3>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $t("whatsapp.send.send_title") }}</h3>
               </div>
               
               <div class="p-6 space-y-4">
