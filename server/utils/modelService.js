@@ -177,7 +177,7 @@ export class ModelService {
           messages: messages,
           stream: false,
           temperature: 0.7,
-          max_tokens: 200
+          max_tokens: 2000
         })
       });
 
@@ -227,7 +227,7 @@ export class ModelService {
           'hyperbolic': ['Qwen/Qwen2.5-72B-Instruct', 'meta-llama/Llama-3.1-70B-Instruct']
         };
         
-        const suggested = recommendedModels[provider] || ['deepseek-ai/DeepSeek-V3-0324'];
+        const suggested = recommendedModels[provider] || ['mistralai/Mistral-7B-Instruct-v0.3'];
         throw new Error(`Le modèle '${this.modelName}' n'est pas disponible sur ${provider}. Essayez avec : ${suggested.join(' ou ')}`);
       }
       
