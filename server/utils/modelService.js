@@ -247,6 +247,7 @@ export class ModelService {
     });
     
     fullContext += `Human: ${message}\nAssistant:`;
+    console.log(fullContext)
 
     // URL pour HF-Inference
     const endpoint = `https://api-inference.huggingface.co/models/${this.modelName}`;
@@ -267,7 +268,7 @@ export class ModelService {
         body: JSON.stringify({
           inputs: fullContext,
           parameters: {
-            max_new_tokens: 200,
+            max_new_tokens: 1000,
             temperature: 0.7,
             return_full_text: false,
             stop_sequences: ["\nHuman:", "\n\nHuman:"]
