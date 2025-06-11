@@ -164,6 +164,7 @@ export class ModelService {
       model: this.modelName,
       hasToken: !!this.agentConfig.huggingface_token
     });
+    console.log('messages',messages)
 
     try {
       const response = await fetch(endpoint, {
