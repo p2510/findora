@@ -132,41 +132,90 @@ export class ModelService {
     // Appeler l'endpoint Hugging Face
     const endpoint = this.agentConfig.huggingface_endpoint || `https://api-inference.huggingface.co/models/${this.modelName}`;
     
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.agentConfig.huggingface_token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        inputs: fullContext,
-        parameters: {
-          max_new_tokens: 200,
-          temperature: 0.7,
-          top_p: 0.95,
-          do_sample: true,
-        }
-      })
+    console.log('Hugging Face request:', {
+      endpoint,
+      model: this.modelName,
+      hasToken: !!this.agentConfig.huggingface_token
     });
 
-    if (!response.ok) {
-      throw new Error(`Hugging Face API error: ${response.statusText}`);
-    }
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.agentConfig.huggingface_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          inputs: fullContext,
+          parameters: {
+            max_new_tokens: 200,
+            temperature: 0.7,
+            top_p: 0.95,
+            do_sample: true,
+            return_full_text: false
+          }
+        })
+      });
 
-    const data = await response.json();
-    
-    // Extraire la réponse
-    let assistantResponse = data[0]?.generated_text || data.generated_text || "";
-    
-    // Nettoyer la réponse (enlever le contexte)
-    if (assistantResponse.includes("Assistant:")) {
-      assistantResponse = assistantResponse.split("Assistant:").pop().trim();
-    }
+      const responseText = await response.text();
+      console.log('HF Response status:', response.status);
+      console.log('HF Response:', responseText);
 
-    return {
-      response: assistantResponse,
-      threadId: null // Pas de thread pour HF
-    };
+      if (!response.ok) {
+        let errorMessage = `Hugging Face API error: ${response.status} ${response.statusText}`;
+        try {
+          const errorData = JSON.parse(responseText);
+          if (errorData.error) {
+            errorMessage = `HF Error: ${errorData.error}`;
+          }
+        } catch (e) {
+          // responseText n'est pas du JSON
+        }
+        throw new Error(errorMessage);
+      }
+
+      const data = JSON.parse(responseText);
+      
+      // Gérer différents formats de réponse
+      let assistantResponse = "";
+      
+      if (Array.isArray(data)) {
+        assistantResponse = data[0]?.generated_text || "";
+      } else if (data.generated_text) {
+        assistantResponse = data.generated_text;
+      } else if (data[0]?.generated_text) {
+        assistantResponse = data[0].generated_text;
+      }
+      
+      // Nettoyer la réponse (enlever le contexte si return_full_text était true)
+      if (assistantResponse.includes("Assistant:")) {
+        assistantResponse = assistantResponse.split("Assistant:").pop().trim();
+      }
+      
+      // Si toujours pas de réponse, essayer d'autres champs
+      if (!assistantResponse && data.text) {
+        assistantResponse = data.text;
+      }
+
+      if (!assistantResponse) {
+        console.error('No response found in HF data:', data);
+        throw new Error('Aucune réponse générée par le modèle');
+      }
+
+      return {
+        response: assistantResponse,
+        threadId: null // Pas de thread pour HF
+      };
+    } catch (error) {
+      console.error('Hugging Face API Error:', error);
+      
+      // Si c'est une erreur de modèle non trouvé, suggérer des alternatives
+      if (error.message.includes('404') || error.message.includes('Not Found')) {
+        throw new Error(`Le modèle '${this.modelName}' n'est pas disponible sur Hugging Face. Vérifiez le nom du modèle ou utilisez un modèle public comme 'microsoft/DialoGPT-medium' ou 'facebook/blenderbot-400M-distill'.`);
+      }
+      
+      throw error;
+    }
   }
 }
 
