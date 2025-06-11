@@ -116,23 +116,142 @@ export class ModelService {
   async sendHuggingFaceMessage(message, context) {
     const { prompt, conversationHistory = [] } = context;
     
-    // Construire le contexte complet
-    let fullContext = prompt + "\n\n";
+    // Utiliser les nouveaux Inference Providers
+    const provider = this.agentConfig.hf_provider || 'hf-inference'; // Par défaut HF Inference
+    
+    // Pour HF-Inference, on doit utiliser un format différent
+    if (provider === 'hf-inference' || provider === 'HF-Inference') {
+      return await this.sendHFInferenceMessage(message, prompt, conversationHistory);
+    }
+    
+    // Pour les autres providers (novita, together, etc.), utiliser le format OpenAI
+    const messages = [
+      { role: "system", content: prompt }
+    ];
     
     // Ajouter l'historique de conversation
     conversationHistory.forEach(msg => {
-      fullContext += `User: ${msg.content}\n`;
+      messages.push({ role: "user", content: msg.content });
+      if (msg.response) {
+        messages.push({ role: "assistant", content: msg.response });
+      }
+    });
+    
+    messages.push({ role: "user", content: message });
+
+    // Mapping des providers vers leurs endpoints
+    const providerEndpoints = {
+      'cerebras': 'https://router.huggingface.co/cerebras/v3/openai/chat/completions',
+      'cohere': 'https://router.huggingface.co/cohere/v3/openai/chat/completions',
+      'fireworks': 'https://router.huggingface.co/fireworks/v3/openai/chat/completions',
+      'hyperbolic': 'https://router.huggingface.co/hyperbolic/v3/openai/chat/completions',
+      'nebius': 'https://router.huggingface.co/nebius/v3/openai/chat/completions',
+      'novita': 'https://router.huggingface.co/novita/v3/openai/chat/completions',
+      'nscale': 'https://router.huggingface.co/nscale/v3/openai/chat/completions',
+      'sambanova': 'https://router.huggingface.co/sambanova/v3/openai/chat/completions',
+      'together': 'https://router.huggingface.co/together/v3/openai/chat/completions'
+    };
+
+    const endpoint = this.agentConfig.huggingface_endpoint || providerEndpoints[provider];
+    
+    if (!endpoint) {
+      throw new Error(`Provider ${provider} non supporté. Utilisez: novita, together, sambanova, etc.`);
+    }
+    
+    console.log('Hugging Face Inference Provider request:', {
+      endpoint,
+      provider,
+      model: this.modelName,
+      hasToken: !!this.agentConfig.huggingface_token
+    });
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.agentConfig.huggingface_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: this.modelName,
+          messages: messages,
+          stream: false,
+          temperature: 0.7,
+          max_tokens: 200
+        })
+      });
+
+      const responseText = await response.text();
+      console.log('HF Response status:', response.status);
+      
+      if (!response.ok) {
+        let errorMessage = `Hugging Face API error: ${response.status} ${response.statusText}`;
+        try {
+          const errorData = JSON.parse(responseText);
+          console.log('HF Error details:', errorData);
+          
+          if (errorData.error) {
+            errorMessage = `HF Error: ${errorData.error}`;
+          }
+          if (errorData.message) {
+            errorMessage = `HF Error: ${errorData.message}`;
+          }
+        } catch (e) {
+          console.log('HF Response text:', responseText.substring(0, 200));
+        }
+        throw new Error(errorMessage);
+      }
+
+      const data = JSON.parse(responseText);
+      console.log('HF Success response:', data.choices ? 'OpenAI format' : 'Unknown format');
+      
+      // Le format suit la structure OpenAI
+      if (data.choices && data.choices.length > 0) {
+        return {
+          response: data.choices[0].message.content,
+          threadId: null
+        };
+      }
+
+      throw new Error('Format de réponse inattendu');
+    } catch (error) {
+      console.error('Hugging Face API Error:', error);
+      
+      if (error.message.includes('404') || error.message.includes('Not Found') || error.message.includes('Model not found')) {
+        console.log(`Le modèle '${this.modelName}' n'est pas disponible sur le provider ${provider}`);
+        
+        const recommendedModels = {
+          'novita': ['deepseek-ai/DeepSeek-V3-0324', 'Qwen/Qwen2.5-72B-Instruct'],
+          'together': ['meta-llama/Llama-3.2-3B-Instruct', 'Qwen/Qwen2.5-7B-Instruct'],
+          'cerebras': ['meta-llama/Llama-3.3-70B-Instruct'],
+          'hyperbolic': ['Qwen/Qwen2.5-72B-Instruct', 'meta-llama/Llama-3.1-70B-Instruct']
+        };
+        
+        const suggested = recommendedModels[provider] || ['deepseek-ai/DeepSeek-V3-0324'];
+        throw new Error(`Le modèle '${this.modelName}' n'est pas disponible sur ${provider}. Essayez avec : ${suggested.join(' ou ')}`);
+      }
+      
+      throw error;
+    }
+  }
+
+  async sendHFInferenceMessage(message, prompt, conversationHistory) {
+    // Construire le contexte pour HF-Inference (format conversationnel)
+    let fullContext = prompt + "\n\n";
+    
+    conversationHistory.forEach(msg => {
+      fullContext += `Human: ${msg.content}\n`;
       if (msg.response) {
         fullContext += `Assistant: ${msg.response}\n`;
       }
     });
     
-    fullContext += `User: ${message}\nAssistant:`;
+    fullContext += `Human: ${message}\nAssistant:`;
 
-    // Appeler l'endpoint Hugging Face
-    const endpoint = this.agentConfig.huggingface_endpoint || `https://api-inference.huggingface.co/models/${this.modelName}`;
+    // URL pour HF-Inference
+    const endpoint = `https://api-inference.huggingface.co/models/${this.modelName}`;
     
-    console.log('Hugging Face request:', {
+    console.log('HF-Inference request:', {
       endpoint,
       model: this.modelName,
       hasToken: !!this.agentConfig.huggingface_token
@@ -150,33 +269,38 @@ export class ModelService {
           parameters: {
             max_new_tokens: 200,
             temperature: 0.7,
-            top_p: 0.95,
-            do_sample: true,
-            return_full_text: false
+            return_full_text: false,
+            stop_sequences: ["\nHuman:", "\n\nHuman:"]
           }
         })
       });
 
       const responseText = await response.text();
-      console.log('HF Response status:', response.status);
-      console.log('HF Response:', responseText);
-
+      console.log('HF-Inference Response status:', response.status);
+      
       if (!response.ok) {
-        let errorMessage = `Hugging Face API error: ${response.status} ${response.statusText}`;
+        if (response.status === 503) {
+          return {
+            response: "Le modèle est en cours de chargement. Veuillez réessayer dans quelques secondes.",
+            threadId: null
+          };
+        }
+        
+        let errorMessage = `HF-Inference API error: ${response.status}`;
         try {
           const errorData = JSON.parse(responseText);
           if (errorData.error) {
-            errorMessage = `HF Error: ${errorData.error}`;
+            errorMessage = errorData.error;
           }
         } catch (e) {
-          // responseText n'est pas du JSON
+          console.log('Response:', responseText.substring(0, 200));
         }
         throw new Error(errorMessage);
       }
 
       const data = JSON.parse(responseText);
       
-      // Gérer différents formats de réponse
+      // Extraire la réponse selon le format HF-Inference
       let assistantResponse = "";
       
       if (Array.isArray(data)) {
@@ -186,34 +310,22 @@ export class ModelService {
       } else if (data[0]?.generated_text) {
         assistantResponse = data[0].generated_text;
       }
-      
-      // Nettoyer la réponse (enlever le contexte si return_full_text était true)
+
+      // Nettoyer la réponse
       if (assistantResponse.includes("Assistant:")) {
         assistantResponse = assistantResponse.split("Assistant:").pop().trim();
       }
       
-      // Si toujours pas de réponse, essayer d'autres champs
-      if (!assistantResponse && data.text) {
-        assistantResponse = data.text;
-      }
-
       if (!assistantResponse) {
-        console.error('No response found in HF data:', data);
-        throw new Error('Aucune réponse générée par le modèle');
+        assistantResponse = "Je suis désolé, je n'ai pas pu générer une réponse.";
       }
 
       return {
         response: assistantResponse,
-        threadId: null // Pas de thread pour HF
+        threadId: null
       };
     } catch (error) {
-      console.error('Hugging Face API Error:', error);
-      
-      // Si c'est une erreur de modèle non trouvé, suggérer des alternatives
-      if (error.message.includes('404') || error.message.includes('Not Found')) {
-        throw new Error(`Le modèle '${this.modelName}' n'est pas disponible sur Hugging Face. Vérifiez le nom du modèle ou utilisez un modèle public comme 'microsoft/DialoGPT-medium' ou 'facebook/blenderbot-400M-distill'.`);
-      }
-      
+      console.error('HF-Inference Error:', error);
       throw error;
     }
   }
