@@ -4,7 +4,7 @@ import OpenAI from "openai";
 export class ModelService {
   constructor(agentConfig) {
     this.provider = agentConfig.model_provider || 'openai';
-    this.modelName = agentConfig.model_name || '4o-mini';
+    this.modelName = agentConfig.model_name || 'gpt-4o-mini';
     this.agentConfig = agentConfig;
     
     if (this.provider === 'openai') {
