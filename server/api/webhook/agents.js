@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1eHZjY3dteGZwZ3lvY2dsaW9lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczMjcyNzA4NCwiZXhwIjoyMDQ4MzAzMDg0fQ.amjPfsZkysKczrI29qJmgabu-NQjyj-Sza3sWmcm4iA";
   const CONVERSATION_TIMEOUT_MINUTES = 30;
   const DEFAULT_BOT_RESPONSE = "Nous vous repondrons dans un instant";
-  const MAX_EXCHANGES = 15; // Limite maximale d'échanges
+  const MAX_EXCHANGES = 20; // Limite maximale d'échanges
   let SUPPORT_PHONE = "2250500145177"; // Numéro pour les notifications
   
   // Expressions régulières pour détecter les demandes de conseiller
