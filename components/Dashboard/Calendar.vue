@@ -126,15 +126,13 @@
 import { useUser } from "@/stores/user";
 import { useWhatsapp } from "@/stores/whatsapp";
 import { ref, computed, onMounted } from "vue";
-// Modification ici: utilisation de useDayjs au lieu de l'import direct
 import { useDayjs } from "#dayjs";
 const supabase = useSupabaseClient();
 
-// Configuration de dayjs avec le nouveau système d'importation
+
 const dayjs = useDayjs();
 dayjs.locale("fr");
-// Remarque: si vous avez besoin d'extensions, vous pouvez les ajouter comme ceci:
-// dayjs.extend(...)
+
 
 const user = useUser();
 const whatsappStore = useWhatsapp();
@@ -144,10 +142,10 @@ const currentDate = ref(dayjs());
 const weekdays = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 const campaigns = ref([]);
 
-// Récupération des campagnes depuis Supabase
+
 const fetchCampaigns = async () => {
   try {
-    // Remplacer cette partie par votre code d'accès à Supabase
+    
     const { data, error } = await supabase
       .from("whatsapp_campaigns_schedule")
       .select("*");
@@ -235,7 +233,6 @@ const getInitials = (name) => {
     : "?";
 };
 
-// Chargement initial des données
 onMounted(() => {
   fetchCampaigns();
 });
