@@ -73,4 +73,20 @@ export default defineNuxtConfig({
     },
     lazy: true,
   },
+  colorMode: {
+    preference: 'system', // default value of $colorMode.preference
+    fallback: 'light', // fallback value if not system preference found
+    hid: 'nuxt-color-mode-script',
+    globalName: '__NUXT_COLOR_MODE__',
+    componentName: 'ColorScheme',
+    classPrefix: '',
+    classSuffix: '',
+    storageKey: 'nuxt-color-mode', // Clé pour persister dans localStorage
+    storage: 'localStorage' // Utiliser localStorage pour persister
+  },
+  
+  // Si vous utilisez @nuxt/ui
+  ui: {
+    global: true,
+  }
 });

@@ -1,158 +1,99 @@
-<!-- components/ActionCard.vue -->
+<!-- components/MobileActionCard.vue -->
 <template>
-  <NuxtLink
-    :to="to"
-    :class="[
-      'relative overflow-hidden rounded-2xl p-4 transition-all duration-300 active:scale-95',
-      isFullWidthWhite
-        ? ' bg-white w-full border border-gray-200'
-        : isPrimary
-        ? 'bg-gradient-to-br'
-        : 'bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700',
-      colorClasses,
-    ]"
+  <component
+    :is="componentType"
+    v-bind="componentProps"
+    class="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors cursor-pointer border-b border-gray-100 dark:border-slate-700 last:border-b-0"
+    @click="handleClick"
   >
-    <!-- Background Pattern for Primary Cards -->
-    <div
-      v-if="isPrimary && !isFullWidthWhite"
-      class="absolute inset-0 opacity-10"
-    >
-      <div
-        class="absolute -right-4 -top-4 w-24 h-24 rounded-full bg-white/20"
-      ></div>
-      <div
-        class="absolute -left-4 -bottom-4 w-32 h-32 rounded-full bg-white/10"
-      ></div>
-    </div>
-
-    <!-- Content -->
-    <div class="relative z-10">
-      <!-- Icon -->
-      <div class="flex items-center gap-2 mb-8">
-        <div
+    <div class="flex items-center gap-3">
+      <div class="p-2 rounded-lg bg-gray-100 dark:bg-slate-700">
+        <UIcon
+          :name="icon"
           :class="[
-            'inline-flex p-2.5 rounded-xl',
-            isFullWidthWhite
-              ? iconBgClasses
-              : isPrimary
-              ? 'bg-white/20'
-              : iconBgClasses,
+            'w-5 h-5',
+            iconColor || 'text-gray-600 dark:text-gray-400'
           ]"
-        >
-          <img
-            v-if="iconImage"
-            src="~/assets/img/whatsapp.png"
-            alt="WhatsApp"
-            class="w-6 h-6"
-          />
-          <UIcon
-            v-else
-            :name="icon"
-            :class="[
-              'w-6 h-6',
-              isFullWidthWhite
-                ? iconColorClasses
-                : isPrimary
-                ? 'text-slate-800'
-                : iconColorClasses,
-            ]"
-          />
-        </div>
-        <h4
-          :class="[
-            'font-semibold text-sm',
-            isPrimary ? 'text-slate-800' : 'text-gray-900 dark:text-white',
-          ]"
-        >
-          {{ title }}
-        </h4>
+        />
       </div>
-      <!-- Text -->
-
-      <p
-        v-if="subtitle"
-        :class="[
-          'text-md mt-0.5 ',
-          isPrimary ? 'text-slate-800' : 'text-slate-800 dark:text-gray-400 ',
-        ]"
-      >
-        {{ subtitle }}
-      </p>
+      <div>
+        <h3 class="font-medium text-gray-900 dark:text-white">
+          {{ title }}
+        </h3>
+        <p v-if="subtitle" class="text-sm text-gray-500 dark:text-gray-400">
+          {{ subtitle }}
+        </p>
+      </div>
     </div>
-
-    <!-- Arrow for primary cards -->
-    <div v-if="isPrimary" class="absolute bottom-3 right-3">
-      <UIcon name="i-heroicons-arrow-right" class="w-4 h-4 text-slate-800" />
+    
+    <div class="flex items-center gap-2">
+      <div
+        v-if="hasNotification"
+        class="w-2 h-2 bg-red-500 rounded-full animate-pulse"
+      />
+      <UIcon
+        v-if="showArrow"
+        name="i-heroicons-chevron-right"
+        class="w-5 h-5 text-gray-400"
+      />
+      <UIcon
+        v-else-if="isExternal"
+        name="i-heroicons-arrow-top-right-on-square"
+        class="w-4 h-4 text-gray-400"
+      />
     </div>
-  </NuxtLink>
+  </component>
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed } from 'vue';
 
 const props = defineProps({
-  to: {
-    type: String,
-    required: true,
-  },
+  to: String,
+  href: String,
   icon: {
     type: String,
-    required: true,
-  },
-  iconImage: {
-    type: Boolean,
-    default: false,
+    required: true
   },
   title: {
     type: String,
-    required: true,
+    required: true
   },
-  subtitle: {
-    type: String,
-    default: "",
-  },
-  color: {
-    type: String,
-    default: "amber",
-    validator: (value) => ["amber", "green", "slate"].includes(value),
-  },
-  isPrimary: {
-    type: Boolean,
-    default: false,
-  },
-  isFullWidthWhite: {
-    type: Boolean,
-    default: false,
-  },
+  subtitle: String,
+  iconColor: String,
+  showArrow: Boolean,
+  isExternal: Boolean,
+  isButton: Boolean,
+  hasNotification: Boolean
 });
 
-const colorClasses = computed(() => {
-  if (props.isPrimary) {
-    const gradients = {
-      amber: "from-[#d7d3bf80] to-[#d7d3bf80]",
-      green: "from-[#fbe080] to-[#fbe080]",
-      blue: "from-slate-500 to-slate-600",
-    };
-    return gradients[props.color];
+const emit = defineEmits(['click']);
+
+const componentType = computed(() => {
+  if (props.to) return resolveComponent('NuxtLink');
+  if (props.href) return 'a';
+  return 'button';
+});
+
+const componentProps = computed(() => {
+  const baseProps = {};
+  
+  if (props.to) {
+    baseProps.to = props.to;
+  } else if (props.href) {
+    baseProps.href = props.href;
+    if (props.isExternal) {
+      baseProps.target = '_blank';
+      baseProps.rel = 'noopener noreferrer';
+    }
   }
-  return "";
+  
+  return baseProps;
 });
 
-const iconBgClasses = computed(() => {
-  const backgrounds = {
-    amber: "bg-amber-100 dark:bg-amber-900/20",
-    green: "bg-green-100 dark:bg-green-900/20",
-    slate: "bg-slate-50 dark:bg-slate-900/20",
-  };
-  return backgrounds[props.color];
-});
-
-const iconColorClasses = computed(() => {
-  const colors = {
-    amber: "text-amber-600 dark:text-amber-400",
-    green: "text-green-600 dark:text-green-400",
-    slate: "text-slate-900 dark:text-slate-400",
-  };
-  return colors[props.color];
-});
+const handleClick = () => {
+  if (props.isButton) {
+    emit('click');
+  }
+};
 </script>

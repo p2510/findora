@@ -1,7 +1,7 @@
 <template>
-  <section class="min-h-screen bg-gray-50 dark:bg-slate-900">
+  <section class="min-h-screen  dark:bg-slate-900">
     <!-- Header -->
-    <div class="bg-white dark:bg-slate-800 shadow-sm border-b border-gray-200 dark:border-slate-700">
+    <div class=" dark:bg-slate-800  dark:border-slate-700">
       <div class="px-6 lg:px-8 py-6">
         <div class="flex items-center justify-between">
           <div>

@@ -103,15 +103,23 @@
       "create_title": "Create New Group",
       "name_placeholder": "Group name",
       "create_button": "New Group",
-      "your_groups": "Your Groups"
+      "your_groups": "Your Groups",
+      "totals": "Group(s)",
+      "confirm_delete": "Do you confirm the deletion?",
+      "group_deleted": "Group deleted",
+      "group_added": "Groupe added"
     }
   },
   "customer": {
     "manage_contacts": "Manage your contacts",
     "contact(s)": "contact(s)",
+    "filters": "Contact filter",
+    "apply_filters": "Apply filter",
+    "active_filters": "Active Filter",
     "search_by_name_phone_email": "Search by name, phone or email...",
     "contact_type": "Contact type",
     "selected": "selected",
+    "others": "Others",
     "rows_per_page": "Rows per page",
     "delete": "Delete",
     "reset": "Reset",
@@ -148,6 +156,15 @@
     "edit": "Edit",
     "contact_exists_with_email": "This contact already exists with this email.",
     "server_error": "Server error",
+    "load_more": "Explorer more",
+    "add_new_contact": "New contact",
+    "add_contact": "Create New",
+    "confirm_delete": "Do you confirm the deletion?",
+    "edit_contact": "Update",
+    "cancel": "Annuler",
+    "created_on": "Since",
+    "contact_information": "Contact Details",
+    "assign_to_groups": "Join a group (Optional)",
     "add": {
       "create_new_contact": "Create a new contact",
       "individual": "Individual",
@@ -190,10 +207,14 @@
       "pay_as_you_go": "Pay as you go",
       "current_credit": "Current Credit",
       "buy_more_credit": "Buy more credit",
-      "delegate_conversations": "Delegate your WhatsApp conversations to AI and save time for your team."
+      "buy_more": "Top up",
+      "delegate_conversations": "Delegate your WhatsApp conversations to AI and save time for your team.",
+      "your_balance": "Your balance",
+      "how_it_works": "How it works?",
+      "credit_explanation": "Each message processed by the AI agent consumes 1 credit. Top up your balance to continue using the service."
     },
     "chat": {
-      "delegate_conversations": "Monitor in real-time the conversations handled by Findora's AI agent",
+      "delegate_conversations": "Monitor in real-time the conversations handled by Findora's AI agent.",
       "all": "All",
       "open": "Open",
       "sound_notifications": "Sound notifications",
@@ -205,7 +226,9 @@
       "take_over": "Take over",
       "active": "Active",
       "terminated": "Terminated",
-      "new_message": "New message"
+      "new_message": "New message",
+      "no_conversations": "No conversations",
+      "no_messages": "No messages in this conversation"
     },
     "config": {
       "configure_your_ai_agent": "Configure your AI agent to suit your needs and ambitions.",
@@ -303,15 +326,17 @@
       "media_upload_error": "Error while uploading the file",
       "change_media": "Change file",
       "choose_media": "Choose a file",
-      "preview_for": "Preview for"
+      "preview_for": "Preview for",
+      "available_variables": "Available Settings",
+      "select_recipients_first": "Please select recipients first"
     },
     "customer": {
       "selected_contacts": "selected",
       "select_all": "Select All",
+      "deselect_all": "Deselect all",
       "search_contact": "Search for a contact...",
       "no_contact_found": "No contact found for",
-      "loading": "Loading...",
-      "loading_more": "Loading more contacts..."
+      "loading": "Loading..."
     },
     "connect": {
       "prepare_server": "Prepare the server",
@@ -459,5 +484,41 @@
     "next": "Next",
     "start": "Start",
     "complete": "Complete"
+  },
+  "more": {
+    "title": "More options",
+    "subtitle": "Manage your account and access advanced features",
+    "profile": {
+      "member_since": "Member since",
+      "plan": "Plan"
+    },
+    "menu": {
+      "api_management": "API Management",
+      "api_subtitle": "Tokens and integrations",
+      "api_description": "Manage your API tokens and configure integrations with your applications",
+      "subscription": "My subscription",
+      "subscription_subtitle_free": "Free plan",
+      "subscription_expired": "Expired - Renew",
+      "subscription_days_left": "{days} days remaining",
+      "settings": "Settings",
+      "settings_subtitle": "Preferences and account",
+      "settings_description": "Customize your preferences and manage your account",
+      "support": "WhatsApp Support",
+      "support_subtitle": "Get help",
+      "support_description": "Get help quickly via WhatsApp",
+      "tutorials": "Video tutorials",
+      "tutorials_subtitle": "Learn to use Findora",
+      "tutorials_description": "Learn with videos",
+      "about": "About",
+      "about_subtitle": "Version {version}",
+      "theme": "Theme",
+      "theme_light": "Light mode",
+      "theme_dark": "Dark mode",
+      "logout": "Logout",
+      "logout_confirm": "Are you sure you want to logout?"
+    },
+    "footer": {
+      "copyright": "© 2025 Findora. All rights reserved."
+    }
   }
 }

@@ -87,7 +87,7 @@ export default defineEventHandler(async (event) => {
       goal,
       status: true,
       model_provider,
-      model_name: model_name || (model_provider === 'openai' ? 'gpt-4o' : 'meta-llama/Llama-2-7b-chat-hf'),
+      model_name: model_name || (model_provider === 'openai' ? 'gpt-4o-mini' : 'meta-llama/Llama-2-7b-chat-hf'),
       huggingface_endpoint,
       huggingface_token,
       user_id

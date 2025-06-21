@@ -187,7 +187,7 @@ const selectedGoal = ref(configStore.config?.goal);
 
 // Variables pour le provider (gérées en backend mais récupérées pour l'affichage)
 const selectedProvider = ref(configStore.config?.model_provider || 'openai');
-const modelName = ref(configStore.config?.model_name || 'gpt-4o');
+const modelName = ref(configStore.config?.model_name || 'gpt-4o-mini');
 const huggingfaceToken = ref(configStore.config?.huggingface_token || '');
 const huggingfaceEndpoint = ref(configStore.config?.huggingface_endpoint || '');
 
@@ -348,7 +348,7 @@ onMounted(async () => {
         active.value = json.data?.status;
         // Récupérer les valeurs du provider sans les afficher
         selectedProvider.value = json.data?.model_provider || 'openai';
-        modelName.value = json.data?.model_name || 'gpt-4o';
+        modelName.value = json.data?.model_name || 'gpt-4o-mini';
         huggingfaceToken.value = json.data?.huggingface_token || '';
         huggingfaceEndpoint.value = json.data?.huggingface_endpoint || '';
       }

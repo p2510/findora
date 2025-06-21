@@ -13,9 +13,9 @@
     >
       <!-- User Greeting -->
       <div class="px-4 pt-12 pb-2">
-        <h2 class="text-slate-700/70 text-4xl font-semibold transparent">
+        <h2 class="text-slate-700/70 dark:text-slate-200 text-4xl font-semibold transparent">
           <span class="">{{ user?.info?.name }},</span> <br />
-          <span class="text-3xl text-slate-700"> Que voulez vous faire ? </span>
+          <span class="text-3xl text-slate-700 dark:text-slate-400"> Que voulez vous faire ? </span>
         </h2>
       </div>
 
@@ -59,7 +59,7 @@
         <div class="grid grid-cols-2 gap-3 mt-4">
           <!-- Without WhatsApp -->
           <template v-if="whatsappStore.whatsapp_backlogs == null">
-            <MobileActionCard
+            <MobileDashboardActionCard
               to="/whatsapp"
               icon="whatsapp"
               :iconImage="true"
@@ -67,14 +67,14 @@
               color="green"
             />
 
-            <MobileActionCard
+            <MobileDashboardActionCard
               to="/abonnement"
               icon="i-heroicons-lifebuoy"
               title="Abonnements"
               color="amber"
             />
 
-            <MobileActionCard
+            <MobileDashboardActionCard
               to="/agent"
               icon="i-heroicons-rectangle-group"
               title="Agent IA"
@@ -82,7 +82,7 @@
               color="blue"
             />
 
-            <MobileActionCard
+            <MobileDashboardActionCard
               to="/contacts"
               icon="i-heroicons-users"
               title="Contacts"
@@ -93,7 +93,7 @@
 
           <!-- With WhatsApp -->
           <template v-else>
-            <MobileActionCard
+            <MobileDashboardActionCard
               to="/agent"
               icon="i-heroicons-rectangle-group"
               title="Agent IA"
@@ -102,7 +102,7 @@
               :isPrimary="true"
             />
 
-            <MobileActionCard
+            <MobileDashboardActionCard
               to="/whatsapp"
               icon="i-heroicons-paper-airplane"
               title="Campagne"
@@ -111,7 +111,7 @@
               :isPrimary="true"
             />
 
-            <MobileActionCard
+            <MobileDashboardActionCard
               to="/contacts"
               icon="i-heroicons-users"
               title="Mes contacts"
@@ -135,7 +135,7 @@
           </h3>
           <NuxtLink
             to="/whatsapp"
-            class="text-xs font-medium text-slate-950 bg-slate-500/10 rounded-full p-2 flex items-center justify-center"
+            class="text-xs font-medium text-slate-950 dark:text-slate-200 bg-slate-500/10 rounded-full p-2 flex items-center justify-center"
           >
             <UIcon name="i-heroicons-arrow-up-right" class="w-4 h-4" />
           </NuxtLink>
@@ -144,7 +144,7 @@
         <div
           class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden"
         >
-          <MobileCampaignList />
+          <MobileDashboardCampaignList />
         </div>
       </div>
     </div>

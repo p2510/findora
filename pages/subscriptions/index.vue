@@ -12,7 +12,7 @@
       >
         <PurchaseSubscriptionFree />
       </div>
-      <div v-else>
+      <div v-else class="mt-14 sm:mt-0">
         <UCard
           class="w-full"
           :ui="{

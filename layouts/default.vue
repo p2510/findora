@@ -31,6 +31,7 @@ const handleScroll = () => {
 <template>
   <div class="h-screen overflow-hidden">
     <!-- Desktop Layout -->
+    
     <div
       class="hidden sm:grid grid-cols-12 relative primary-font h-full"
       :class="{ 'overflow-hidden': routeName === 'agent/chat' }"
@@ -38,7 +39,7 @@ const handleScroll = () => {
       <Header class="col-span-12 fixed z-40" :name="routeName" />
 
       <main
-        class="fixed isolate col-span-12 grid grid-cols-12 gap-2 w-full mt-8 dark:bg-transparent bg-gradient-to-r from-white dark:from-slate-800 dark:to-slate-950 to-[#eeeff0]/30 h-full"
+        class="fixed isolate col-span-12 grid grid-cols-12 gap-2 w-full mt-8 dark:bg-transparent  dark:from-slate-800 dark:to-slate-950  h-full"
       >
         <div
           class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
@@ -82,14 +83,14 @@ const handleScroll = () => {
 
     <!-- Mobile Layout -->
     <div
-      class="sm:hidden flex flex-col h-full bg-gradient-to-br from-[#f1f1f1]/40 via-white/60 to-[#e0e0e0]/40 shadow-sm"
+      class="sm:hidden flex flex-col h-full bg-gradient-to-br from-[#f1f1f1]/40 via-white/60 to-[#e0e0e0]/40 dark:bg-gradient-to-br dark:from-slate-900  dark:to-slate-900 shadow-sm"
     >
       <!-- Mobile Header -->
       <header
         :class="[
           'fixed top-0 left-0 right-0 z-50 ',
           isScrolled
-            ? 'bg-[#fefefe] shadow-md rounded-b-3xl'
+            ? 'bg-[#fefefe] dark:bg-slate-800 shadow-md rounded-b-3xl'
             : 'bg-transparent',
         ]"
       >
@@ -121,7 +122,7 @@ const handleScroll = () => {
             </svg>
           </div>
           <!--Support -->
-          <div class="bg-slate-50 p-2 rounded-full">
+          <div class="bg-slate-50 dark:bg-slate-700 p-2 rounded-full">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="32"
@@ -165,7 +166,7 @@ const handleScroll = () => {
                 'flex flex-col items-center gap-1 transition-all duration-200',
                 $route.path === '/dashboard' ||
                 $route.path.startsWith('/dashboard/')
-                  ? 'text-slate-900'
+                  ? 'text-slate-900 dark:text-slate-100'
                   : 'text-gray-500 dark:text-gray-400',
               ]"
             >
@@ -186,7 +187,7 @@ const handleScroll = () => {
                 'flex flex-col items-center gap-1 transition-all duration-200',
                 $route.path === '/contacts' ||
                 $route.path.startsWith('/contacts/')
-                  ? 'text-slate-900'
+                  ? 'text-slate-900 dark:text-slate-100'
                   : 'text-gray-500 dark:text-gray-400',
               ]"
             >
@@ -242,7 +243,7 @@ const handleScroll = () => {
                 'flex flex-col items-center gap-1 transition-all duration-200',
                 $route.path === '/whatsapp' ||
                 $route.path.startsWith('/whatsapp/')
-                  ? 'text-slate-900'
+                  ? 'text-slate-900 dark:text-slate-100'
                   : 'text-gray-500 dark:text-gray-400',
               ]"
             >
@@ -264,7 +265,7 @@ const handleScroll = () => {
                 ['/more', '/abonnement', '/parametre', '/api/jeton'].includes(
                   $route.path
                 )
-                  ? 'text-slate-900'
+                  ? 'text-slate-900 dark:text-slate-100'
                   : 'text-gray-500 dark:text-gray-400',
               ]"
             >
