@@ -10,7 +10,7 @@
 <script setup>
 import { computed, watch } from "vue";
 import { useRoute } from "#app";
-const { initialize } = useHotjar()
+//const { initialize } = useHotjar()
 
 useHead({
   meta: [
