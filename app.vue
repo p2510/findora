@@ -1,16 +1,25 @@
 <template>
   <div class="">
-    <NuxtLayout v-if="!shouldHideLayout">
-      <NuxtPage class="w-full" />
-    </NuxtLayout>
-    <NuxtPage class="w-full" v-else />
+    <!-- Splash Screen -->
+    <MobileSplashScreen v-if="showSplash" @complete="onSplashComplete" />
+    
+    <!-- Contenu principal -->
+    <template v-if="!showSplash">
+      <NuxtLayout v-if="!shouldHideLayout">
+        <NuxtPage class="w-full" />
+      </NuxtLayout>
+      <NuxtPage class="w-full" v-else />
+    </template>
   </div>
 </template>
 
 <script setup>
-import { computed, watch, onMounted, nextTick } from "vue";
+import { computed, watch, onMounted, nextTick, ref } from "vue";
 import { useRoute } from "#app";
 const { initialize } = useHotjar()
+
+// State pour le splash screen
+const showSplash = ref(true)
 
 useHead({
   meta: [
@@ -31,7 +40,17 @@ const listRoute = ["/","/en", "/confirm"];
 const shouldHideLayout = computed(() => listRoute.includes(route.path));
 
 onMounted(() => {
-  initialize()
+  // Vérifier si c'est la première visite
+  const hasVisited = sessionStorage.getItem('hasVisited')
+  
+  if (hasVisited) {
+    showSplash.value = false
+  } else {
+    // Marquer comme visité pour cette session
+    sessionStorage.setItem('hasVisited', 'true')
+  }
+  
+  //initialize()
   
   // Fix pour le scroll sur mobile iOS
   if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
@@ -44,6 +63,11 @@ onMounted(() => {
     }, { passive: false });
   }
 })
+
+// Fonction appelée quand le splash screen se termine
+const onSplashComplete = () => {
+  showSplash.value = false
+}
 
 // Réinitialiser le scroll à chaque changement de route
 watch(() => route.path, async () => {
