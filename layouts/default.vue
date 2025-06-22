@@ -1,37 +1,7 @@
-<script setup>
-import { ref, watch } from "vue";
-import { useRoute } from "#app";
-import {
-  Squares2X2Icon,
-  UsersIcon,
-  RectangleGroupIcon,
-  PaperAirplaneIcon,
-  Bars3Icon,
-} from "@heroicons/vue/24/outline";
-
-let route = useRoute();
-let routeName = ref(route.path.substring(1));
-const isDashboard = computed(() => route.path === "/dashboard");
-watch(
-  () => route.path,
-  (newPath) => {
-    routeName.value = newPath.substring(1);
-  }
-);
-const mainContent = ref(null);
-const isScrolled = ref(false);
-
-const handleScroll = () => {
-  if (mainContent.value) {
-    isScrolled.value = mainContent.value.scrollTop > 10;
-  }
-};
-</script>
-
+<!-- layouts/default.vue -->
 <template>
-  <div class="h-screen overflow-hidden">
+  <div class="h-screen flex flex-col sm:h-auto sm:min-h-screen">
     <!-- Desktop Layout -->
-    
     <div
       class="hidden sm:grid grid-cols-12 relative primary-font h-full"
       :class="{ 'overflow-hidden': routeName === 'agent/chat' }"
@@ -39,7 +9,7 @@ const handleScroll = () => {
       <Header class="col-span-12 fixed z-40" :name="routeName" />
 
       <main
-        class="fixed isolate col-span-12 grid grid-cols-12 gap-2 w-full mt-8 dark:bg-transparent  dark:from-slate-800 dark:to-slate-950  h-full"
+        class="fixed isolate col-span-12 grid grid-cols-12 gap-2 w-full mt-8 dark:bg-transparent dark:from-slate-800 dark:to-slate-950 h-full"
       >
         <div
           class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
@@ -82,15 +52,14 @@ const handleScroll = () => {
     </div>
 
     <!-- Mobile Layout -->
-    <div
-      class="sm:hidden flex flex-col h-full bg-gradient-to-br from-[#f1f1f1]/40 via-white/60 to-[#e0e0e0]/40 dark:bg-gradient-to-br dark:from-slate-900  dark:to-slate-900 shadow-sm"
-    >
+    <div class="sm:hidden flex flex-col h-full">
       <!-- Mobile Header -->
       <header
+        ref="mobileHeader"
         :class="[
-          'fixed top-0 left-0 right-0 z-50 ',
+          'fixed top-0 left-0 right-0 z-50 safe-top transition-all duration-300',
           isScrolled
-            ? 'bg-[#fefefe] dark:bg-slate-800 shadow-md rounded-b-3xl'
+            ? 'bg-white/95 dark:bg-slate-800/95 backdrop-blur-md shadow-md'
             : 'bg-transparent',
         ]"
       >
@@ -104,7 +73,6 @@ const handleScroll = () => {
               viewBox="0 0 88 24"
             >
               <g>
-                <!-- Forme de base (rectangular shape with rounded corners) -->
                 <rect
                   x="0"
                   y="0"
@@ -114,14 +82,13 @@ const handleScroll = () => {
                   ry="12"
                   fill="#ffbd59"
                 />
-
-                <!-- Design interne : Ligne diagonale et cercle -->
                 <circle cx="60" cy="12" r="6" fill="white" />
                 <path d="M30 12 L58 12" stroke="white" stroke-width="2" />
               </g>
             </svg>
           </div>
-          <!--Support -->
+          
+          <!-- Support Button -->
           <div class="bg-slate-50 dark:bg-slate-700 p-2 rounded-full">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -141,21 +108,25 @@ const handleScroll = () => {
       <!-- Main Content Area -->
       <main
         ref="mainContent"
-        class="flex-1 overflow-y-auto pt-8 pb-16"
+        :class="[
+          'flex-1 scrollable',
+          headerHeight ? `pt-[${headerHeight}px]` : 'pt-20',
+          'pb-20 safe-bottom'
+        ]"
         @scroll="handleScroll"
       >
-        <NuxtPage />
+        <slot />
       </main>
 
       <!-- Bottom Navigation -->
-      <nav class="fixed bottom-0 left-0 right-0 z-50 safe-area-bottom">
+      <nav class="fixed bottom-0 left-0 right-0 z-50 safe-bottom">
         <!-- Background with blur effect -->
         <div
           class="absolute inset-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg border-t border-gray-200/20 dark:border-slate-700/20"
         ></div>
 
         <!-- Navigation Container -->
-        <div class="relative flex items-end justify-around h-20 p-2">
+        <div class="relative flex items-end justify-around h-20 px-2">
           <!-- Dashboard -->
           <NuxtLink
             to="/dashboard"
@@ -281,23 +252,89 @@ const handleScroll = () => {
   </div>
 </template>
 
+<script setup>
+import { ref, watch, computed, onMounted, nextTick } from "vue";
+import { useRoute } from "#app";
+import {
+  Squares2X2Icon,
+  UsersIcon,
+  RectangleGroupIcon,
+  PaperAirplaneIcon,
+  Bars3Icon,
+} from "@heroicons/vue/24/outline";
+
+const route = useRoute();
+const routeName = ref(route.path.substring(1));
+const isDashboard = computed(() => route.path === "/dashboard");
+
+// Mobile scroll management
+const mainContent = ref(null);
+const mobileHeader = ref(null);
+const isScrolled = ref(false);
+const headerHeight = ref(0);
+
+// Calculate header height dynamically
+const updateHeaderHeight = () => {
+  if (mobileHeader.value) {
+    headerHeight.value = mobileHeader.value.offsetHeight;
+  }
+};
+
+// Handle scroll
+const handleScroll = () => {
+  if (mainContent.value) {
+    isScrolled.value = mainContent.value.scrollTop > 10;
+  }
+};
+
+// Watch route changes
+watch(
+  () => route.path,
+  (newPath) => {
+    routeName.value = newPath.substring(1);
+    // Reset scroll position
+    if (mainContent.value) {
+      mainContent.value.scrollTop = 0;
+    }
+    isScrolled.value = false;
+  }
+);
+
+// Setup on mount
+onMounted(() => {
+  updateHeaderHeight();
+  
+  // Update header height on resize
+  window.addEventListener('resize', updateHeaderHeight);
+  
+  // Observe header size changes
+  if (mobileHeader.value && window.ResizeObserver) {
+    const resizeObserver = new ResizeObserver(updateHeaderHeight);
+    resizeObserver.observe(mobileHeader.value);
+  }
+});
+
+// Cleanup
+onUnmounted(() => {
+  window.removeEventListener('resize', updateHeaderHeight);
+});
+</script>
+
 <style scoped>
 @import url("~/assets/css/font.css");
 
-/* Safe area for iOS devices */
-.safe-area-bottom {
-  padding-bottom: env(safe-area-inset-bottom, 0);
-}
-
-/* Prevent scroll on mobile when needed */
-.no-scroll {
-  overflow: hidden;
-  position: fixed;
-  width: 100%;
-  height: 100%;
-}
-.safe-area-bottom {
-  padding-bottom: env(safe-area-inset-bottom, 0);
+/* Mobile-specific optimizations */
+@media (max-width: 639px) {
+  /* Ensure smooth scrolling */
+  .scrollable {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+  
+  /* Prevent horizontal scroll */
+  * {
+    max-width: 100vw;
+  }
 }
 
 /* Prevent text selection on navigation */
