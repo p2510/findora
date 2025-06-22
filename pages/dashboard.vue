@@ -9,7 +9,7 @@
 
     <!-- Mobile Version -->
     <div
-      class="sm:hidden"
+      class="sm:hidden pt-3 pb-16"
     >
       <!-- User Greeting -->
       <div class="px-4 pt-12 pb-2">
