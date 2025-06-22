@@ -29,7 +29,7 @@
     </section>
 
     <!-- Version Mobile -->
-    <MobileAgentView v-else>
+    <MobileAgentView v-else class=" pt-3 pb-32">
       <!-- Page d'accueil mobile avec carte de crédit -->
       <div class="px-4 py-6">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-6 border border-gray-200 dark:border-slate-700">

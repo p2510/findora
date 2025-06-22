@@ -441,6 +441,7 @@
       @delete-group="deleteGroups"
       @add-group="addGroup"
       @delete-group-by-id="deleteGroupById"
+      class=" pt-3 pb-32"
     />
   </div>
 </template>

@@ -341,7 +341,7 @@
     </section>
 
     <!-- Version Mobile -->
-    <MobileAgentView v-else>
+    <MobileAgentView v-else class=" pt-3 pb-32">
       <MobileAgentChat />
     </MobileAgentView>
   </div>

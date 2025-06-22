@@ -95,7 +95,8 @@
     <MobileWhatsappView
       v-else
       :step="step"
-      @update-step="nextStep"
+      @update-step="nextStep" 
+      class=" pt-3 pb-32"
     />
   </div>
 </template>

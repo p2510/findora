@@ -251,7 +251,7 @@
     </div>
 
     <!-- Version Mobile -->
-    <div v-else class="min-h-screen bg-transparent mt-8 dark:bg-slate-900">
+    <div v-else class="min-h-screen bg-transparent mt-8 dark:bg-slate-900  pt-3 pb-32">
       <!-- Header -->
       <div class="px-4 pt-4 pb-2">
         <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
