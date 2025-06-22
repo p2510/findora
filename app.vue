@@ -31,7 +31,7 @@ const listRoute = ["/","/en", "/confirm"];
 const shouldHideLayout = computed(() => listRoute.includes(route.path));
 
 onMounted(() => {
-  //initialize()
+  initialize()
   
   // Fix pour le scroll sur mobile iOS
   if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
@@ -82,5 +82,21 @@ onMounted(() => {
 /* Prévenir le zoom sur les inputs */
 input, select, textarea {
   font-size: 16px !important;
+}
+
+/* Masquer la barre de scroll tout en gardant la fonctionnalité */
+/* Pour Webkit (Chrome, Safari, Edge) */
+*::-webkit-scrollbar {
+  display: none;
+}
+
+/* Pour Firefox */
+* {
+  scrollbar-width: none;
+}
+
+/* Pour IE */
+* {
+  -ms-overflow-style: none;
 }
 </style>
