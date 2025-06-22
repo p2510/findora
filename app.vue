@@ -8,7 +8,7 @@
 </template>
 
 <script setup>
-import { computed, watch } from "vue";
+import { computed, watch, onMounted, nextTick } from "vue";
 import { useRoute } from "#app";
 const { initialize } = useHotjar()
 
@@ -43,6 +43,22 @@ onMounted(() => {
       }
     }, { passive: false });
   }
+})
+
+// Réinitialiser le scroll à chaque changement de route
+watch(() => route.path, async () => {
+  // Réinitialisation immédiate
+  window.scrollTo(0, 0);
+  document.body.scrollTop = 0;
+  document.documentElement.scrollTop = 0;
+  
+  // Attendre que le DOM soit prêt avec nextTick
+  await nextTick();
+  
+  // Réinitialiser tous les éléments scrollables
+  document.querySelectorAll('.overflow-y-auto, .overflow-y-scroll, [data-scrollable="true"]').forEach(el => {
+    el.scrollTop = 0;
+  });
 })
 </script>
 
