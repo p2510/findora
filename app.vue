@@ -10,7 +10,7 @@
 <script setup>
 import { computed, watch } from "vue";
 import { useRoute } from "#app";
-//const { initialize } = useHotjar()
+const { initialize } = useHotjar()
 
 useHead({
   meta: [
@@ -31,7 +31,7 @@ const listRoute = ["/","/en", "/confirm"];
 const shouldHideLayout = computed(() => listRoute.includes(route.path));
 
 onMounted(() => {
-  initialize()
+  //initialize()
   
   // Fix pour le scroll sur mobile iOS
   if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
