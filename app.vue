@@ -1,7 +1,7 @@
 <template>
   <div class="">
     <!-- Splash Screen -->
-    <SplashScreen v-if="showSplash" @complete="onSplashComplete" />
+    <MobileSplashScreen v-if="showSplash" @complete="onSplashComplete" />
     
     <!-- Contenu principal -->
     <template v-if="!showSplash">
@@ -40,17 +40,18 @@ const listRoute = ["/","/en", "/confirm"];
 const shouldHideLayout = computed(() => listRoute.includes(route.path));
 
 onMounted(() => {
-  // Vérifier si c'est la première visite
+  // Vérifier si c'est mobile ET la première visite
   const hasVisited = sessionStorage.getItem('hasVisited')
+  const isMobile = window.innerWidth < 640
   
-  if (hasVisited) {
+  if (hasVisited || !isMobile) {
     showSplash.value = false
   } else {
     // Marquer comme visité pour cette session
     sessionStorage.setItem('hasVisited', 'true')
   }
   
-  initialize()
+  //initialize()
   
   // Fix pour le scroll sur mobile iOS
   if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
