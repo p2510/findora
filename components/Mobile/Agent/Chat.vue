@@ -115,7 +115,7 @@
     <!-- Vue de conversation -->
     <div v-else class="relative flex-1 flex flex-col pb-40">
       <!-- Header de conversation -->
-      <div class="sticky top-10  bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-4 py-3">
+      <div class="z-50 sticky top-10  bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-4 py-3">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
             <button
@@ -158,7 +158,7 @@
       <!-- Messages -->
       <div
         ref="chatContainer"
-        class="flex-1 overflow-y-auto p-4 bg-gray-50 dark:bg-slate-900/50"
+        class="z-10 flex-1 overflow-y-auto p-4 bg-gray-50 dark:bg-slate-900/50"
         style="background-image: url('https://www.transparenttextures.com/patterns/grey-sandbag.png');"
       >
         <div v-if="sortedMessages.length === 0" class="text-center py-8">
