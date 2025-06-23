@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
 
   const CONVERSATION_TIMEOUT_MINUTES = 30;
   const DEFAULT_BOT_RESPONSE = "Nous vous répondrons dans un instant";
-  const MAX_EXCHANGES = 20;
+  const MAX_EXCHANGES = 32;
   let SUPPORT_PHONE = "2250500145177";
 
   // Expressions régulières pour détecter les demandes de conseiller
