@@ -115,7 +115,7 @@
     <!-- Vue de conversation -->
     <div v-else class="relative flex-1 flex flex-col pb-40">
       <!-- Header de conversation -->
-      <div class="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-4 py-3">
+      <div class="sticky top-10  bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-4 py-3">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
             <button

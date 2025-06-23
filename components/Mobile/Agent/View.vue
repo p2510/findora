@@ -31,7 +31,7 @@
     </div>
 
     <!-- Navigation -->
-    <div class="sticky top-0 z-30 bg-gray-50 dark:bg-slate-900 pt-3">
+    <div class="  z-30 bg-gray-50 dark:bg-slate-900 pt-3">
       <MobileAgentNav />
     </div>
 
