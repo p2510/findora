@@ -173,25 +173,22 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, nextTick } from "vue";
 import { useUser } from "@/stores/user";
 import { useAgentConfig } from "@/stores/agent/config";
+
 const { t } = useI18n();
 const { locale } = useI18n();
-const supabase = useSupabaseClient();
 const users = useUser();
 const configStore = useAgentConfig();
-const agentName = ref(configStore.config?.name);
-const selectedPersonality = ref(configStore.config?.personality);
-const selectedGoal = ref(configStore.config?.goal);
 
-// Variables pour le provider (gérées en backend mais récupérées pour l'affichage)
-const selectedProvider = ref(configStore.config?.model_provider || 'openai');
-const modelName = ref(configStore.config?.model_name || 'gpt-4o-mini');
-const huggingfaceToken = ref(configStore.config?.huggingface_token || '');
-const huggingfaceEndpoint = ref(configStore.config?.huggingface_endpoint || '');
+const agentName = ref("");
+const selectedPersonality = ref("Professionnel");
+const selectedGoal = ref("Support Client");
+const active = ref(false);
+const isInitialized = ref(false);
 
-let status = ref(configStore.config?.status);
+let status = ref(false);
 const isRequestInProgress = ref(false);
 
 const personalities = ref([
@@ -211,6 +208,7 @@ const personalities = ref([
     icon: "heroicons:face-smile",
   },
 ]);
+
 let transPersonality = (name) => {
   if (locale.value == "en") {
     if (name == "Professionnel") {
@@ -220,9 +218,8 @@ let transPersonality = (name) => {
     } else if (name == "Amical") {
       return "Friendly";
     }
-  } else if (locale.value == "fr") {
-    return name;
   }
+  return name;
 };
 
 const agentGoals = ref([
@@ -242,6 +239,7 @@ const agentGoals = ref([
     icon: "heroicons:user-group",
   },
 ]);
+
 let transGoal = (name) => {
   if (locale.value == "en") {
     if (name == "Support Client") {
@@ -251,9 +249,8 @@ let transGoal = (name) => {
     } else if (name == "Interne") {
       return "Internal";
     }
-  } else if (locale.value == "fr") {
-    return name;
   }
+  return name;
 };
 
 const errorMessage = ref("");
@@ -261,6 +258,7 @@ const isAlertOpen = ref(false);
 let closeErrorAlert = () => {
   isAlertOpen.value = false;
 };
+
 let successMessage = ref("");
 const isSuccessOpen = ref(false);
 let closeSuccessAlert = () => {
@@ -281,36 +279,39 @@ const saveAgentConfig = async () => {
   try {
     const response = await fetch(url, {
       method: "POST",
+     
       body: JSON.stringify({
         name: agentName.value,
         personality: selectedPersonality.value,
         goal: selectedGoal.value,
         user_id: users.info.uuid,
-        // Conserver les valeurs du provider mais ne pas les afficher
-        model_provider: selectedProvider.value,
-        model_name: modelName.value,
-        huggingface_token: huggingfaceToken.value,
-        huggingface_endpoint: huggingfaceEndpoint.value,
       }),
     });
 
     if (!response.ok) {
       isRequestInProgress.value = false;
+      const errorData = await response.text();
+      console.error("Erreur réponse:", errorData);
       throw new Error(`Response status: ${response.status}`);
     }
 
     const json = await response.json();
+    
     if (json && json.success) {
       configStore.updateConfig(json.data);
       isRequestInProgress.value = false;
       isSuccessOpen.value = true;
       successMessage.value = json.message;
+      
+      // Mettre à jour active après sauvegarde
+      active.value = json.data.status || false;
     } else {
       isRequestInProgress.value = false;
       errorMessage.value = json.message;
       isAlertOpen.value = true;
     }
   } catch (err) {
+    console.error("Erreur saveAgentConfig:", err);
     isRequestInProgress.value = false;
     errorMessage.value = t("agent.config.info.error_occurred");
     isAlertOpen.value = true;
@@ -319,73 +320,103 @@ const saveAgentConfig = async () => {
   }
 };
 
-let active = ref(configStore.config?.status);
-onMounted(async () => {
-  if (!configStore.config?.name) {
-    const url = `${
-      useRuntimeConfig().public.url_base
-    }/api/agent/config/list?user_id=${users.info.uuid}`;
-    try {
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Response status: ${response.status}`);
-      }
-
-      const json = await response.json();
-
-      if (json && json.success) {
-        configStore.updateConfig(json.data);
-        agentName.value = json.data?.name;
-        selectedGoal.value = json.data?.goal;
-        selectedPersonality.value = json.data?.personality;
-        status.value = json.data?.status;
-        active.value = json.data?.status;
-        // Récupérer les valeurs du provider sans les afficher
-        selectedProvider.value = json.data?.model_provider || 'openai';
-        modelName.value = json.data?.model_name || 'gpt-4o-mini';
-        huggingfaceToken.value = json.data?.huggingface_token || '';
-        huggingfaceEndpoint.value = json.data?.huggingface_endpoint || '';
-      }
-    } catch (err) {
-      errorMessage.value = t("agent.config.info.error_occurred");
-    }
+// Charger les données initiales
+const loadInitialData = async () => {
+  // D'abord vérifier si on a déjà des données dans le store
+  if (configStore.config?.name) {
+    agentName.value = configStore.config.name;
+    selectedGoal.value = configStore.config.goal || "Support Client";
+    selectedPersonality.value = configStore.config.personality || "Professionnel";
+    status.value = configStore.config.status || false;
+    active.value = configStore.config.status || false;
+    isInitialized.value = true;
+    return;
   }
+
+  // Sinon charger depuis l'API
+  const url = `${useRuntimeConfig().public.url_base}/api/agent/config/list?user_id=${users.info.uuid}`;
+  
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Response status: ${response.status}`);
+    }
+
+    const json = await response.json();
+
+    if (json && json.success && json.data) {
+      configStore.updateConfig(json.data);
+      agentName.value = json.data.name || "";
+      selectedGoal.value = json.data.goal || "Support Client";
+      selectedPersonality.value = json.data.personality || "Professionnel";
+      status.value = json.data.status || false;
+      active.value = json.data.status || false;
+    }
+  } catch (err) {
+    console.error("Erreur chargement config:", err);
+    errorMessage.value = t("agent.config.info.error_occurred");
+  } finally {
+    isInitialized.value = true;
+  }
+};
+
+onMounted(async () => {
+  await loadInitialData();
 });
 
-watch(active, async (oldValue, newValue) => {
-  if (oldValue != newValue) {
+// Watch pour le changement de statut - ne s'exécute qu'après l'initialisation
+watch(active, async (newValue, oldValue) => {
+  // Ne pas exécuter si:
+  // 1. Le composant n'est pas encore initialisé
+  // 2. Il n'y a pas de configuration existante
+  // 3. C'est la valeur initiale (oldValue est undefined)
+  if (!isInitialized.value || !configStore.config?.name || oldValue === undefined) {
+    return;
+  }
+  
+  // Ne faire l'appel API que si la valeur a réellement changé
+  if (newValue !== oldValue) {
     try {
       const response = await fetch(
         `${useRuntimeConfig().public.url_base}/api/agent/config/update-status`,
         {
           method: "POST",
+          
           body: JSON.stringify({
             user_id: users.info.uuid,
-            active: active.value,
+            active: newValue,
           }),
         }
       );
 
       if (!response.ok) {
+        const errorData = await response.text();
+        console.error("Erreur update status:", errorData);
         throw new Error(`Response status: ${response.status}`);
       }
 
       const json = await response.json();
+      
       if (json && json.success) {
         configStore.updateStatus(json.data.status);
         isSuccessOpen.value = true;
         successMessage.value = json.message;
       } else {
+        // Remettre l'ancienne valeur si erreur
+        active.value = oldValue;
         errorMessage.value = json.message;
         isAlertOpen.value = true;
       }
     } catch (err) {
+      console.error("Erreur update status:", err);
+      // Remettre l'ancienne valeur si erreur
+      active.value = oldValue;
       errorMessage.value = t("agent.config.info.error_occurred");
       isAlertOpen.value = true;
     }

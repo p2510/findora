@@ -1,73 +1,56 @@
 // server/api/webhook/agents.js
 import { createClient } from "@supabase/supabase-js";
-import { ModelService } from "~/server/utils/modelService";
+import OpenAI from "openai";
 import axios from "axios";
 import path from "path";
 import fs from "fs";
 import { promises as fsPromises } from "fs";
-import OpenAI from "openai";
+import { adaptiveSearch } from "~/server/utils/adaptive-search";
+import { searchCache } from "~/server/utils/cache";
+import { generateOptimizedPrompt } from "~/server/utils/embeddings";
 
 export default defineEventHandler(async (event) => {
+  console.log("🚀 Webhook Agent IA avec Embeddings - Début");
+  
   // Configuration constants
-  const supabaseUrl = "https://puxvccwmxfpgyocglioe.supabase.co";
-  const supabaseKey =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1eHZjY3dteGZwZ3lvY2dsaW9lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczMjcyNzA4NCwiZXhwIjoyMDQ4MzAzMDg0fQ.amjPfsZkysKczrI29qJmgabu-NQjyj-Sza3sWmcm4iA";
+  const config = useRuntimeConfig();
+  const supabaseUrl = config.public.supabase_url || "https://puxvccwmxfpgyocglioe.supabase.co";
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1eHZjY3dteGZwZ3lvY2dsaW9lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczMjcyNzA4NCwiZXhwIjoyMDQ4MzAzMDg0fQ.amjPfsZkysKczrI29qJmgabu-NQjyj-Sza3sWmcm4iA";
+  
   const CONVERSATION_TIMEOUT_MINUTES = 30;
-  const DEFAULT_BOT_RESPONSE = "Nous vous repondrons dans un instant";
-  const MAX_EXCHANGES = 20; // Limite maximale d'échanges
-  let SUPPORT_PHONE = "2250500145177"; // Numéro pour les notifications
+  const DEFAULT_BOT_RESPONSE = "Nous vous répondrons dans un instant";
+  const MAX_EXCHANGES = 20;
+  let SUPPORT_PHONE = "2250500145177";
   
   // Expressions régulières pour détecter les demandes de conseiller
   const ADVISOR_REQUEST_PATTERNS = [
-    // Demandes explicites d'un conseiller
     /(?<!\w)conseill?e?r(?!\w)/i,
-
-    // Demandes d'un agent humain (évite de capturer "agent pathogène" etc.)
     /(?<!\w)agent(?!\w)( humain)?/i,
     /(?<!\w)agent(?!\w)( de support| commercial| client)(?!\w)/i,
-
-    // Demandes de parler à quelqu'un
     /parler (avec|à) (quelqu['']un|une personne)/i,
     /mettre en (contact|relation)/i,
     /(?<!\w)chat(?!\w) (avec|à) (quelqu['']un|une personne)/i,
-
-    // Services spécifiques
     /service (client|commercial|après[-\s]vente)/i,
     /(?<!\w)SAV(?!\w)/i,
-
-    // Demandes d'une personne réelle (avec contexte)
     /personne (humaine|réelle|du service)/i,
     /vraie personne/i,
-
-    // Support technique (avec contexte pour éviter les faux positifs médicaux)
     /support (technique|client|commercial)/i,
     /assistance (téléphonique|technique|client)/i,
-
-    // Demandes d'aide spécifique
     /aide (d['']un|d['']une) (conseiller|personne|agent|expert)/i,
-
-    // Transfert explicite
     /(?<!\w)(transf[ée]rer|basculer|passer)(?!\w) (vers|à) (un|une)/i,
     /être (mis|mise) en relation/i,
-
-    // Mécontentement explicite avec l'IA
     /(?<!\w)je (veux|souhaite|aimerais) (parler|discuter) (avec|à) (un|une) (humain|personne|conseiller)/i,
     /(?<!\w)(pas|plus) (un|une|d['']) (robot|chatbot|ia|intelligence artificielle)/i,
     /stop (ia|robot|chatbot)/i,
-
-    // Contact humain contenant des mots de contexte
     /(?<!\w)humain(?!\w).{0,20}(contact|parler|discuter|aider|question)/i,
     /(?<!\w)(contact|parler|discuter|aider|question).{0,20}humain(?!\w)/i,
-
-    // Numéro de téléphone
     /(?<!\w)numéro(?!\w).{0,15}(téléphone|appeler)/i,
     /(?<!\w)(téléphone|appeler).{0,15}numéro(?!\w)/i,
   ];
 
-  // Initialiser OpenAI pour la transcription audio (nécessaire même avec HF)
+  // Initialiser OpenAI
   const openai = new OpenAI({
-    apiKey:
-      "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",
+    apiKey: config.openai_api_key || "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",
   });
 
   const supabase = createClient(supabaseUrl, supabaseKey, {
@@ -76,7 +59,6 @@ export default defineEventHandler(async (event) => {
   const supabasePublic = createClient(supabaseUrl, supabaseKey);
 
   try {
-    // Récupérer les données de la requête webhook
     const requestBody = await readBody(event);
     const { messages, channel_id: channelId } = requestBody;
 
@@ -105,25 +87,22 @@ export default defineEventHandler(async (event) => {
     const userId = channel.user_id;
 
     // Récupérer les informations de l'abonnement
-    const { data: subscription, error: subscriptionError } =
-      await supabasePublic
-        .from("subscriptions")
-        .select("subscription_type,max_limit")
-        .eq("user_id", userId)
-        .single();
+    const { data: subscription, error: subscriptionError } = await supabasePublic
+      .from("subscriptions")
+      .select("subscription_type, max_limit")
+      .eq("user_id", userId)
+      .single();
 
     if (subscriptionError) {
-      console.error(
-        "Erreur lors de la récupération de l'abonnement:",
-        subscriptionError
-      );
+      console.error("Erreur lors de la récupération de l'abonnement:", subscriptionError);
       return { success: false, message: "Abonnement introuvable" };
     }
+    
     if (subscription.max_limit <= 0) {
       return { success: false, message: "Crédit insuffisant" };
     }
 
-    // Récupérer les informations de l'agent (avec model_provider)
+    // Récupérer les informations de l'agent
     const { data: agent, error: agentError } = await supabase
       .from("agent_configs")
       .select("*")
@@ -139,9 +118,6 @@ export default defineEventHandler(async (event) => {
       return { success: false, message: "Agent inactif" };
     }
 
-    // Initialiser ModelService avec la configuration de l'agent
-    const modelService = new ModelService(agent);
-
     // Vérifier l'état de l'API WhatsApp
     const healthResponse = await fetch("https://gate.whapi.cloud/health", {
       method: "GET",
@@ -155,30 +131,25 @@ export default defineEventHandler(async (event) => {
       return { success: false, message: "Canal WhatsApp non autorisé" };
     }
 
-    // Récupérer les informations utilisateur
-    const usersResponse = await fetch(
-      `https://manager.whapi.cloud/channels/${channelId}`,
-      {
-        method: "GET",
-        headers: {
-          accept: "application/json",
-          authorization: `Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImExZDI2YWYyYmY4MjVmYjI5MzVjNWI3OTY3ZDA3YmYwZTMxZWIxYjcifQ.eyJwYXJ0bmVyIjp0cnVlLCJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vd2hhcGktYTcyMWYiLCJhdWQiOiJ3aGFwaS1hNzIxZiIsImF1dGhfdGltZSI6MTc0MDI0MjM1NCwidXNlcl9pZCI6IlQyTWlGanlkSnBlaGhIbWcyUWszTnFTMlFKOTIiLCJzdWIiOiJUMk1pRmp5ZEpwZWhoSG1nMlFrM05xUzJRSjkyIiwiaWF0IjoxNzQwMjQyMzU0LCJleHAiOjE4MDA3MjIzNTQsImVtYWlsIjoicG91cG9pbmFrYTAzQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7ImVtYWlsIjpbInBvdXBvaW5ha2EwM0BnbWFpbC5jb20iXX0sInNpZ25faW5fcHJvdmlkZXIiOiJwYXNzd29yZCJ9fQ.SeY-wcxw9lYuKOsgUN4Yyq4mSLq5WR_6K5hHh8kwjjUxG022yh21OaUmX2v4fY8S2lMZ4ndASEvHh-LAgV4Z38JGlC-vjmjciaznvur-XSrj7Vp2bOGYuGVstze_2KdQYXozQnR0HhafIUkI-JFSjy3dl2KYbiLGiVBw52-por8BcleeNfe1Sa75PbDrYI79Y3_ey7aOl3BiyrEKC-w7cJf9tCvOE-4cj8cLfIn6IkapygX6kpIdi3FFIkmk_XSNtfbJZhSnKC6KWRNA6V7zvN9JpkI3_bU5IzOWpEGzFele3Yq5tauPruS1uq6og6Yi265DqO0ZmHFGfz3B60ovXw`,
-        },
+    // Récupérer les informations utilisateur pour le numéro de support
+    try {
+      const usersResponse = await fetch(
+        `https://manager.whapi.cloud/channels/${channelId}`,
+        {
+          method: "GET",
+          headers: {
+            accept: "application/json",
+            authorization: `Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImExZDI2YWYyYmY4MjVmYjI5MzVjNWI3OTY3ZDA3YmYwZTMxZWIxYjcifQ.eyJwYXJ0bmVyIjp0cnVlLCJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vd2hhcGktYTcyMWYiLCJhdWQiOiJ3aGFwaS1hNzIxZiIsImF1dGhfdGltZSI6MTc0MDI0MjM1NCwidXNlcl9pZCI6IlQyTWlGanlkSnBlaGhIbWcyUWszTnFTMlFKOTIiLCJzdWIiOiJUMk1pRmp5ZEpwZWhoSG1nMlFrM05xUzJRSjkyIiwiaWF0IjoxNzQwMjQyMzU0LCJleHAiOjE4MDA3MjIzNTQsImVtYWlsIjoicG91cG9pbmFrYTAzQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7ImVtYWlsIjpbInBvdXBvaW5ha2EwM0BnbWFpbC5jb20iXX0sInNpZ25faW5fcHJvdmlkZXIiOiJwYXNzd29yZCJ9fQ.SeY-wcxw9lYuKOsgUN4Yyq4mSLq5WR_6K5hHh8kwjjUxG022yh21OaUmX2v4fY8S2lMZ4ndASEvHh-LAgV4Z38JGlC-vjmjciaznvur-XSrj7Vp2bOGYuGVstze_2KdQYXozQnR0HhafIUkI-JFSjy3dl2KYbiLGiVBw52-por8BcleeNfe1Sa75PbDrYI79Y3_ey7aOl3BiyrEKC-w7cJf9tCvOE-4cj8cLfIn6IkapygX6kpIdi3FFIkmk_XSNtfbJZhSnKC6KWRNA6V7zvN9JpkI3_bU5IzOWpEGzFele3Yq5tauPruS1uq6og6Yi265DqO0ZmHFGfz3B60ovXw`,
+          },
+        }
+      ).then((res) => res.json());
+
+      if (usersResponse?.phone) {
+        SUPPORT_PHONE = usersResponse.phone;
       }
-    ).then((res) => res.json());
-
-    if (usersResponse) {
-      SUPPORT_PHONE = usersResponse?.phone;
+    } catch (err) {
+      console.log("Impossible de récupérer le numéro de support, utilisation du numéro par défaut");
     }
-
-    // Récupérer le prompt de la knowledge base
-    const { data: knowledgeBase } = await supabase
-      .from("knowledge_base")
-      .select("prompt")
-      .eq("agent_id", agent.id)
-      .single();
-
-    const prompt = knowledgeBase?.prompt || "";
 
     function isRequestingAdvisor(message) {
       return ADVISOR_REQUEST_PATTERNS.some((pattern) => pattern.test(message));
@@ -187,54 +158,40 @@ export default defineEventHandler(async (event) => {
     // Traiter les messages reçus
     const processedMessages = [];
 
-    // Utiliser Promise.all pour traiter les messages en parallèle
     await Promise.all(
       messages.map(async (message) => {
-        // Ignorer les messages envoyés par l'agent
         if (message.from_me) return;
 
         const senderPhone = message.from;
         const senderName = message?.from_name || "";
 
         let messageContent = null;
+        
+        // Traitement du message texte ou vocal
         if (message.text) {
           messageContent = message.text?.body || "";
         } else if (message.voice) {
           try {
-            // Utiliser le répertoire temporaire du système
             const tempDir = "/tmp";
-
-            // Récupérer le lien direct vers le fichier audio
             const voiceUrl = message.voice.link;
 
             if (voiceUrl) {
-              console.log(
-                `Téléchargement du fichier audio depuis: ${voiceUrl}`
-              );
+              console.log(`Téléchargement du fichier audio depuis: ${voiceUrl}`);
 
-              // Définir le chemin où le fichier sera enregistré avec un nom unique
               const tempFilePath = path.join(
                 tempDir,
-                `voice_${Date.now()}_${Math.random()
-                  .toString(36)
-                  .substring(2, 15)}.oga`
+                `voice_${Date.now()}_${Math.random().toString(36).substring(2, 15)}.oga`
               );
 
-              // Télécharger le fichier sans token d'authentification supplémentaire
               const response = await axios({
                 method: "GET",
                 url: voiceUrl,
                 responseType: "arraybuffer",
               });
 
-              // Enregistrer le fichier localement
               await fsPromises.writeFile(tempFilePath, response.data);
+              console.log(`Fichier audio téléchargé et enregistré à: ${tempFilePath}`);
 
-              console.log(
-                `Fichier audio téléchargé et enregistré à: ${tempFilePath}`
-              );
-
-              // Transcrire le fichier audio (toujours avec OpenAI même si on utilise HF pour le chat)
               const transcription = await openai.audio.transcriptions.create({
                 file: fs.createReadStream(tempFilePath),
                 model: "whisper-1",
@@ -242,245 +199,219 @@ export default defineEventHandler(async (event) => {
               });
 
               console.log(`Transcription obtenue: ${transcription}`);
-
-              // Supprimer le fichier temporaire après utilisation
               await fsPromises.unlink(tempFilePath);
 
               messageContent = transcription;
             }
           } catch (voiceError) {
-            console.error(
-              "Erreur lors du traitement du message vocal:",
-              voiceError
-            );
-            console.error("Détails de l'erreur:", voiceError.stack);
-            if (voiceError.response) {
-              console.error("Réponse d'erreur:", voiceError.response.data);
-            }
-
-            messageContent =
-              "Je n'ai pas pu comprendre votre message vocal. Pourriez-vous envoyer un message texte à la place?";
+            console.error("Erreur lors du traitement du message vocal:", voiceError);
+            messageContent = "Je n'ai pas pu comprendre votre message vocal. Pourriez-vous envoyer un message texte à la place?";
           }
         }
 
+        if (!messageContent) return;
+
         try {
           // Gérer la conversation
-          const { conversationId, isNewConversation } =
-            await handleConversation(
-              supabase,
-              agent.id,
-              userId,
-              senderPhone,
-              senderName
-            );
+          const { conversationId, isNewConversation } = await handleConversation(
+            supabase,
+            agent.id,
+            userId,
+            senderPhone,
+            senderName
+          );
 
+          // Vérifier si le client demande un conseiller
           if (isRequestingAdvisor(messageContent)) {
-            // Envoyer une notification au propriétaire
             const notificationMessage = `Client demande un conseiller: ${senderName} (${senderPhone}) souhaite parler à un conseiller. Message: "${messageContent}"`;
 
             try {
-              await sendWhatsAppMessage(
-                token,
-                SUPPORT_PHONE,
-                notificationMessage
-              );
-              console.log(
-                "Notification envoyée au propriétaire: demande de conseiller"
-              );
+              await sendWhatsAppMessage(token, SUPPORT_PHONE, notificationMessage);
+              console.log("Notification envoyée au propriétaire: demande de conseiller");
 
-              // Informer le client
-              const clientMessage =
-                "Votre demande a bien été prise en compte. Un conseiller va prendre en charge votre conversation dans les plus brefs délais. Merci de votre patience.";
+              const clientMessage = "Votre demande a bien été prise en compte. Un conseiller va prendre en charge votre conversation dans les plus brefs délais. Merci de votre patience.";
               await sendWhatsAppMessage(token, senderPhone, clientMessage);
 
-              // Stocker le message de l'utilisateur et la réponse
-              await supabase.from("messages").insert([
-                {
-                  conversation_id: conversationId,
-                  user_id: userId,
-                  content: messageContent,
-                  response: clientMessage,
-                },
-              ]);
+              await supabase.from("messages").insert([{
+                conversation_id: conversationId,
+                user_id: userId,
+                content: messageContent,
+                response: clientMessage,
+                metadata: {
+                  delegated: true,
+                  reason: "requested_advisor"
+                }
+              }]);
 
               processedMessages.push({
                 phone: senderPhone,
                 status: "delegated",
                 reason: "requested_advisor",
               });
+              
               const terminationResult = await terminateAndDecrementLimit(
                 supabase,
                 supabasePublic,
                 conversationId,
                 userId
               );
+              
               if (!terminationResult.success) {
                 console.error(terminationResult.message);
               }
 
               return;
             } catch (notifError) {
-              console.error(
-                "Erreur lors de l'envoi de notification:",
-                notifError
-              );
+              console.error("Erreur lors de l'envoi de notification:", notifError);
             }
           }
 
-          // Compter le nombre d'échanges dans cette conversation
-          const { count: exchangeCount, error: countError } = await supabase
+          // Compter le nombre d'échanges
+          const { count: exchangeCount } = await supabase
             .from("messages")
             .select("*", { count: "exact", head: true })
             .eq("conversation_id", conversationId);
 
-          if (countError) {
-            console.error("Erreur lors du comptage des messages:", countError);
-          }
-
-          // Vérifier si la limite d'échanges est atteinte
           if (exchangeCount >= MAX_EXCHANGES) {
-            // Envoyer une notification au propriétaire
-            const notificationMessage = ` La conversation avec ${senderName} (${senderPhone}) nécessite une intervention humaine. Veuillez prendre le relais.`;
+            const notificationMessage = `La conversation avec ${senderName} (${senderPhone}) nécessite une intervention humaine. Veuillez prendre le relais.`;
 
             try {
-              await sendWhatsAppMessage(
-                token,
-                SUPPORT_PHONE,
-                notificationMessage
-              );
-              console.log(
-                "Notification envoyée au propriétaire concernant la limite d'échanges"
-              );
+              await sendWhatsAppMessage(token, SUPPORT_PHONE, notificationMessage);
+              console.log("Notification envoyée: limite d'échanges atteinte");
 
-              // Informer également le client
-              const clientMessage =
-                "Votre demande a été transmise à un conseiller client qui vous répondra dans les plus brefs délais. Merci de votre patience.";
+              const clientMessage = "Votre demande a été transmise à un conseiller client qui vous répondra dans les plus brefs délais. Merci de votre patience.";
               await sendWhatsAppMessage(token, senderPhone, clientMessage);
 
-              // Stocker le message de l'utilisateur et la réponse
-              await supabase.from("messages").insert([
-                {
-                  conversation_id: conversationId,
-                  user_id: userId,
-                  content: messageContent,
-                  response: clientMessage,
-                },
-              ]);
+              await supabase.from("messages").insert([{
+                conversation_id: conversationId,
+                user_id: userId,
+                content: messageContent,
+                response: clientMessage,
+                metadata: {
+                  delegated: true,
+                  reason: "exchange_limit_reached"
+                }
+              }]);
 
               processedMessages.push({
                 phone: senderPhone,
                 status: "delegated",
                 reason: "exchange_limit_reached",
               });
+              
               const terminationResult = await terminateAndDecrementLimit(
                 supabase,
                 supabasePublic,
                 conversationId,
                 userId
               );
+              
               if (!terminationResult.success) {
                 console.error(terminationResult.message);
               }
 
               return;
             } catch (notifError) {
-              console.error(
-                "Erreur lors de l'envoi de notification:",
-                notifError
-              );
+              console.error("Erreur lors de l'envoi de notification:", notifError);
             }
           }
 
-          // Stocker le message de l'utilisateur
-          await supabase.from("messages").insert([
-            {
+          // Stocker le message temporairement
+          const { data: insertedMessage } = await supabase
+            .from("messages")
+            .insert([{
               conversation_id: conversationId,
               user_id: userId,
               content: messageContent,
               response: DEFAULT_BOT_RESPONSE,
-            },
-          ]);
+            }])
+            .select()
+            .single();
 
           let aiResponse = DEFAULT_BOT_RESPONSE;
-          let threadId = null;
 
           try {
-            if (agent.model_provider === 'openai') {
-              // Logique OpenAI existante
-              const { data: threadData, error: threadError } = await supabase
-                .from("openai_threads")
-                .select("thread_id")
-                .eq("conversation_id", conversationId)
-                .single();
-
-              if (threadError || !threadData) {
-                // Créer un nouveau thread via ModelService
-                const result = await modelService.sendMessage(messageContent, {
-                  threadId: null,
-                  assistantId: agent.assistant_id
-                });
-                
-                aiResponse = result.response;
-                threadId = result.threadId;
-
-                // Sauvegarder l'ID du thread
-                if (threadId) {
-                  await supabase.from("openai_threads").insert([
-                    {
-                      thread_id: threadId,
-                      conversation_id: conversationId,
-                      user_id: userId,
-                    },
-                  ]);
-                }
-              } else {
-                threadId = threadData.thread_id;
-                
-                // Envoyer le message via ModelService
-                const result = await modelService.sendMessage(messageContent, {
-                  threadId,
-                  assistantId: agent.assistant_id
-                });
-                
-                aiResponse = result.response;
-              }
-            } else if (agent.model_provider === 'huggingface') {
-              // Logique Hugging Face
-              // Récupérer l'historique de la conversation
-              const { data: conversationHistory } = await supabase
-                .from("messages")
-                .select("content, response")
-                .eq("conversation_id", conversationId)
-                .order("created_at", { ascending: true })
-                .limit(10); // Limiter pour éviter de dépasser les limites de tokens
-
-              const result = await modelService.sendMessage(messageContent, {
-                prompt,
-                conversationHistory: conversationHistory || []
-              });
+            // NOUVEAU : Utilisation du système d'embeddings
+            console.log("🔍 Recherche adaptative pour:", messageContent);
+            
+            // Vérifier le cache
+            let searchResult = searchCache.get(messageContent, agent.id);
+            
+            if (!searchResult) {
+              // Recherche adaptative
+              searchResult = await adaptiveSearch(
+                messageContent,
+                agent.id,
+                openai,
+                supabase
+              );
               
-              aiResponse = result.response;
+              // Mettre en cache
+              searchCache.set(messageContent, agent.id, searchResult);
             }
+            
+            const { chunks, analysis } = searchResult;
+            console.log(`📚 ${chunks.length} chunks trouvés`);
+            console.log(`🗣️ Langue détectée: ${analysis.language}`);
+            console.log(`🎯 Intentions: ${analysis.intents.map(i => i.type).join(', ')}`);
+
+            // Générer le prompt optimisé
+            const systemPrompt = generateOptimizedPrompt(
+              agent.name,
+              agent.personality,
+              agent.goal,
+              chunks
+            );
+
+            // Instructions multilingues si nécessaire
+            const isMultilingual = analysis.language !== 'fr';
+            const finalSystemPrompt = systemPrompt + (isMultilingual ? 
+              `\n\nIMPORTANT: L'utilisateur a posé sa question en ${analysis.language}. Réponds dans la même langue.` : '');
+
+            // Récupérer l'historique récent
+            const { data: recentMessages } = await supabase
+              .from("messages")
+              .select("content, response, created_at")
+              .eq("conversation_id", conversationId)
+              .order("created_at", { ascending: false })
+              .limit(10);
+
+            const conversationHistory = recentMessages
+              ?.reverse()
+              .slice(0, -1) // Exclure le dernier message
+              .map(msg => ({
+                role: msg.response ? "assistant" : "user",
+                content: msg.response || msg.content
+              })) || [];
+
+            // Générer la réponse avec GPT
+            const completion = await openai.chat.completions.create({
+              model: "gpt-4o-mini",
+              messages: [
+                { role: "system", content: finalSystemPrompt },
+                ...conversationHistory,
+                { role: "user", content: messageContent }
+              ],
+              max_tokens: 400,
+              temperature: 0.3,
+            });
+
+            aiResponse = completion.choices[0]?.message?.content || 
+              (analysis.language === 'en' ? "Sorry, I couldn't generate a response." : 
+               analysis.language === 'es' ? "Lo siento, no pude generar una respuesta." :
+               "Désolé, je n'ai pas pu générer de réponse.");
 
             // Vérifier si la réponse est valide
             if (!aiResponse || aiResponse === DEFAULT_BOT_RESPONSE) {
-              console.warn("Réponse IA vide ou par défaut, utilisation du message par défaut");
+              console.warn("Réponse IA vide ou par défaut");
               aiResponse = "Je suis désolé, je n'ai pas pu traiter votre demande. Un conseiller va prendre le relais.";
               
-              // Envoyer une notification au propriétaire
               const notificationMessage = `Alerte: Problème de réponse IA pour ${senderName} (${senderPhone}). Intervention nécessaire.`;
               
               try {
-                await sendWhatsAppMessage(
-                  token,
-                  SUPPORT_PHONE,
-                  notificationMessage
-                );
+                await sendWhatsAppMessage(token, SUPPORT_PHONE, notificationMessage);
               } catch (notifError) {
-                console.error(
-                  "Erreur lors de l'envoi de notification:",
-                  notifError
-                );
+                console.error("Erreur notification:", notifError);
               }
             }
 
@@ -488,48 +419,42 @@ export default defineEventHandler(async (event) => {
             console.error("Erreur lors de l'obtention de la réponse IA:", aiError);
             aiResponse = "Je suis désolé, je rencontre des difficultés techniques. Un conseiller va vous répondre rapidement.";
             
-            // Notifier le propriétaire
             const notificationMessage = `Erreur IA: ${aiError.message} pour ${senderName} (${senderPhone})`;
             
             try {
-              await sendWhatsAppMessage(
-                token,
-                SUPPORT_PHONE,
-                notificationMessage
-              );
+              await sendWhatsAppMessage(token, SUPPORT_PHONE, notificationMessage);
             } catch (notifError) {
-              console.error(
-                "Erreur lors de l'envoi de notification:",
-                notifError
-              );
+              console.error("Erreur notification:", notifError);
             }
           }
 
-          // Mettre à jour la base de données avec la réponse de l'IA
+          // Mettre à jour avec la réponse finale et les métadonnées
           await supabase
             .from("messages")
-            .update({ response: aiResponse })
-            .eq("conversation_id", conversationId)
-            .eq("content", messageContent);
+            .update({ 
+              response: aiResponse,
+              metadata: {
+                language: searchResult?.analysis?.language || 'fr',
+                intents: searchResult?.analysis?.intents?.map(i => i.type) || [],
+                cached: !!searchCache.get(messageContent, agent.id),
+                chunks_found: chunks?.length || 0
+              }
+            })
+            .eq("id", insertedMessage.id);
 
-          // Envoyer la réponse de l'IA via WhatsApp
-          const response = await sendWhatsAppMessage(
-            token,
-            senderPhone,
-            aiResponse
-          );
+          // Envoyer la réponse via WhatsApp
+          const response = await sendWhatsAppMessage(token, senderPhone, aiResponse);
 
           processedMessages.push({
             phone: senderPhone,
             status: response.sent ? "sent" : "failed",
             aiResponse: aiResponse !== DEFAULT_BOT_RESPONSE,
-            provider: agent.model_provider
+            language: searchResult?.analysis?.language,
+            fromCache: !!searchCache.get(messageContent, agent.id)
           });
+
         } catch (err) {
-          console.error(
-            `Erreur lors du traitement du message pour ${senderPhone}:`,
-            err
-          );
+          console.error(`Erreur lors du traitement du message pour ${senderPhone}:`, err);
           processedMessages.push({
             phone: senderPhone,
             status: "error",
@@ -555,7 +480,6 @@ export default defineEventHandler(async (event) => {
 
   // Fonction pour gérer la création ou mise à jour des conversations
   async function handleConversation(supabase, agentId, userId, phone, name) {
-    // Vérifier si une conversation active existe
     const { data: conversation, error } = await supabase
       .from("conversations")
       .select("id, status")
@@ -566,9 +490,7 @@ export default defineEventHandler(async (event) => {
 
     let isNewConversation = false;
 
-    // Si une conversation active existe
     if (!error && conversation) {
-      // Vérifier si la conversation est inactive (timeout)
       const { data: lastMessage } = await supabase
         .from("messages")
         .select("created_at")
@@ -581,7 +503,6 @@ export default defineEventHandler(async (event) => {
         const lastMessageTime = new Date(lastMessage.created_at);
         const timeDifference = (new Date() - lastMessageTime) / 1000 / 60;
 
-        // Si le timeout est dépassé, terminer la conversation et en créer une nouvelle
         if (timeDifference > CONVERSATION_TIMEOUT_MINUTES) {
           const terminationResult = await terminateAndDecrementLimit(
             supabase,
@@ -589,22 +510,20 @@ export default defineEventHandler(async (event) => {
             conversation.id,
             userId
           );
+          
           if (!terminationResult.success) {
             console.error(terminationResult.message);
           }
 
-          // Créer une nouvelle conversation
           const { data: newConversation } = await supabase
             .from("conversations")
-            .insert([
-              {
-                agent_id: agentId,
-                phone,
-                name,
-                user_id: userId,
-                status: "active",
-              },
-            ])
+            .insert([{
+              agent_id: agentId,
+              phone,
+              name,
+              user_id: userId,
+              status: "active",
+            }])
             .select()
             .single();
 
@@ -612,30 +531,25 @@ export default defineEventHandler(async (event) => {
           return { conversationId: newConversation.id, isNewConversation };
         }
 
-        // Sinon, retourner l'ID de la conversation existante
         return { conversationId: conversation.id, isNewConversation };
       }
     }
 
-    // Si aucune conversation active n'existe, en créer une nouvelle
     const { data: newConversation, error: insertError } = await supabase
       .from("conversations")
-      .insert([
-        {
-          agent_id: agentId,
-          phone,
-          name,
-          user_id: userId,
-          status: "active",
-        },
-      ])
+      .insert([{
+        agent_id: agentId,
+        phone,
+        name,
+        user_id: userId,
+        status: "active",
+      }])
       .select()
       .single();
 
-    if (insertError)
-      throw new Error(
-        `Erreur lors de la création de conversation: ${insertError.message}`
-      );
+    if (insertError) {
+      throw new Error(`Erreur lors de la création de conversation: ${insertError.message}`);
+    }
 
     isNewConversation = true;
     return { conversationId: newConversation.id, isNewConversation };
@@ -664,30 +578,21 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  async function terminateAndDecrementLimit(
-    supabase,
-    supabasePublic,
-    conversationId,
-    userId
-  ) {
-    // Mettre à jour le statut de la conversation en "terminated"
+  // Fonction pour terminer une conversation et décrémenter le crédit
+  async function terminateAndDecrementLimit(supabase, supabasePublic, conversationId, userId) {
     const { error: updateError } = await supabase
       .from("conversations")
       .update({ status: "terminated" })
       .eq("id", conversationId);
 
     if (updateError) {
-      console.error(
-        "Erreur lors de la terminaison de la conversation:",
-        updateError
-      );
+      console.error("Erreur lors de la terminaison de la conversation:", updateError);
       return {
         success: false,
         message: "Erreur lors de la terminaison de la conversation",
       };
     }
 
-    // Décrémenter la colonne max_limit dans subscriptions
     const { data: subscription, error: fetchError } = await supabasePublic
       .from("subscriptions")
       .select("max_limit")
@@ -695,17 +600,13 @@ export default defineEventHandler(async (event) => {
       .single();
 
     if (fetchError) {
-      console.error(
-        "Erreur lors de la récupération de l'abonnement:",
-        fetchError
-      );
+      console.error("Erreur lors de la récupération de l'abonnement:", fetchError);
       return {
         success: false,
         message: "Erreur lors de la récupération de l'abonnement",
       };
     }
 
-    // Vérifier que la limite n'est pas déjà à 0
     const newLimit = Math.max(0, subscription.max_limit - 1);
 
     const { error: decrementError } = await supabasePublic

@@ -1,9 +1,9 @@
+// server/api/agent/config/list.js
 import { createClient } from "@supabase/supabase-js";
 
 export default defineEventHandler(async (event) => {
   const supabaseUrl = "https://puxvccwmxfpgyocglioe.supabase.co";
-  const supabaseKey =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1eHZjY3dteGZwZ3lvY2dsaW9lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczMjcyNzA4NCwiZXhwIjoyMDQ4MzAzMDg0fQ.amjPfsZkysKczrI29qJmgabu-NQjyj-Sza3sWmcm4iA";
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1eHZjY3dteGZwZ3lvY2dsaW9lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczMjcyNzA4NCwiZXhwIjoyMDQ4MzAzMDg0fQ.amjPfsZkysKczrI29qJmgabu-NQjyj-Sza3sWmcm4iA";
   
   // Récupérer la méthode HTTP utilisée
   const method = event.node.req.method;
@@ -27,15 +27,15 @@ export default defineEventHandler(async (event) => {
     };
   } 
 
-
   try {
     const supabaseAgent = createClient(supabaseUrl, supabaseKey, {
       db: { schema: "agent_ia" },
     });
 
+    // Sélection explicite des colonnes pour éviter les erreurs
     const { data: existingAgent, error: fetchError } = await supabaseAgent
       .from("agent_configs")
-      .select("*")
+      .select("id, name, personality, goal, status, user_id, created_at, updated_at")
       .eq("user_id", user_id)
       .single();
 
@@ -43,11 +43,33 @@ export default defineEventHandler(async (event) => {
       throw new Error(fetchError.message);
     }
 
+    // Si aucun agent n'existe, retourner null avec succès
+    if (!existingAgent) {
+      return {
+        success: true,
+        data: null,
+        message: "Aucun agent configuré pour cet utilisateur"
+      };
+    }
+
+    // Retourner uniquement les champs nécessaires
+    const cleanData = {
+      id: existingAgent.id,
+      name: existingAgent.name,
+      personality: existingAgent.personality,
+      goal: existingAgent.goal,
+      status: existingAgent.status,
+      user_id: existingAgent.user_id,
+      created_at: existingAgent.created_at,
+      updated_at: existingAgent.updated_at
+    };
+
     return {
       success: true,
-      data: existingAgent,
+      data: cleanData,
     };
   } catch (err) {
+    console.error("Erreur dans agent/config/list:", err);
     return {
       success: false,
       message: err.message,
