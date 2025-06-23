@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
   const supabaseKey =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1eHZjY3dteGZwZ3lvY2dsaW9lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczMjcyNzA4NCwiZXhwIjoyMDQ4MzAzMDg0fQ.amjPfsZkysKczrI29qJmgabu-NQjyj-Sza3sWmcm4iA";
 
-  const CONVERSATION_TIMEOUT_MINUTES = 30;
+  const CONVERSATION_TIMEOUT_MINUTES = 25;
   const DEFAULT_BOT_RESPONSE = "Nous vous répondrons dans un instant";
   const MAX_EXCHANGES = 32;
   let SUPPORT_PHONE = "2250500145177";
