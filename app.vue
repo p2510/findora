@@ -1,7 +1,7 @@
 <template>
   <div class="">
     <!-- Splash Screen -->
-    <MobileSplashScreen v-if="showSplash" @complete="onSplashComplete" />
+    <SplashScreen v-if="showSplash" @complete="onSplashComplete" />
     
     <!-- Contenu principal -->
     <template v-if="!showSplash">
@@ -50,7 +50,7 @@ onMounted(() => {
     sessionStorage.setItem('hasVisited', 'true')
   }
   
-  //initialize()
+  initialize()
   
   // Fix pour le scroll sur mobile iOS
   if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
@@ -117,26 +117,26 @@ watch(() => route.path, async () => {
   * {
     max-width: 100vw !important;
   }
+  
+  /* Masquer la barre de scroll sur mobile uniquement */
+  /* Pour Webkit (Chrome, Safari, Edge) */
+  *::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Pour Firefox */
+  * {
+    scrollbar-width: none;
+  }
+
+  /* Pour IE */
+  * {
+    -ms-overflow-style: none;
+  }
 }
 
 /* Prévenir le zoom sur les inputs */
 input, select, textarea {
   font-size: 16px !important;
-}
-
-/* Masquer la barre de scroll tout en gardant la fonctionnalité */
-/* Pour Webkit (Chrome, Safari, Edge) */
-*::-webkit-scrollbar {
-  display: none;
-}
-
-/* Pour Firefox */
-* {
-  scrollbar-width: none;
-}
-
-/* Pour IE */
-* {
-  -ms-overflow-style: none;
 }
 </style>

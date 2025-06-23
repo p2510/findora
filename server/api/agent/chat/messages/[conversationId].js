@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
     .from("messages")
     .select("*")
     .eq("conversation_id", conversationId)
-    .order("created_at", { ascending: true });
+    .order("created_at", { ascending: false});
 
   if (error) {
     return {

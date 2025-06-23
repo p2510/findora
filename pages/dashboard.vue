@@ -1,21 +1,23 @@
 <!-- pages/dashboard.vue - Version Mobile -->
 <template>
-  <div class="min-h-screen  bg-transparent dark:bg-slate-900">
+  <div class="min-h-screen bg-transparent dark:bg-slate-900">
     <!-- Desktop Version -->
-    <div class="hidden sm:block mt-4 space-y-4 ">
+    <div class="hidden sm:block mt-4 space-y-4">
       <OnboardingCarousel />
       <DashboardHeros />
     </div>
 
     <!-- Mobile Version -->
-    <div
-      class="sm:hidden pt-3 pb-32"
-    >
+    <div class="sm:hidden pt-3 pb-32">
       <!-- User Greeting -->
       <div class="px-4 pt-12 pb-2">
-        <h2 class="text-slate-700/70 dark:text-slate-200 text-4xl font-semibold transparent">
+        <h2
+          class="text-slate-700/70 dark:text-slate-200 text-4xl font-semibold transparent"
+        >
           <span class="">{{ user?.info?.name }},</span> <br />
-          <span class="text-3xl text-slate-700 dark:text-slate-400"> Que voulez vous faire ? </span>
+          <span class="text-3xl text-slate-700 dark:text-slate-400">
+            {{ $t("dashboard.gretting_mobile") }}</span
+          >
         </h2>
       </div>
 
@@ -57,65 +59,58 @@
       <div class="px-4">
         <!-- Action Cards Grid -->
         <div class="grid grid-cols-2 gap-3 mt-4">
-          <!-- Without WhatsApp -->
           <template v-if="whatsappStore.whatsapp_backlogs == null">
             <MobileDashboardActionCard
               to="/whatsapp"
               icon="whatsapp"
               :iconImage="true"
-              title="Connecter WhatsApp"
+              :title="t('dashboard.action.connect_whatsapp')"
               color="green"
             />
-
             <MobileDashboardActionCard
               to="/abonnement"
               icon="i-heroicons-lifebuoy"
-              title="Abonnements"
+              :title="t('dashboard.action.subscriptions')"
               color="amber"
             />
-
             <MobileDashboardActionCard
               to="/agent"
               icon="i-heroicons-rectangle-group"
-              title="Agent IA"
-              subtitle="Essayer"
+              :title="t('dashboard.action.ai_agent')"
+              :subtitle="t('dashboard.action.try_now')"
               color="blue"
             />
-
             <MobileDashboardActionCard
               to="/contacts"
               icon="i-heroicons-users"
-              title="Contacts"
-              subtitle="Ajouter"
+              :title="t('dashboard.action.contacts')"
+              :subtitle="t('dashboard.action.add')"
               color="purple"
             />
           </template>
 
-          <!-- With WhatsApp -->
           <template v-else>
             <MobileDashboardActionCard
               to="/agent"
               icon="i-heroicons-rectangle-group"
-              title="Agent IA"
-              subtitle="Plus de conversations"
+              :title="t('dashboard.action.ai_agent')"
+              :subtitle="t('dashboard.action.more_conversations')"
               color="amber"
               :isPrimary="true"
             />
-
             <MobileDashboardActionCard
               to="/whatsapp"
               icon="i-heroicons-paper-airplane"
-              title="Campagne"
-              subtitle="Plus de satisfactions"
+              :title="t('dashboard.action.campaign')"
+              :subtitle="t('dashboard.action.more_satisfaction')"
               color="green"
               :isPrimary="true"
             />
-
             <MobileDashboardActionCard
               to="/contacts"
               icon="i-heroicons-users"
-              title="Mes contacts"
-              subtitle="Gérer vos différents contacts"
+              :title="t('dashboard.action.my_contacts')"
+              :subtitle="t('dashboard.action.manage_contacts')"
               color="slate"
               :isFullWidthWhite="true"
               class="col-span-full"
@@ -131,7 +126,7 @@
       >
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-md font-medium text-gray-700 dark:text-gray-300">
-            Dernières campagnes 
+            {{ $t("dashboard.last_campaigns") }}
           </h3>
           <NuxtLink
             to="/whatsapp"
@@ -154,7 +149,7 @@
 <script setup>
 import { useUser } from "@/stores/user";
 import { useWhatsapp } from "@/stores/whatsapp";
-
+import { useI18n } from 'vue-i18n'
 const { t } = useI18n();
 const user = useUser();
 const whatsappStore = useWhatsapp();
@@ -162,7 +157,7 @@ const whatsappStore = useWhatsapp();
 definePageMeta({
   middleware: "auth",
 });
-  
+
 useHead({
   title: t("dashboard.title"),
 });

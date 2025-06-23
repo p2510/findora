@@ -64,7 +64,7 @@ export const useChatStore = defineStore(
 
         // Sélectionner automatiquement la première conversation
         if (data.length > 0 && !selectedConversation.value) {
-          selectConversation(data[0]);
+          selectConversation(data[data.length-1]);
         }
         
         // Mettre à jour la conversation sélectionnée si elle existe dans les nouvelles données

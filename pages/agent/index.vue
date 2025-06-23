@@ -2,7 +2,7 @@
 <template>
   <div>
     <!-- Version Desktop -->
-    <section v-if="!isMobile" class="mt-14">
+    <section v-if="!isMobile" class="">
       <AgentNav />
       <div class="space-y-8 flex justify-center pt-10">
         <div class="2xl:max-w-7xl basis-2/3">

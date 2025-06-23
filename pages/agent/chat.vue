@@ -2,7 +2,7 @@
 <template>
   <div>
     <!-- Version Desktop (originale) -->
-    <section v-if="!isMobile" class="mt-14">
+    <section v-if="!isMobile" class="">
       <AgentNav />
       <div class="h-screen">
         <div class="sm:h-4/6 2xl:h-3/4 grid grid-cols-12 pt-10 h-full">
@@ -75,7 +75,7 @@
 
             <ol class="flex flex-col gap-2 divide-y-[1px] dark:divide-slate-600">
               <li
-                v-for="conversation in chatStore.filteredConversations"
+                v-for="conversation in sortedFilteredConversations"
                 :key="conversation.id"
                 @click="chatStore.selectConversation(conversation)"
                 class="cursor-pointer"
@@ -147,7 +147,7 @@
               <div class="flex items-center gap-2">
                 <p class="rounded-full bg-slate-200 p-2 mr-2 dark:bg-slate-600">
                   <img
-                    src="/public/image/user.svg"
+                    src="/image/user.svg"
                     alt="User Avatar"
                     class="w-10 h-10 rounded-full"
                   />
@@ -198,7 +198,7 @@
               "
             >
               <div
-                v-for="message in chatStore.messages"
+                v-for="message in sortedMessages"
                 :key="message.id"
                 class="flex flex-col space-y-2"
               >
@@ -206,7 +206,7 @@
                 <div class="flex justify-start items-start">
                   <p class="rounded-full bg-white p-2 mr-2 dark:bg-slate-600">
                     <img
-                      src="/public/image/user.svg"
+                      src="/image/user.svg"
                       alt="User Avatar"
                       class="w-4 h-4 rounded-full"
                     />
@@ -269,7 +269,7 @@
                   <span
                     class="text-xs 2xl:text-sm text-slate-800 dark:text-slate-300"
                   >
-                    {{ chatStore.messages.length }}
+                    {{ sortedMessages.length }}
                   </span>
                 </div>
                 <div class="flex items-center justify-between">
@@ -282,8 +282,8 @@
                     class="text-xs 2xl:text-sm text-slate-800 dark:text-slate-300"
                   >
                     {{
-                      chatStore.messages.length
-                        ? chatStore.formatDate(chatStore.messages[0]?.created_at)
+                      sortedMessages.length
+                        ? chatStore.formatDate(sortedMessages[0]?.created_at)
                         : "N/A"
                     }}
                   </span>
@@ -348,7 +348,7 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, ref, watch, nextTick } from "vue";
+import { onMounted, onBeforeUnmount, ref, watch, nextTick, computed } from "vue";
 import { useChatStore } from "@/stores/agent/chat";
 import { SoundNotification } from "@/utils/soundNotification";
 
@@ -373,6 +373,24 @@ const scrollToBottom = () => {
 };
 
 const chatStore = useChatStore();
+
+// Computed pour trier les conversations par date (plus récent en premier)
+const sortedFilteredConversations = computed(() => {
+  return [...chatStore.filteredConversations].sort((a, b) => {
+    const dateA = new Date(a.last_message_at);
+    const dateB = new Date(b.last_message_at);
+    return dateB - dateA; // Plus récent en premier
+  });
+});
+
+// Computed pour trier les messages par date (plus ancien en premier pour l'affichage chronologique)
+const sortedMessages = computed(() => {
+  return [...chatStore.messages].sort((a, b) => {
+    const dateA = new Date(a.created_at);
+    const dateB = new Date(b.created_at);
+    return dateA - dateB; // Plus ancien en premier pour un affichage chronologique
+  });
+});
 
 const soundNotification = ref(new SoundNotification());
 
@@ -441,7 +459,7 @@ const checkNewMessages = () => {
               body: `${conversation.name}: ${
                 conversation.last_content || conversation.last_response
               }`,
-              icon: "/public/icon.png",
+              icon: "/icon.png",
             });
           }
         }

@@ -2,7 +2,7 @@
 <template>
   <div class="flex flex-col" style="height: calc(100vh - 14rem);">
     <!-- Filtres et liste des conversations -->
-    <div v-if="!chatStore.selectedConversation" class="flex flex-col h-full">
+    <div v-if="!chatStore.selectedConversation" class="flex flex-col h-full pb-24">
       <!-- Barre de filtres -->
       <div class="px-4 pb-3 flex-shrink-0">
         <div class="bg-slate-800 dark:bg-slate-700 rounded-lg p-1 flex items-center gap-1">
@@ -60,7 +60,7 @@
           <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin text-gray-400" />
         </div>
         
-        <div v-else-if="chatStore.filteredConversations.length === 0 && !chatStore.isLoading" class="text-center py-12">
+        <div v-else-if="sortedFilteredConversations.length === 0 && !chatStore.isLoading" class="text-center py-12">
           <UIcon name="i-heroicons-chat-bubble-left-right" class="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
           <p class="text-sm text-gray-500 dark:text-gray-400">
             {{ $t("agent.chat.no_conversations") }}
@@ -113,7 +113,7 @@
     </div>
 
     <!-- Vue de conversation -->
-    <div v-else class="flex-1 flex flex-col">
+    <div v-else class="relative flex-1 flex flex-col pb-40">
       <!-- Header de conversation -->
       <div class="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-4 py-3">
         <div class="flex items-center justify-between">
@@ -161,18 +161,18 @@
         class="flex-1 overflow-y-auto p-4 bg-gray-50 dark:bg-slate-900/50"
         style="background-image: url('https://www.transparenttextures.com/patterns/grey-sandbag.png');"
       >
-        <div v-if="chatStore.messages.length === 0" class="text-center py-8">
+        <div v-if="sortedMessages.length === 0" class="text-center py-8">
           <p class="text-sm text-gray-500 dark:text-gray-400">
             {{ $t("agent.chat.no_messages") }}
           </p>
         </div>
         
         <div v-else class="space-y-3">
-          <div v-for="message in chatStore.messages" :key="message.id" class="space-y-2">
+          <div v-for="message in sortedMessages" :key="message.id" class="space-y-2">
             <!-- Message utilisateur -->
             <div class="flex items-end gap-2">
               <img
-                src="/public/image/user.svg"
+                src="/image/user.svg"
                 alt="User"
                 class="w-6 h-6 rounded-full bg-white dark:bg-slate-700 p-1"
               />
@@ -205,7 +205,7 @@
       </div>
 
       <!-- Actions en bas -->
-      <div class="bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 p-3 flex gap-2">
+      <div class="fixed w-full bottom-20 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 p-3 flex gap-2">
         <a
           :href="'tel:+' + chatStore.selectedConversation.phone"
           class="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2.5 flex items-center justify-center gap-2 transition-colors"
@@ -249,14 +249,32 @@ const currentPage = ref(1);
 const isLoadingMore = ref(false);
 const allConversationsLoaded = ref(false);
 
+// Trier les conversations par date (plus récent en premier)
+const sortedFilteredConversations = computed(() => {
+  return [...chatStore.filteredConversations].sort((a, b) => {
+    const dateA = new Date(a.last_message_at);
+    const dateB = new Date(b.last_message_at);
+    return dateB - dateA; // Plus récent en premier
+  });
+});
+
 // Conversations affichées avec pagination
 const displayedConversations = computed(() => {
   const endIndex = currentPage.value * ITEMS_PER_PAGE;
-  return chatStore.filteredConversations.slice(0, endIndex);
+  return sortedFilteredConversations.value.slice(0, endIndex);
+});
+
+// Trier les messages par date (plus ancien en premier pour l'affichage chronologique)
+const sortedMessages = computed(() => {
+  return [...chatStore.messages].sort((a, b) => {
+    const dateA = new Date(a.created_at);
+    const dateB = new Date(b.created_at);
+    return dateA - dateB; // Plus ancien en premier pour un affichage chronologique
+  });
 });
 
 // Vérifier si toutes les conversations sont chargées
-watch([() => displayedConversations.value.length, () => chatStore.filteredConversations.length], ([displayed, total]) => {
+watch([() => displayedConversations.value.length, () => sortedFilteredConversations.value.length], ([displayed, total]) => {
   allConversationsLoaded.value = displayed >= total;
 });
 
@@ -291,7 +309,7 @@ const loadMoreConversations = async () => {
   await new Promise(resolve => setTimeout(resolve, 300));
   
   // Augmenter la page pour afficher plus de conversations
-  const totalAvailable = chatStore.filteredConversations.length;
+  const totalAvailable = sortedFilteredConversations.value.length;
   const currentlyDisplayed = currentPage.value * ITEMS_PER_PAGE;
   
   if (currentlyDisplayed < totalAvailable) {
