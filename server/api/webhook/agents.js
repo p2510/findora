@@ -11,17 +11,19 @@ import { generateOptimizedPrompt } from "~/server/utils/embeddings";
 
 export default defineEventHandler(async (event) => {
   console.log("🚀 Webhook Agent IA avec Embeddings - Début");
-  
+
   // Configuration constants
   const config = useRuntimeConfig();
-  const supabaseUrl = config.public.supabase_url || "https://puxvccwmxfpgyocglioe.supabase.co";
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1eHZjY3dteGZwZ3lvY2dsaW9lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczMjcyNzA4NCwiZXhwIjoyMDQ4MzAzMDg0fQ.amjPfsZkysKczrI29qJmgabu-NQjyj-Sza3sWmcm4iA";
-  
+  const supabaseUrl =
+    config.public.supabase_url || "https://puxvccwmxfpgyocglioe.supabase.co";
+  const supabaseKey =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1eHZjY3dteGZwZ3lvY2dsaW9lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczMjcyNzA4NCwiZXhwIjoyMDQ4MzAzMDg0fQ.amjPfsZkysKczrI29qJmgabu-NQjyj-Sza3sWmcm4iA";
+
   const CONVERSATION_TIMEOUT_MINUTES = 30;
   const DEFAULT_BOT_RESPONSE = "Nous vous répondrons dans un instant";
   const MAX_EXCHANGES = 20;
   let SUPPORT_PHONE = "2250500145177";
-  
+
   // Expressions régulières pour détecter les demandes de conseiller
   const ADVISOR_REQUEST_PATTERNS = [
     /(?<!\w)conseill?e?r(?!\w)/i,
@@ -50,7 +52,9 @@ export default defineEventHandler(async (event) => {
 
   // Initialiser OpenAI
   const openai = new OpenAI({
-    apiKey: config.openai_api_key || "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",
+    apiKey:
+      config.openai_api_key ||
+      "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",
   });
 
   const supabase = createClient(supabaseUrl, supabaseKey, {
@@ -87,17 +91,21 @@ export default defineEventHandler(async (event) => {
     const userId = channel.user_id;
 
     // Récupérer les informations de l'abonnement
-    const { data: subscription, error: subscriptionError } = await supabasePublic
-      .from("subscriptions")
-      .select("subscription_type, max_limit")
-      .eq("user_id", userId)
-      .single();
+    const { data: subscription, error: subscriptionError } =
+      await supabasePublic
+        .from("subscriptions")
+        .select("subscription_type, max_limit")
+        .eq("user_id", userId)
+        .single();
 
     if (subscriptionError) {
-      console.error("Erreur lors de la récupération de l'abonnement:", subscriptionError);
+      console.error(
+        "Erreur lors de la récupération de l'abonnement:",
+        subscriptionError
+      );
       return { success: false, message: "Abonnement introuvable" };
     }
-    
+
     if (subscription.max_limit <= 0) {
       return { success: false, message: "Crédit insuffisant" };
     }
@@ -148,7 +156,9 @@ export default defineEventHandler(async (event) => {
         SUPPORT_PHONE = usersResponse.phone;
       }
     } catch (err) {
-      console.log("Impossible de récupérer le numéro de support, utilisation du numéro par défaut");
+      console.log(
+        "Impossible de récupérer le numéro de support, utilisation du numéro par défaut"
+      );
     }
 
     function isRequestingAdvisor(message) {
@@ -166,7 +176,7 @@ export default defineEventHandler(async (event) => {
         const senderName = message?.from_name || "";
 
         let messageContent = null;
-        
+
         // Traitement du message texte ou vocal
         if (message.text) {
           messageContent = message.text?.body || "";
@@ -176,11 +186,15 @@ export default defineEventHandler(async (event) => {
             const voiceUrl = message.voice.link;
 
             if (voiceUrl) {
-              console.log(`Téléchargement du fichier audio depuis: ${voiceUrl}`);
+              console.log(
+                `Téléchargement du fichier audio depuis: ${voiceUrl}`
+              );
 
               const tempFilePath = path.join(
                 tempDir,
-                `voice_${Date.now()}_${Math.random().toString(36).substring(2, 15)}.oga`
+                `voice_${Date.now()}_${Math.random()
+                  .toString(36)
+                  .substring(2, 15)}.oga`
               );
 
               const response = await axios({
@@ -190,7 +204,9 @@ export default defineEventHandler(async (event) => {
               });
 
               await fsPromises.writeFile(tempFilePath, response.data);
-              console.log(`Fichier audio téléchargé et enregistré à: ${tempFilePath}`);
+              console.log(
+                `Fichier audio téléchargé et enregistré à: ${tempFilePath}`
+              );
 
               const transcription = await openai.audio.transcriptions.create({
                 file: fs.createReadStream(tempFilePath),
@@ -204,8 +220,12 @@ export default defineEventHandler(async (event) => {
               messageContent = transcription;
             }
           } catch (voiceError) {
-            console.error("Erreur lors du traitement du message vocal:", voiceError);
-            messageContent = "Je n'ai pas pu comprendre votre message vocal. Pourriez-vous envoyer un message texte à la place?";
+            console.error(
+              "Erreur lors du traitement du message vocal:",
+              voiceError
+            );
+            messageContent =
+              "Je n'ai pas pu comprendre votre message vocal. Pourriez-vous envoyer un message texte à la place?";
           }
         }
 
@@ -213,56 +233,69 @@ export default defineEventHandler(async (event) => {
 
         try {
           // Gérer la conversation
-          const { conversationId, isNewConversation } = await handleConversation(
-            supabase,
-            agent.id,
-            userId,
-            senderPhone,
-            senderName
-          );
+          const { conversationId, isNewConversation } =
+            await handleConversation(
+              supabase,
+              agent.id,
+              userId,
+              senderPhone,
+              senderName
+            );
 
           // Vérifier si le client demande un conseiller
           if (isRequestingAdvisor(messageContent)) {
             const notificationMessage = `Client demande un conseiller: ${senderName} (${senderPhone}) souhaite parler à un conseiller. Message: "${messageContent}"`;
 
             try {
-              await sendWhatsAppMessage(token, SUPPORT_PHONE, notificationMessage);
-              console.log("Notification envoyée au propriétaire: demande de conseiller");
+              await sendWhatsAppMessage(
+                token,
+                SUPPORT_PHONE,
+                notificationMessage
+              );
+              console.log(
+                "Notification envoyée au propriétaire: demande de conseiller"
+              );
 
-              const clientMessage = "Votre demande a bien été prise en compte. Un conseiller va prendre en charge votre conversation dans les plus brefs délais. Merci de votre patience.";
+              const clientMessage =
+                "Votre demande a bien été prise en compte. Un conseiller va prendre en charge votre conversation dans les plus brefs délais. Merci de votre patience.";
               await sendWhatsAppMessage(token, senderPhone, clientMessage);
 
-              await supabase.from("messages").insert([{
-                conversation_id: conversationId,
-                user_id: userId,
-                content: messageContent,
-                response: clientMessage,
-                metadata: {
-                  delegated: true,
-                  reason: "requested_advisor"
-                }
-              }]);
+              await supabase.from("messages").insert([
+                {
+                  conversation_id: conversationId,
+                  user_id: userId,
+                  content: messageContent,
+                  response: clientMessage,
+                  metadata: {
+                    delegated: true,
+                    reason: "requested_advisor",
+                  },
+                },
+              ]);
 
               processedMessages.push({
                 phone: senderPhone,
                 status: "delegated",
                 reason: "requested_advisor",
               });
-              
+
               const terminationResult = await terminateAndDecrementLimit(
                 supabase,
                 supabasePublic,
                 conversationId,
                 userId
               );
-              
+
               if (!terminationResult.success) {
                 console.error(terminationResult.message);
               }
 
               return;
             } catch (notifError) {
-              console.error("Erreur lors de l'envoi de notification:", notifError);
+              console.error(
+                "Erreur lors de l'envoi de notification:",
+                notifError
+              );
             }
           }
 
@@ -276,67 +309,82 @@ export default defineEventHandler(async (event) => {
             const notificationMessage = `La conversation avec ${senderName} (${senderPhone}) nécessite une intervention humaine. Veuillez prendre le relais.`;
 
             try {
-              await sendWhatsAppMessage(token, SUPPORT_PHONE, notificationMessage);
+              await sendWhatsAppMessage(
+                token,
+                SUPPORT_PHONE,
+                notificationMessage
+              );
               console.log("Notification envoyée: limite d'échanges atteinte");
 
-              const clientMessage = "Votre demande a été transmise à un conseiller client qui vous répondra dans les plus brefs délais. Merci de votre patience.";
+              const clientMessage =
+                "Votre demande a été transmise à un conseiller client qui vous répondra dans les plus brefs délais. Merci de votre patience.";
               await sendWhatsAppMessage(token, senderPhone, clientMessage);
 
-              await supabase.from("messages").insert([{
-                conversation_id: conversationId,
-                user_id: userId,
-                content: messageContent,
-                response: clientMessage,
-                metadata: {
-                  delegated: true,
-                  reason: "exchange_limit_reached"
-                }
-              }]);
+              await supabase.from("messages").insert([
+                {
+                  conversation_id: conversationId,
+                  user_id: userId,
+                  content: messageContent,
+                  response: clientMessage,
+                  metadata: {
+                    delegated: true,
+                    reason: "exchange_limit_reached",
+                  },
+                },
+              ]);
 
               processedMessages.push({
                 phone: senderPhone,
                 status: "delegated",
                 reason: "exchange_limit_reached",
               });
-              
+
               const terminationResult = await terminateAndDecrementLimit(
                 supabase,
                 supabasePublic,
                 conversationId,
                 userId
               );
-              
+
               if (!terminationResult.success) {
                 console.error(terminationResult.message);
               }
 
               return;
             } catch (notifError) {
-              console.error("Erreur lors de l'envoi de notification:", notifError);
+              console.error(
+                "Erreur lors de l'envoi de notification:",
+                notifError
+              );
             }
           }
 
           // Stocker le message temporairement
           const { data: insertedMessage } = await supabase
             .from("messages")
-            .insert([{
-              conversation_id: conversationId,
-              user_id: userId,
-              content: messageContent,
-              response: DEFAULT_BOT_RESPONSE,
-            }])
+            .insert([
+              {
+                conversation_id: conversationId,
+                user_id: userId,
+                content: messageContent,
+                response: DEFAULT_BOT_RESPONSE,
+              },
+            ])
             .select()
             .single();
 
           let aiResponse = DEFAULT_BOT_RESPONSE;
-
+          let searchResult; 
+          let chunks = []; 
+          let analysis = { language: "fr", intents: [] };
           try {
             // NOUVEAU : Utilisation du système d'embeddings
             console.log("🔍 Recherche adaptative pour:", messageContent);
-            
+
             // Vérifier le cache
-            let searchResult = searchCache.get(messageContent, agent.id);
-            
+           console.log(agent.id)
+            searchResult = searchCache.get(messageContent, agent.id);
+
             if (!searchResult) {
               // Recherche adaptative
               searchResult = await adaptiveSearch(
@@ -345,15 +393,17 @@ export default defineEventHandler(async (event) => {
                 openai,
                 supabase
               );
-              
+
               // Mettre en cache
               searchCache.set(messageContent, agent.id, searchResult);
             }
-            
+
             const { chunks, analysis } = searchResult;
             console.log(`📚 ${chunks.length} chunks trouvés`);
             console.log(`🗣️ Langue détectée: ${analysis.language}`);
-            console.log(`🎯 Intentions: ${analysis.intents.map(i => i.type).join(', ')}`);
+            console.log(
+              `🎯 Intentions: ${analysis.intents.map((i) => i.type).join(", ")}`
+            );
 
             // Générer le prompt optimisé
             const systemPrompt = generateOptimizedPrompt(
@@ -364,9 +414,12 @@ export default defineEventHandler(async (event) => {
             );
 
             // Instructions multilingues si nécessaire
-            const isMultilingual = analysis.language !== 'fr';
-            const finalSystemPrompt = systemPrompt + (isMultilingual ? 
-              `\n\nIMPORTANT: L'utilisateur a posé sa question en ${analysis.language}. Réponds dans la même langue.` : '');
+            const isMultilingual = analysis.language !== "fr";
+            const finalSystemPrompt =
+              systemPrompt +
+              (isMultilingual
+                ? `\n\nIMPORTANT: L'utilisateur a posé sa question en ${analysis.language}. Réponds dans la même langue.`
+                : "");
 
             // Récupérer l'historique récent
             const { data: recentMessages } = await supabase
@@ -376,53 +429,69 @@ export default defineEventHandler(async (event) => {
               .order("created_at", { ascending: false })
               .limit(10);
 
-            const conversationHistory = recentMessages
-              ?.reverse()
-              .slice(0, -1) // Exclure le dernier message
-              .map(msg => ({
-                role: msg.response ? "assistant" : "user",
-                content: msg.response || msg.content
-              })) || [];
+            const conversationHistory =
+              recentMessages
+                ?.reverse()
+                .slice(0, -1) // Exclure le dernier message
+                .map((msg) => ({
+                  role: msg.response ? "assistant" : "user",
+                  content: msg.response || msg.content,
+                })) || [];
 
             // Générer la réponse avec GPT
             const completion = await openai.chat.completions.create({
-              model: "gpt-4o-mini",
+              model: "gpt-4.1-nano",
               messages: [
                 { role: "system", content: finalSystemPrompt },
                 ...conversationHistory,
-                { role: "user", content: messageContent }
+                { role: "user", content: messageContent },
               ],
               max_tokens: 400,
               temperature: 0.3,
             });
 
-            aiResponse = completion.choices[0]?.message?.content || 
-              (analysis.language === 'en' ? "Sorry, I couldn't generate a response." : 
-               analysis.language === 'es' ? "Lo siento, no pude generar una respuesta." :
-               "Désolé, je n'ai pas pu générer de réponse.");
+            aiResponse =
+              completion.choices[0]?.message?.content ||
+              (analysis.language === "en"
+                ? "Sorry, I couldn't generate a response."
+                : analysis.language === "es"
+                ? "Lo siento, no pude generar una respuesta."
+                : "Désolé, je n'ai pas pu générer de réponse.");
 
             // Vérifier si la réponse est valide
             if (!aiResponse || aiResponse === DEFAULT_BOT_RESPONSE) {
               console.warn("Réponse IA vide ou par défaut");
-              aiResponse = "Je suis désolé, je n'ai pas pu traiter votre demande. Un conseiller va prendre le relais.";
-              
+              aiResponse =
+                "Je suis désolé, je n'ai pas pu traiter votre demande. Un conseiller va prendre le relais.";
+
               const notificationMessage = `Alerte: Problème de réponse IA pour ${senderName} (${senderPhone}). Intervention nécessaire.`;
-              
+
               try {
-                await sendWhatsAppMessage(token, SUPPORT_PHONE, notificationMessage);
+                await sendWhatsAppMessage(
+                  token,
+                  SUPPORT_PHONE,
+                  notificationMessage
+                );
               } catch (notifError) {
                 console.error("Erreur notification:", notifError);
               }
             }
-
           } catch (aiError) {
-            console.error("Erreur lors de l'obtention de la réponse IA:", aiError);
-            aiResponse = "Je suis désolé, je rencontre des difficultés techniques. Un conseiller va vous répondre rapidement.";
-            
+            console.error(
+              "Erreur lors de l'obtention de la réponse IA:",
+              aiError
+            );
+            aiResponse =
+              "Je suis désolé, je rencontre des difficultés techniques. Un conseiller va vous répondre rapidement.";
+
             const notificationMessage = `Erreur IA: ${aiError.message} pour ${senderName} (${senderPhone})`;
-            
+
             try {
-              await sendWhatsAppMessage(token, SUPPORT_PHONE, notificationMessage);
+              await sendWhatsAppMessage(
+                token,
+                SUPPORT_PHONE,
+                notificationMessage
+              );
             } catch (notifError) {
               console.error("Erreur notification:", notifError);
             }
@@ -431,30 +500,37 @@ export default defineEventHandler(async (event) => {
           // Mettre à jour avec la réponse finale et les métadonnées
           await supabase
             .from("messages")
-            .update({ 
+            .update({
               response: aiResponse,
               metadata: {
-                language: searchResult?.analysis?.language || 'fr',
-                intents: searchResult?.analysis?.intents?.map(i => i.type) || [],
+                language: searchResult?.analysis?.language || "fr",
+                intents:
+                  searchResult?.analysis?.intents?.map((i) => i.type) || [],
                 cached: !!searchCache.get(messageContent, agent.id),
-                chunks_found: chunks?.length || 0
-              }
+                chunks_found: chunks?.length || 0,
+              },
             })
             .eq("id", insertedMessage.id);
 
           // Envoyer la réponse via WhatsApp
-          const response = await sendWhatsAppMessage(token, senderPhone, aiResponse);
+          const response = await sendWhatsAppMessage(
+            token,
+            senderPhone,
+            aiResponse
+          );
 
           processedMessages.push({
             phone: senderPhone,
             status: response.sent ? "sent" : "failed",
             aiResponse: aiResponse !== DEFAULT_BOT_RESPONSE,
             language: searchResult?.analysis?.language,
-            fromCache: !!searchCache.get(messageContent, agent.id)
+            fromCache: !!searchCache.get(messageContent, agent.id),
           });
-
         } catch (err) {
-          console.error(`Erreur lors du traitement du message pour ${senderPhone}:`, err);
+          console.error(
+            `Erreur lors du traitement du message pour ${senderPhone}:`,
+            err
+          );
           processedMessages.push({
             phone: senderPhone,
             status: "error",
@@ -510,20 +586,22 @@ export default defineEventHandler(async (event) => {
             conversation.id,
             userId
           );
-          
+
           if (!terminationResult.success) {
             console.error(terminationResult.message);
           }
 
           const { data: newConversation } = await supabase
             .from("conversations")
-            .insert([{
-              agent_id: agentId,
-              phone,
-              name,
-              user_id: userId,
-              status: "active",
-            }])
+            .insert([
+              {
+                agent_id: agentId,
+                phone,
+                name,
+                user_id: userId,
+                status: "active",
+              },
+            ])
             .select()
             .single();
 
@@ -537,18 +615,22 @@ export default defineEventHandler(async (event) => {
 
     const { data: newConversation, error: insertError } = await supabase
       .from("conversations")
-      .insert([{
-        agent_id: agentId,
-        phone,
-        name,
-        user_id: userId,
-        status: "active",
-      }])
+      .insert([
+        {
+          agent_id: agentId,
+          phone,
+          name,
+          user_id: userId,
+          status: "active",
+        },
+      ])
       .select()
       .single();
 
     if (insertError) {
-      throw new Error(`Erreur lors de la création de conversation: ${insertError.message}`);
+      throw new Error(
+        `Erreur lors de la création de conversation: ${insertError.message}`
+      );
     }
 
     isNewConversation = true;
@@ -579,14 +661,22 @@ export default defineEventHandler(async (event) => {
   }
 
   // Fonction pour terminer une conversation et décrémenter le crédit
-  async function terminateAndDecrementLimit(supabase, supabasePublic, conversationId, userId) {
+  async function terminateAndDecrementLimit(
+    supabase,
+    supabasePublic,
+    conversationId,
+    userId
+  ) {
     const { error: updateError } = await supabase
       .from("conversations")
       .update({ status: "terminated" })
       .eq("id", conversationId);
 
     if (updateError) {
-      console.error("Erreur lors de la terminaison de la conversation:", updateError);
+      console.error(
+        "Erreur lors de la terminaison de la conversation:",
+        updateError
+      );
       return {
         success: false,
         message: "Erreur lors de la terminaison de la conversation",
@@ -600,7 +690,10 @@ export default defineEventHandler(async (event) => {
       .single();
 
     if (fetchError) {
-      console.error("Erreur lors de la récupération de l'abonnement:", fetchError);
+      console.error(
+        "Erreur lors de la récupération de l'abonnement:",
+        fetchError
+      );
       return {
         success: false,
         message: "Erreur lors de la récupération de l'abonnement",

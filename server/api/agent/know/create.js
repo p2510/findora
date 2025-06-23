@@ -4,6 +4,7 @@ import OpenAI from "openai";
 import { vectorizeKnowledgeBase } from "~/server/utils/embeddings";
 
 export default defineEventHandler(async (event) => {
+  const config = useRuntimeConfig();
   const supabaseUrl = "https://puxvccwmxfpgyocglioe.supabase.co";
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1eHZjY3dteGZwZ3lvY2dsaW9lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczMjcyNzA4NCwiZXhwIjoyMDQ4MzAzMDg0fQ.amjPfsZkysKczrI29qJmgabu-NQjyj-Sza3sWmcm4iA";
   
@@ -67,12 +68,29 @@ export default defineEventHandler(async (event) => {
 
     // Initialiser OpenAI
     const openai = new OpenAI({ 
-      apiKey:"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"
+      apiKey: config.openai_api_key || "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"
     });
 
     console.log("🧠 Début de la vectorisation de la knowledge base");
     
-    // Vectoriser la knowledge base
+    // Si mise à jour, supprimer les anciens embeddings AVANT la vectorisation
+    if (existingKnowledge) {
+      console.log("🗑️ Suppression des anciens embeddings...");
+      
+      const { error: deleteError, count: deletedCount } = await supabaseAgent
+        .from("knowledge_embeddings")
+        .delete()
+        .eq('agent_id', existingAgent.id);
+        
+      if (deleteError) {
+        console.error("❌ Erreur suppression anciens embeddings:", deleteError);
+        // Ne pas bloquer le processus, continuer avec la nouvelle vectorisation
+      } else {
+        console.log(`✅ ${deletedCount || 0} anciens embeddings supprimés`);
+      }
+    }
+    
+    // Vectoriser la nouvelle knowledge base
     let totalChunks = 0;
     try {
       totalChunks = await vectorizeKnowledgeBase(
@@ -82,7 +100,7 @@ export default defineEventHandler(async (event) => {
         supabaseAgent
       );
       
-      console.log(`✅ ${totalChunks} chunks créés et sauvegardés`);
+      console.log(`✅ ${totalChunks} nouveaux chunks créés et sauvegardés`);
     } catch (vectorError) {
       console.error("❌ Erreur vectorisation:", vectorError);
       throw new Error("Erreur lors de la vectorisation: " + vectorError.message);
@@ -100,16 +118,6 @@ export default defineEventHandler(async (event) => {
     };
 
     if (existingKnowledge) {
-      // Supprimer les anciens embeddings avant mise à jour
-      const { error: deleteError } = await supabaseAgent
-        .from("knowledge_embeddings")
-        .delete()
-        .eq('agent_id', existingAgent.id);
-        
-      if (deleteError) {
-        console.error("❌ Erreur suppression anciens embeddings:", deleteError);
-      }
-
       // Mettre à jour
       const { data, error } = await supabaseAgent
         .from("knowledge_base")
