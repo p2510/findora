@@ -205,7 +205,7 @@
       </div>
 
       <!-- Actions en bas -->
-      <div class="fixed w-full bottom-28 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 p-3 flex gap-2">
+      <div class="fixed z-30 w-full bottom-28 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 p-3 flex gap-2">
         <a
           :href="'tel:+' + chatStore.selectedConversation.phone"
           class="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2.5 flex items-center justify-center gap-2 transition-colors"
