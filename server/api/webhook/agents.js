@@ -438,6 +438,7 @@ export default defineEventHandler(async (event) => {
                   content: msg.response || msg.content,
                 })) || [];
 
+          
             // Générer la réponse avec GPT
             const completion = await openai.chat.completions.create({
               model: "gpt-4.1-nano",
@@ -448,6 +449,7 @@ export default defineEventHandler(async (event) => {
               ],
               max_tokens: 400,
               temperature: 0.3,
+              user:userId
             });
 
             aiResponse =
