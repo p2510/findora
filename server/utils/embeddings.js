@@ -253,7 +253,7 @@ export const generateOptimizedPrompt = (
     relevantChunks.length > 0
       ? relevantChunks.map((chunk) => chunk.content).join("\n\n---\n\n")
       : "Aucun contexte spécifique disponible.";
-
+  const now = new Date();
   const currentDateTime = now.toLocaleDateString("fr-FR", options);
   // NOUVEAU : Instructions améliorées pour éviter les problèmes identifiés
   return `Tu es ${businessName}, un agent de l'entreprise. Tu travailles pour l'entreprise, tu n'es PAS l'entreprise elle-même.
