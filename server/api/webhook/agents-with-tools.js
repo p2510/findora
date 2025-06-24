@@ -16,7 +16,8 @@ export default defineEventHandler(async (event) => {
   // Configuration constants
   const config = useRuntimeConfig();
   const supabaseUrl = "https://puxvccwmxfpgyocglioe.supabase.co";
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1eHZjY3dteGZwZ3lvY2dsaW9lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczMjcyNzA4NCwiZXhwIjoyMDQ4MzAzMDg0fQ.amjPfsZkysKczrI29qJmgabu-NQjyj-Sza3sWmcm4iA";
+  const supabaseKey =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1eHZjY3dteGZwZ3lvY2dsaW9lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczMjcyNzA4NCwiZXhwIjoyMDQ4MzAzMDg0fQ.amjPfsZkysKczrI29qJmgabu-NQjyj-Sza3sWmcm4iA";
 
   const CONVERSATION_TIMEOUT_MINUTES = 30;
   const DEFAULT_BOT_RESPONSE = "Nous vous répondrons dans un instant";
@@ -25,7 +26,9 @@ export default defineEventHandler(async (event) => {
 
   // Initialiser OpenAI
   const openai = new OpenAI({
-    apiKey: config.openai_api_key || "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",
+    apiKey:
+      config.openai_api_key ||
+      "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",
   });
 
   const supabase = createClient(supabaseUrl, supabaseKey, {
@@ -44,70 +47,460 @@ export default defineEventHandler(async (event) => {
       return { success: false, message: "Données de webhook invalides" };
     }
 
-    // Validation du canal et récupération des informations
-    const channelValidation = await validateChannel(channelId, supabasePublic);
-    if (!channelValidation.valid) {
-      return { success: false, message: channelValidation.message };
+    // Récupérer les informations du canal
+    const { data: channel, error: channelError } = await supabasePublic
+      .from("whatsapp_backlogs")
+      .select("expire_date, chanel_id, token, user_id")
+      .eq("chanel_id", channelId)
+      .single();
+
+    if (channelError) {
+      console.error("Erreur lors de la récupération du canal:", channelError);
+      return { success: false, message: "Canal introuvable" };
     }
 
-    const { token, userId } = channelValidation;
-
-    // Vérifier l'abonnement
-    const subscriptionCheck = await checkSubscription(userId, supabasePublic);
-    if (!subscriptionCheck.valid) {
-      return { success: false, message: subscriptionCheck.message };
+    // Vérification de la date d'expiration
+    if (new Date() > new Date(channel.expire_date)) {
+      return { success: false, message: "Canal expiré" };
     }
 
-    // Récupérer l'agent
-    const agentData = await getAgent(userId, supabase);
-    if (!agentData.valid) {
-      return { success: false, message: agentData.message };
+    const token = channel.token;
+    const userId = channel.user_id;
+
+    // Récupérer les informations de l'abonnement
+    const { data: subscription, error: subscriptionError } =
+      await supabasePublic
+        .from("subscriptions")
+        .select("subscription_type, max_limit")
+        .eq("user_id", userId)
+        .single();
+
+    if (subscriptionError) {
+      console.error(
+        "Erreur lors de la récupération de l'abonnement:",
+        subscriptionError
+      );
+      return { success: false, message: "Abonnement introuvable" };
     }
 
-    const { agent } = agentData;
-
-    // Vérifier WhatsApp
-    const whatsappCheck = await verifyWhatsApp(token);
-    if (!whatsappCheck.valid) {
-      return { success: false, message: whatsappCheck.message };
+    if (subscription.max_limit <= 0) {
+      return { success: false, message: "Crédit insuffisant" };
     }
 
-    // Récupérer le numéro de support
-    SUPPORT_PHONE = await getSupportPhone(channelId) || SUPPORT_PHONE;
+    // Récupérer les informations de l'agent
+    const { data: agent, error: agentError } = await supabase
+      .from("agent_configs")
+      .select("*")
+      .eq("user_id", userId)
+      .single();
 
-    // Traiter les messages
+    if (agentError) {
+      console.error("Erreur lors de la récupération de l'agent:", agentError);
+      return { success: false, message: "Agent non trouvé" };
+    }
+
+    if (!agent.status) {
+      return { success: false, message: "Agent inactif" };
+    }
+
+    // Vérifier l'état de l'API WhatsApp
+    const healthResponse = await fetch("https://gate.whapi.cloud/health", {
+      method: "GET",
+      headers: {
+        accept: "application/json",
+        authorization: `Bearer ${token}`,
+      },
+    }).then((res) => res.json());
+
+    if (healthResponse.status?.text !== "AUTH") {
+      return { success: false, message: "Canal WhatsApp non autorisé" };
+    }
+
+    // Récupérer les informations utilisateur pour le numéro de support
+    try {
+      const usersResponse = await fetch(
+        `https://manager.whapi.cloud/channels/${channelId}`,
+        {
+          method: "GET",
+          headers: {
+            accept: "application/json",
+            authorization: `Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImExZDI2YWYyYmY4MjVmYjI5MzVjNWI3OTY3ZDA3YmYwZTMxZWIxYjcifQ.eyJwYXJ0bmVyIjp0cnVlLCJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vd2hhcGktYTcyMWYiLCJhdWQiOiJ3aGFwaS1hNzIxZiIsImF1dGhfdGltZSI6MTc0MDI0MjM1NCwidXNlcl9pZCI6IlQyTWlGanlkSnBlaGhIbWcyUWszTnFTMlFKOTIiLCJzdWIiOiJUMk1pRmp5ZEpwZWhoSG1nMlFrM05xUzJRSjkyIiwiaWF0IjoxNzQwMjQyMzU0LCJleHAiOjE4MDA3MjIzNTQsImVtYWlsIjoicG91cG9pbmFrYTAzQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7ImVtYWlsIjpbInBvdXBvaW5ha2EwM0BnbWFpbC5jb20iXX0sInNpZ25faW5fcHJvdmlkZXIiOiJwYXNzd29yZCJ9fQ.SeY-wcxw9lYuKOsgUN4Yyq4mSLq5WR_6K5hHh8kwjjUxG022yh21OaUmX2v4fY8S2lMZ4ndASEvHh-LAgV4Z38JGlC-vjmjciaznvur-XSrj7Vp2bOGYuGVstze_2KdQYXozQnR0HhafIUkI-JFSjy3dl2KYbiLGiVBw52-por8BcleeNfe1Sa75PbDrYI79Y3_ey7aOl3BiyrEKC-w7cJf9tCvOE-4cj8cLfIn6IkapygX6kpIdi3FFIkmk_XSNtfbJZhSnKC6KWRNA6V7zvN9JpkI3_bU5IzOWpEGzFele3Yq5tauPruS1uq6og6Yi265DqO0ZmHFGfz3B60ovXw`,
+          },
+        }
+      ).then((res) => res.json());
+
+      if (usersResponse?.phone) {
+        SUPPORT_PHONE = usersResponse.phone;
+      }
+    } catch (err) {
+      console.log(
+        "Impossible de récupérer le numéro de support, utilisation du numéro par défaut"
+      );
+    }
+
+    // Traiter les messages reçus
     const processedMessages = [];
 
     await Promise.all(
       messages.map(async (message) => {
         if (message.from_me) return;
 
-        const messageData = await extractMessageContent(message, openai);
-        if (!messageData.content) return;
+        const senderPhone = message.from;
+        const senderName = message?.from_name || "";
+        let messageContent = null;
+
+        // Traitement du message texte ou vocal
+        if (message.text) {
+          messageContent = message.text?.body || "";
+        } else if (message.voice) {
+          try {
+            const tempDir = "/tmp";
+            const voiceUrl = message.voice.link;
+
+            if (voiceUrl) {
+              console.log(
+                `Téléchargement du fichier audio depuis: ${voiceUrl}`
+              );
+
+              const tempFilePath = path.join(
+                tempDir,
+                `voice_${Date.now()}_${Math.random()
+                  .toString(36)
+                  .substring(2, 15)}.oga`
+              );
+
+              const response = await axios({
+                method: "GET",
+                url: voiceUrl,
+                responseType: "arraybuffer",
+              });
+
+              await fsPromises.writeFile(tempFilePath, response.data);
+              console.log(
+                `Fichier audio téléchargé et enregistré à: ${tempFilePath}`
+              );
+
+              const transcription = await openai.audio.transcriptions.create({
+                file: fs.createReadStream(tempFilePath),
+                model: "whisper-1",
+                response_format: "text",
+              });
+
+              console.log(`Transcription obtenue: ${transcription}`);
+              await fsPromises.unlink(tempFilePath);
+
+              messageContent = transcription;
+            }
+          } catch (voiceError) {
+            console.error(
+              "Erreur lors du traitement du message vocal:",
+              voiceError
+            );
+            messageContent =
+              "Je n'ai pas pu comprendre votre message vocal. Pourriez-vous envoyer un message texte à la place?";
+          }
+        }
+
+        if (!messageContent) return;
 
         try {
-          const result = await processMessage({
-            ...messageData,
-            agent,
-            userId,
-            token,
-            SUPPORT_PHONE,
-            supabase,
-            supabasePublic,
-            openai,
-            tools,
-            MAX_EXCHANGES,
-            DEFAULT_BOT_RESPONSE,
-            CONVERSATION_TIMEOUT_MINUTES
-          });
+          // Gérer la conversation
+          const { conversationId, isNewConversation } =
+            await handleConversation(
+              supabase,
+              agent.id,
+              userId,
+              senderPhone,
+              senderName
+            );
 
-          processedMessages.push(result);
-        } catch (error) {
-          console.error(`Erreur traitement message ${messageData.senderPhone}:`, error);
+          // Compter le nombre d'échanges
+          const { count: exchangeCount } = await supabase
+            .from("messages")
+            .select("*", { count: "exact", head: true })
+            .eq("conversation_id", conversationId);
+
+          if (exchangeCount >= MAX_EXCHANGES) {
+            const notificationMessage = `La conversation avec ${senderName} (${senderPhone}) nécessite une intervention humaine. Veuillez prendre le relais.`;
+
+            try {
+              await sendWhatsAppMessage(
+                token,
+                SUPPORT_PHONE,
+                notificationMessage
+              );
+              console.log("Notification envoyée: limite d'échanges atteinte");
+
+              const clientMessage =
+                "Votre demande a été transmise à un autre conseiller client qui vous répondra dans les plus brefs délais. Merci de votre patience.";
+              await sendWhatsAppMessage(token, senderPhone, clientMessage);
+
+              await supabase.from("messages").insert([
+                {
+                  conversation_id: conversationId,
+                  user_id: userId,
+                  content: messageContent,
+                  response: clientMessage,
+                  metadata: {
+                    delegated: true,
+                    reason: "exchange_limit_reached",
+                  },
+                },
+              ]);
+
+              processedMessages.push({
+                phone: senderPhone,
+                status: "delegated",
+                reason: "exchange_limit_reached",
+              });
+
+              const terminationResult = await terminateAndDecrementLimit(
+                supabase,
+                supabasePublic,
+                conversationId,
+                userId
+              );
+
+              if (!terminationResult.success) {
+                console.error(terminationResult.message);
+              }
+
+              return;
+            } catch (notifError) {
+              console.error(
+                "Erreur lors de l'envoi de notification:",
+                notifError
+              );
+            }
+          }
+
+          // Stocker le message temporairement
+          const { data: insertedMessage } = await supabase
+            .from("messages")
+            .insert([
+              {
+                conversation_id: conversationId,
+                user_id: userId,
+                content: messageContent,
+                response: DEFAULT_BOT_RESPONSE,
+              },
+            ])
+            .select()
+            .single();
+
+          let aiResponse = DEFAULT_BOT_RESPONSE;
+          let searchResult;
+          let chunks = [];
+          let analysis = { language: "fr", intents: [] };
+          let toolCall = null;
+          let delegated = false;
+          let reason = null;
+
+          try {
+            // Utilisation du système d'embeddings
+            console.log("🔍 Recherche adaptative pour:", messageContent);
+
+            searchResult = searchCache.get(messageContent, agent.id);
+
+            if (!searchResult) {
+              searchResult = await adaptiveSearch(
+                messageContent,
+                agent.id,
+                openai,
+                supabase
+              );
+
+              searchCache.set(messageContent, agent.id, searchResult);
+            }
+
+            ({ chunks, analysis } = searchResult);
+            console.log(`📚 ${chunks.length} chunks trouvés`);
+            console.log(`🗣️ Langue détectée: ${analysis.language}`);
+            console.log(
+              `🎯 Intentions: ${analysis.intents.map((i) => i.type).join(", ")}`
+            );
+
+            // Générer le prompt optimisé
+            const systemPrompt = generateOptimizedPrompt(
+              agent.name,
+              agent.personality,
+              agent.goal,
+              chunks
+            );
+
+            const isMultilingual = analysis.language !== "fr";
+            const finalSystemPrompt =
+              systemPrompt +
+              (isMultilingual
+                ? `\n\nIMPORTANT: L'utilisateur a posé sa question en ${analysis.language}. Réponds dans la même langue.`
+                : "");
+
+            // Récupérer l'historique récent
+            const { data: recentMessages } = await supabase
+              .from("messages")
+              .select("content, response, created_at")
+              .eq("conversation_id", conversationId)
+              .order("created_at", { ascending: false })
+              .limit(10);
+
+            const conversationHistory =
+              recentMessages
+                ?.reverse()
+                .slice(0, -1) // Exclure le dernier message
+                .map((msg) => ({
+                  role: msg.response ? "assistant" : "user",
+                  content: msg.response || msg.content,
+                })) || [];
+
+            // Générer la réponse avec GPT et les outils
+            const completion = await openai.chat.completions.create({
+              model: "gpt-4.1-nano",
+              messages: [
+                { role: "system", content: finalSystemPrompt },
+                ...conversationHistory,
+                { role: "user", content: messageContent },
+              ],
+              max_tokens: 400,
+              temperature: 0.3,
+              tools,
+              tool_choice: "auto",
+            });
+
+            // Vérifier si un appel de fonction a été effectué
+            if (completion.choices[0].message.tool_calls) {
+              const toolCallData = completion.choices[0].message.tool_calls[0];
+              toolCall = toolCallData.function.name;
+
+              const toolResult = await handleToolCall(toolCallData, {
+                token,
+                supabase,
+                senderPhone,
+                senderName,
+                conversationId,
+                userId,
+                insertedMessageId: insertedMessage.id,
+                SUPPORT_PHONE,
+                agentId: agent.id
+              });
+
+              aiResponse = toolResult.response;
+              delegated = toolResult.delegated || false;
+              reason = toolResult.reason;
+
+              // Si c'était une délégation, terminer la conversation
+              if (delegated) {
+                processedMessages.push({
+                  phone: senderPhone,
+                  status: "delegated",
+                  reason: reason,
+                  tool_call: toolCall,
+                });
+
+                const terminationResult = await terminateAndDecrementLimit(
+                  supabase,
+                  supabasePublic,
+                  conversationId,
+                  userId
+                );
+
+                if (!terminationResult.success) {
+                  console.error(terminationResult.message);
+                }
+
+                return;
+              }
+            } else {
+              // Pas d'appel de fonction, utiliser la réponse textuelle
+              aiResponse =
+                completion.choices[0]?.message?.content ||
+                (analysis.language === "en"
+                  ? "Sorry, I couldn't generate a response."
+                  : analysis.language === "es"
+                  ? "Lo siento, no pude generar una respuesta."
+                  : "Désolé, je n'ai pas pu générer de réponse.");
+
+              // Vérifier si la réponse est valide
+              if (!aiResponse || aiResponse === DEFAULT_BOT_RESPONSE) {
+                console.warn("Réponse IA vide ou par défaut");
+                aiResponse =
+                  "Je suis désolé, je n'ai pas pu traiter votre demande. Un conseiller va prendre le relais.";
+
+                const notificationMessage = `Alerte: Problème de réponse IA pour ${senderName} (${senderPhone}). Intervention nécessaire.`;
+
+                try {
+                  await sendWhatsAppMessage(
+                    token,
+                    SUPPORT_PHONE,
+                    notificationMessage
+                  );
+                } catch (notifError) {
+                  console.error("Erreur notification:", notifError);
+                }
+              }
+            }
+          } catch (aiError) {
+            console.error(
+              "Erreur lors de l'obtention de la réponse IA:",
+              aiError
+            );
+            aiResponse =
+              "Je suis désolé, je rencontre des difficultés techniques. Un conseiller va vous répondre rapidement.";
+
+            const notificationMessage = `Erreur IA: ${aiError.message} pour ${senderName} (${senderPhone})`;
+
+            try {
+              await sendWhatsAppMessage(
+                token,
+                SUPPORT_PHONE,
+                notificationMessage
+              );
+            } catch (notifError) {
+              console.error("Erreur notification:", notifError);
+            }
+          }
+
+          // Mettre à jour avec la réponse finale et les métadonnées
+          await supabase
+            .from("messages")
+            .update({
+              response: aiResponse,
+              metadata: {
+                language: searchResult?.analysis?.language || "fr",
+                intents:
+                  searchResult?.analysis?.intents?.map((i) => i.type) || [],
+                cached: !!searchCache.get(messageContent, agent.id),
+                chunks_found: chunks?.length || 0,
+                tool_call: toolCall,
+                delegated: delegated,
+                reason: reason,
+              },
+            })
+            .eq("id", insertedMessage.id);
+
+          // Envoyer la réponse via WhatsApp
+          const response = await sendWhatsAppMessage(
+            token,
+            senderPhone,
+            aiResponse
+          );
+
           processedMessages.push({
-            phone: messageData.senderPhone,
+            phone: senderPhone,
+            status: response.sent ? "sent" : "failed",
+            aiResponse: aiResponse !== DEFAULT_BOT_RESPONSE,
+            language: searchResult?.analysis?.language,
+            fromCache: !!searchCache.get(messageContent, agent.id),
+            tool_call: toolCall,
+          });
+        } catch (err) {
+          console.error(
+            `Erreur lors du traitement du message pour ${senderPhone}:`,
+            err
+          );
+          processedMessages.push({
+            phone: senderPhone,
             status: "error",
-            error: error.message
+            message: err.message,
           });
         }
       })
@@ -126,437 +519,171 @@ export default defineEventHandler(async (event) => {
       error: error.message,
     };
   }
-});
 
-// Fonctions utilitaires séparées
+  // Fonction pour gérer la création ou mise à jour des conversations
+  async function handleConversation(supabase, agentId, userId, phone, name) {
+    const { data: conversation, error } = await supabase
+      .from("conversations")
+      .select("id, status")
+      .eq("agent_id", agentId)
+      .eq("phone", phone)
+      .eq("status", "active")
+      .single();
 
-async function validateChannel(channelId, supabasePublic) {
-  const { data: channel, error } = await supabasePublic
-    .from("whatsapp_backlogs")
-    .select("expire_date, chanel_id, token, user_id")
-    .eq("chanel_id", channelId)
-    .single();
+    let isNewConversation = false;
 
-  if (error) {
-    console.error("Erreur récupération canal:", error);
-    return { valid: false, message: "Canal introuvable" };
-  }
+    if (!error && conversation) {
+      const { data: lastMessage } = await supabase
+        .from("messages")
+        .select("created_at")
+        .eq("conversation_id", conversation.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
 
-  if (new Date() > new Date(channel.expire_date)) {
-    return { valid: false, message: "Canal expiré" };
-  }
+      if (lastMessage) {
+        const lastMessageTime = new Date(lastMessage.created_at);
+        const timeDifference = (new Date() - lastMessageTime) / 1000 / 60;
 
-  return { valid: true, token: channel.token, userId: channel.user_id };
-}
+        if (timeDifference > CONVERSATION_TIMEOUT_MINUTES) {
+          const terminationResult = await terminateAndDecrementLimit(
+            supabase,
+            supabasePublic,
+            conversation.id,
+            userId
+          );
 
-async function checkSubscription(userId, supabasePublic) {
-  const { data: subscription, error } = await supabasePublic
-    .from("subscriptions")
-    .select("subscription_type, max_limit")
-    .eq("user_id", userId)
-    .single();
+          if (!terminationResult.success) {
+            console.error(terminationResult.message);
+          }
 
-  if (error) {
-    console.error("Erreur récupération abonnement:", error);
-    return { valid: false, message: "Abonnement introuvable" };
-  }
+          const { data: newConversation } = await supabase
+            .from("conversations")
+            .insert([
+              {
+                agent_id: agentId,
+                phone,
+                name,
+                user_id: userId,
+                status: "active",
+              },
+            ])
+            .select()
+            .single();
 
-  if (subscription.max_limit <= 0) {
-    return { valid: false, message: "Crédit insuffisant" };
-  }
+          isNewConversation = true;
+          return { conversationId: newConversation.id, isNewConversation };
+        }
 
-  return { valid: true, subscription };
-}
-
-async function getAgent(userId, supabase) {
-  const { data: agent, error } = await supabase
-    .from("agent_configs")
-    .select("*")
-    .eq("user_id", userId)
-    .single();
-
-  if (error) {
-    console.error("Erreur récupération agent:", error);
-    return { valid: false, message: "Agent non trouvé" };
-  }
-
-  if (!agent.status) {
-    return { valid: false, message: "Agent inactif" };
-  }
-
-  return { valid: true, agent };
-}
-
-async function verifyWhatsApp(token) {
-  try {
-    const healthResponse = await fetch("https://gate.whapi.cloud/health", {
-      method: "GET",
-      headers: {
-        accept: "application/json",
-        authorization: `Bearer ${token}`,
-      },
-    }).then((res) => res.json());
-
-    if (healthResponse.status?.text !== "AUTH") {
-      return { valid: false, message: "Canal WhatsApp non autorisé" };
+        return { conversationId: conversation.id, isNewConversation };
+      }
     }
 
-    return { valid: true };
-  } catch (error) {
-    return { valid: false, message: "Erreur vérification WhatsApp" };
-  }
-}
+    const { data: newConversation, error: insertError } = await supabase
+      .from("conversations")
+      .insert([
+        {
+          agent_id: agentId,
+          phone,
+          name,
+          user_id: userId,
+          status: "active",
+        },
+      ])
+      .select()
+      .single();
 
-async function getSupportPhone(channelId) {
-  try {
-    const usersResponse = await fetch(
-      `https://manager.whapi.cloud/channels/${channelId}`,
-      {
-        method: "GET",
+    if (insertError) {
+      throw new Error(
+        `Erreur lors de la création de conversation: ${insertError.message}`
+      );
+    }
+
+    isNewConversation = true;
+    return { conversationId: newConversation.id, isNewConversation };
+  }
+
+  // Fonction pour envoyer un message WhatsApp
+  async function sendWhatsAppMessage(token, to, message) {
+    try {
+      const response = await fetch("https://gate.whapi.cloud/messages/text", {
+        method: "POST",
         headers: {
           accept: "application/json",
-          authorization: `Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImExZDI2YWYyYmY4MjVmYjI5MzVjNWI3OTY3ZDA3YmYwZTMxZWIxYjcifQ.eyJwYXJ0bmVyIjp0cnVlLCJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vd2hhcGktYTcyMWYiLCJhdWQiOiJ3aGFwaS1hNzIxZiIsImF1dGhfdGltZSI6MTc0MDI0MjM1NCwidXNlcl9pZCI6IlQyTWlGanlkSnBlaGhIbWcyUWszTnFTMlFKOTIiLCJzdWIiOiJUMk1pRmp5ZEpwZWhoSG1nMlFrM05xUzJRSjkyIiwiaWF0IjoxNzQwMjQyMzU0LCJleHAiOjE4MDA3MjIzNTQsImVtYWlsIjoicG91cG9pbmFrYTAzQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7ImVtYWlsIjpbInBvdXBvaW5ha2EwM0BnbWFpbC5jb20iXX0sInNpZ25faW5fcHJvdmlkZXIiOiJwYXNzd29yZCJ9fQ.SeY-wcxw9lYuKOsgUN4Yyq4mSLq5WR_6K5hHh8kwjjUxG022yh21OaUmX2v4fY8S2lMZ4ndASEvHh-LAgV4Z38JGlC-vjmjciaznvur-XSrj7Vp2bOGYuGVstze_2KdQYXozQnR0HhafIUkI-JFSjy3dl2KYbiLGiVBw52-por8BcleeNfe1Sa75PbDrYI79Y3_ey7aOl3BiyrEKC-w7cJf9tCvOE-4cj8cLfIn6IkapygX6kpIdi3FFIkmk_XSNtfbJZhSnKC6KWRNA6V7zvN9JpkI3_bU5IzOWpEGzFele3Yq5tauPruS1uq6og6Yi265DqO0ZmHFGfz3B60ovXw`,
+          "content-type": "application/json",
+          authorization: `Bearer ${token}`,
         },
-      }
-    ).then((res) => res.json());
-
-    return usersResponse?.phone;
-  } catch (err) {
-    console.log("Impossible de récupérer le numéro de support");
-    return null;
-  }
-}
-
-async function extractMessageContent(message, openai) {
-  const senderPhone = message.from;
-  const senderName = message?.from_name || "";
-  let messageContent = null;
-
-  if (message.text) {
-    messageContent = message.text?.body || "";
-  } else if (message.voice) {
-    try {
-      messageContent = await transcribeVoiceMessage(message.voice, openai);
-    } catch (error) {
-      console.error("Erreur transcription:", error);
-      messageContent = "Je n'ai pas pu comprendre votre message vocal. Pourriez-vous envoyer un message texte à la place?";
-    }
-  }
-
-  return { senderPhone, senderName, content: messageContent };
-}
-
-async function transcribeVoiceMessage(voice, openai) {
-  const tempDir = "/tmp";
-  const voiceUrl = voice.link;
-
-  if (!voiceUrl) throw new Error("URL audio manquante");
-
-  const tempFilePath = path.join(
-    tempDir,
-    `voice_${Date.now()}_${Math.random().toString(36).substring(2, 15)}.oga`
-  );
-
-  const response = await axios({
-    method: "GET",
-    url: voiceUrl,
-    responseType: "arraybuffer",
-  });
-
-  await fsPromises.writeFile(tempFilePath, response.data);
-
-  const transcription = await openai.audio.transcriptions.create({
-    file: fs.createReadStream(tempFilePath),
-    model: "whisper-1",
-    response_format: "text",
-  });
-
-  await fsPromises.unlink(tempFilePath);
-  return transcription;
-}
-
-async function processMessage(params) {
-  const {
-    senderPhone,
-    senderName,
-    content,
-    agent,
-    userId,
-    token,
-    SUPPORT_PHONE,
-    supabase,
-    supabasePublic,
-    openai,
-    tools,
-    MAX_EXCHANGES,
-    DEFAULT_BOT_RESPONSE,
-    CONVERSATION_TIMEOUT_MINUTES
-  } = params;
-
-  // Gérer la conversation
-  const { conversationId, isNewConversation } = await handleConversation(
-    supabase,
-    agent.id,
-    userId,
-    senderPhone,
-    senderName,
-    CONVERSATION_TIMEOUT_MINUTES
-  );
-
-  // Vérifier le nombre d'échanges
-  const { count: exchangeCount } = await supabase
-    .from("messages")
-    .select("*", { count: "exact", head: true })
-    .eq("conversation_id", conversationId);
-
-  if (exchangeCount >= MAX_EXCHANGES) {
-    return await handleMaxExchangesReached({
-      supabase,
-      supabasePublic,
-      token,
-      SUPPORT_PHONE,
-      senderPhone,
-      senderName,
-      content,
-      conversationId,
-      userId
-    });
-  }
-
-  // Stocker le message
-  const { data: insertedMessage } = await supabase
-    .from("messages")
-    .insert([{
-      conversation_id: conversationId,
-      user_id: userId,
-      content: content,
-      response: DEFAULT_BOT_RESPONSE,
-    }])
-    .select()
-    .single();
-
-  // Générer la réponse IA avec tools
-  const aiResult = await generateAIResponse({
-    content,
-    agent,
-    conversationId,
-    insertedMessage,
-    supabase,
-    openai,
-    tools,
-    userId,
-    token,
-    SUPPORT_PHONE,
-    senderPhone,
-    senderName
-  });
-
-  // Si l'agent a demandé un transfert
-  if (aiResult.delegated) {
-    await terminateAndDecrementLimit(supabase, supabasePublic, conversationId, userId);
-    return {
-      phone: senderPhone,
-      status: "delegated",
-      reason: aiResult.reason,
-      tool_call: aiResult.tool_call
-    };
-  }
-
-  // Envoyer la réponse au client
-  const response = await sendWhatsAppMessage(token, senderPhone, aiResult.response);
-
-  return {
-    phone: senderPhone,
-    status: response.sent ? "sent" : "failed",
-    aiResponse: aiResult.response !== DEFAULT_BOT_RESPONSE,
-    language: aiResult.language,
-    fromCache: aiResult.fromCache,
-    tool_call: aiResult.tool_call
-  };
-}
-
-async function generateAIResponse(params) {
-  const {
-    content,
-    agent,
-    conversationId,
-    insertedMessage,
-    supabase,
-    openai,
-    tools,
-    userId,
-    token,
-    SUPPORT_PHONE,
-    senderPhone,
-    senderName
-  } = params;
-
-  let response = "Nous vous répondrons dans un instant";
-  let language = "fr";
-  let fromCache = false;
-  let tool_call = null;
-  let delegated = false;
-  let reason = null;
-
-  try {
-    // Recherche adaptative
-    let searchResult = searchCache.get(content, agent.id);
-    if (!searchResult) {
-      searchResult = await adaptiveSearch(content, agent.id, openai, supabase);
-      searchCache.set(content, agent.id, searchResult);
-    } else {
-      fromCache = true;
-    }
-
-    const { chunks, analysis } = searchResult;
-    language = analysis.language || "fr";
-
-    // Générer le prompt
-    const systemPrompt = generateOptimizedPrompt(
-      agent.name,
-      agent.personality,
-      agent.goal,
-      chunks
-    );
-
-    const finalPrompt = systemPrompt + 
-      (analysis.language !== "fr" 
-        ? `\n\nIMPORTANT: L'utilisateur a posé sa question en ${analysis.language}. Réponds dans la même langue.`
-        : "");
-
-    // Récupérer l'historique
-    const { data: recentMessages } = await supabase
-      .from("messages")
-      .select("content, response, created_at")
-      .eq("conversation_id", conversationId)
-      .order("created_at", { ascending: false })
-      .limit(10);
-
-    const conversationHistory = recentMessages
-      ?.reverse()
-      .slice(0, -1)
-      .map((msg) => ({
-        role: msg.response ? "assistant" : "user",
-        content: msg.response || msg.content,
-      })) || [];
-
-    // Appeler GPT avec tools
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4-turbo-preview",
-      messages: [
-        { role: "system", content: finalPrompt },
-        ...conversationHistory,
-        { role: "user", content: content },
-      ],
-      max_tokens: 400,
-      temperature: 0.3,
-      tools,
-      tool_choice: "auto",
-    });
-
-    // Vérifier si un tool a été appelé
-    if (completion.choices[0].message.tool_calls) {
-      const toolCall = completion.choices[0].message.tool_calls[0];
-      tool_call = toolCall.function.name;
-
-      const toolResult = await handleToolCall(toolCall, {
-        token,
-        supabase,
-        senderPhone,
-        senderName,
-        conversationId,
-        userId,
-        insertedMessageId: insertedMessage.id,
-        SUPPORT_PHONE
+        body: JSON.stringify({
+          typing_time: 0,
+          to,
+          body: message,
+        }),
       });
 
-      response = toolResult.response;
-      delegated = toolResult.delegated || false;
-      reason = toolResult.reason;
-    } else {
-      // Réponse normale sans tool
-      response = completion.choices[0]?.message?.content || 
-        getDefaultResponse(language);
+      return await response.json();
+    } catch (error) {
+      throw new Error(`Échec d'envoi du message WhatsApp: ${error.message}`);
+    }
+  }
+
+  // Fonction pour terminer une conversation et décrémenter le crédit
+  async function terminateAndDecrementLimit(
+    supabase,
+    supabasePublic,
+    conversationId,
+    userId
+  ) {
+    const { error: updateError } = await supabase
+      .from("conversations")
+      .update({ status: "terminated" })
+      .eq("id", conversationId);
+
+    if (updateError) {
+      console.error(
+        "Erreur lors de la terminaison de la conversation:",
+        updateError
+      );
+      return {
+        success: false,
+        message: "Erreur lors de la terminaison de la conversation",
+      };
     }
 
-    // Mettre à jour le message
-    await supabase
-      .from("messages")
-      .update({
-        response,
-        metadata: {
-          language,
-          cached: fromCache,
-          chunks_found: chunks.length,
-          tool_call: tool_call,
-          delegated,
-          reason
-        }
-      })
-      .eq("id", insertedMessage.id);
+    const { data: subscription, error: fetchError } = await supabasePublic
+      .from("subscriptions")
+      .select("max_limit")
+      .eq("user_id", userId)
+      .single();
 
-  } catch (error) {
-    console.error("Erreur génération IA:", error);
-    response = "Un conseiller va vous répondre rapidement.";
-    
-    // Notifier le support en cas d'erreur
-    await sendWhatsAppMessage(
-      token,
-      SUPPORT_PHONE,
-      `Erreur IA: ${error.message} pour ${senderName} (${senderPhone})`
-    );
+    if (fetchError) {
+      console.error(
+        "Erreur lors de la récupération de l'abonnement:",
+        fetchError
+      );
+      return {
+        success: false,
+        message: "Erreur lors de la récupération de l'abonnement",
+      };
+    }
+
+    const newLimit = Math.max(0, subscription.max_limit - 1);
+
+    const { error: decrementError } = await supabasePublic
+      .from("subscriptions")
+      .update({ max_limit: newLimit })
+      .eq("user_id", userId);
+
+    if (decrementError) {
+      console.error("Erreur lors du décrément de la limite:", decrementError);
+      return {
+        success: false,
+        message: "Erreur lors du décrément de la limite",
+      };
+    }
+
+    return {
+      success: true,
+      message: "Conversation terminée et limite décrémentée",
+    };
   }
-
-  return {
-    response,
-    language,
-    fromCache,
-    tool_call,
-    delegated,
-    reason
-  };
-}
-
-// Autres fonctions utilitaires...
-
-async function handleConversation(supabase, agentId, userId, phone, name, timeoutMinutes) {
-  // Implémentation existante...
-}
-
-async function handleMaxExchangesReached(params) {
-  // Implémentation existante...
-}
-
-async function terminateAndDecrementLimit(supabase, supabasePublic, conversationId, userId) {
-  // Implémentation existante...
-}
-
-async function sendWhatsAppMessage(token, to, message) {
-  try {
-    const response = await fetch("https://gate.whapi.cloud/messages/text", {
-      method: "POST",
-      headers: {
-        accept: "application/json",
-        "content-type": "application/json",
-        authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        typing_time: 0,
-        to,
-        body: message,
-      }),
-    });
-
-    return await response.json();
-  } catch (error) {
-    throw new Error(`Échec d'envoi du message WhatsApp: ${error.message}`);
-  }
-}
-
-function getDefaultResponse(language) {
-  switch(language) {
-    case "en": return "Sorry, I couldn't generate a response.";
-    case "es": return "Lo siento, no pude generar una respuesta.";
-    default: return "Désolé, je n'ai pas pu générer de réponse.";
-  }
-}
+});

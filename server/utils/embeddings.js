@@ -306,7 +306,7 @@ ${contextSection}
    - Utilise des expressions naturelles ("Ah d'accord", "Exactement", "Bien sûr")
    - Adapte-toi au ton du client (s'il est décontracté, sois décontracté)
    - Si le client utilise des emojis, tu peux en utiliser aussi (avec modération)
-
+  
 
 5. **RÉPONSES INTELLIGENTES**
    - Si prix demandé → Donne le prix exact

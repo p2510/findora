@@ -1,0 +1,62 @@
+--pour la configuration des tool 
+
+
+-- Configuration du tools pour un utilisateur 
+
+INSERT INTO agent_ia.tools_config (user_id, tool_name, config, credentials) VALUES
+('votre-user-id', 'send_document', 
+  '{"enabled": true, "auto_detect": true}'::jsonb,
+  '{"whatsapp_token": "votre-token"}'::jsonb
+);
+
+--
+-- À exécuter manuellement pour chaque utilisateur
+
+INSERT INTO agent_ia.tools_config (user_id, tool_name, config, credentials) VALUES
+(
+    'user-uuid-here',
+    'send_document',
+    '{
+        "enabled": true,
+        "auto_detect": true,
+        "max_file_size": 16777216,
+        "allowed_types": ["image", "document", "video"],
+        "default_caption": "Voici le document demandé",
+        "categories": ["brochure", "catalogue", "tarif", "certificat", "photo"]
+    }'::jsonb,
+    '{
+        "whatsapp_token": "your-whatsapp-token",
+        "storage_bucket": "documents"
+    }'::jsonb
+);
+
+
+-- Exemples d'insertion de documents
+
+INSERT INTO agent_ia.documents (user_id, agent_id, file_name, file_type, file_url, category, title, description, tags) VALUES
+(
+    'user-uuid-here',
+    'agent-uuid-here',
+    'brochure-2024.pdf',
+    'document',
+    'https://example.com/brochure-2024.pdf',
+    'brochure',
+    'Brochure IUGB 2024',
+    'Brochure complète des programmes et formations de l''IUGB pour l''année 2024',
+    ARRAY['brochure', 'programmes', '2024', 'formations']
+),
+(
+    'user-uuid-here',
+    'agent-uuid-here',
+    'tarifs-licence.pdf',
+    'document',
+    'https://example.com/tarifs-licence.pdf',
+    'tarif',
+    'Grille tarifaire Licence',
+    'Tarifs détaillés pour tous les programmes de licence',
+    ARRAY['tarif', 'prix', 'licence', 'frais', 'scolarité']
+);
+
+
+
+-- Catégorie disponible : ["brochure", "catalogue", "tarif", "certificat", "photo"]
