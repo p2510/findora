@@ -47,18 +47,18 @@ export const generateEmbedding = async (text, openai) => {
 export const deleteOldEmbeddings = async (agentId, supabaseAgent) => {
   try {
     console.log(`🗑️ Suppression des embeddings pour l'agent ${agentId}...`);
-    
+
     const { data, error, count } = await supabaseAgent
       .from("knowledge_embeddings")
       .delete()
-      .eq('agent_id', agentId)
+      .eq("agent_id", agentId)
       .select();
-      
+
     if (error) {
       console.error("❌ Erreur lors de la suppression:", error);
       return false;
     }
-    
+
     console.log(`✅ ${data?.length || 0} embeddings supprimés`);
     return true;
   } catch (error) {
@@ -77,7 +77,7 @@ export const vectorizeKnowledgeBase = async (
   supabaseAgent
 ) => {
   console.log(`🚀 Début de la vectorisation pour l'agent ${agentId}`);
-  
+
   // Vérifier d'abord si la table existe
   const { error: checkError } = await supabaseAgent
     .from("knowledge_embeddings")
@@ -86,7 +86,9 @@ export const vectorizeKnowledgeBase = async (
 
   if (checkError && checkError.code === "42P01") {
     console.log("📦 La table knowledge_embeddings n'existe pas encore");
-    throw new Error("La table knowledge_embeddings n'existe pas. Veuillez exécuter les migrations SQL.");
+    throw new Error(
+      "La table knowledge_embeddings n'existe pas. Veuillez exécuter les migrations SQL."
+    );
   }
 
   const embeddings = [];
@@ -106,19 +108,27 @@ export const vectorizeKnowledgeBase = async (
 
     for (let i = 0; i < chunks.length; i++) {
       const chunk = chunks[i];
-      const chunkId = `${item.type}_${Date.now()}_${i}_${Math.random().toString(36).substring(7)}`;
+      const chunkId = `${item.type}_${Date.now()}_${i}_${Math.random()
+        .toString(36)
+        .substring(7)}`;
 
-      console.log(`🔄 Génération embedding ${i + 1}/${chunks.length} pour "${item.type}"`);
+      console.log(
+        `🔄 Génération embedding ${i + 1}/${chunks.length} pour "${item.type}"`
+      );
 
       try {
         // Générer l'embedding
         const embedding = await generateEmbedding(chunk, openai);
 
         // Vérifier que l'embedding est valide
-        if (!embedding || !Array.isArray(embedding) || embedding.length !== 1536) {
+        if (
+          !embedding ||
+          !Array.isArray(embedding) ||
+          embedding.length !== 1536
+        ) {
           console.error(`❌ Embedding invalide pour chunk ${i}:`, {
             isArray: Array.isArray(embedding),
-            length: embedding?.length
+            length: embedding?.length,
           });
           failedChunks++;
           continue;
@@ -138,14 +148,16 @@ export const vectorizeKnowledgeBase = async (
         });
 
         totalChunks++;
-        
+
         // Pause courte pour éviter la surcharge de l'API
         if (i < chunks.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise((resolve) => setTimeout(resolve, 100));
         }
-        
       } catch (embedError) {
-        console.error(`❌ Erreur génération embedding pour chunk ${i}:`, embedError);
+        console.error(
+          `❌ Erreur génération embedding pour chunk ${i}:`,
+          embedError
+        );
         failedChunks++;
         // Continuer avec les autres chunks au lieu de tout arrêter
       }
@@ -155,27 +167,34 @@ export const vectorizeKnowledgeBase = async (
   // Sauvegarder tous les embeddings en lots
   if (embeddings.length > 0) {
     console.log(`💾 Sauvegarde de ${embeddings.length} embeddings...`);
-    
+
     // Sauvegarder par lots de 100 pour éviter les timeouts
     const batchSize = 100;
     let savedCount = 0;
-    
+
     for (let i = 0; i < embeddings.length; i += batchSize) {
       const batch = embeddings.slice(i, i + batchSize);
-      console.log(`📦 Sauvegarde du lot ${Math.floor(i/batchSize) + 1}/${Math.ceil(embeddings.length/batchSize)}`);
-      
+      console.log(
+        `📦 Sauvegarde du lot ${Math.floor(i / batchSize) + 1}/${Math.ceil(
+          embeddings.length / batchSize
+        )}`
+      );
+
       const { data, error } = await supabaseAgent
         .from("knowledge_embeddings")
         .insert(batch)
         .select();
 
       if (error) {
-        console.error(`❌ Erreur sauvegarde lot ${Math.floor(i/batchSize) + 1}:`, error);
+        console.error(
+          `❌ Erreur sauvegarde lot ${Math.floor(i / batchSize) + 1}:`,
+          error
+        );
         console.error("Détails:", {
           message: error.message,
           details: error.details,
           hint: error.hint,
-          code: error.code
+          code: error.code,
         });
         // Continuer avec les autres lots
       } else {
@@ -183,9 +202,11 @@ export const vectorizeKnowledgeBase = async (
         console.log(`✅ Lot sauvegardé: ${data?.length || 0} embeddings`);
       }
     }
-    
-    console.log(`✅ Total sauvegardé: ${savedCount}/${embeddings.length} embeddings`);
-    
+
+    console.log(
+      `✅ Total sauvegardé: ${savedCount}/${embeddings.length} embeddings`
+    );
+
     if (savedCount === 0) {
       throw new Error("Aucun embedding n'a pu être sauvegardé");
     }
@@ -194,11 +215,11 @@ export const vectorizeKnowledgeBase = async (
   }
 
   console.log(`📊 Résumé: ${totalChunks} chunks créés, ${failedChunks} échecs`);
-  
+
   if (totalChunks === 0) {
     throw new Error("Aucun chunk n'a pu être créé");
   }
-  
+
   return totalChunks;
 };
 
@@ -219,7 +240,7 @@ export const generateOptimizedPrompt = (
   const personalityDescriptions = {
     Professionnel: "professionnel mais accessible, direct et efficace",
     Concise: "ultra-concis, va droit au but sans fioritures",
-    Amical: "chaleureux mais pas bavard, reste focus sur les besoins du client",
+    Amical: "chaleureux et naturel, comme un collègue qui aide",
   };
 
   const goalDescriptions = {
@@ -233,72 +254,83 @@ export const generateOptimizedPrompt = (
       ? relevantChunks.map((chunk) => chunk.content).join("\n\n---\n\n")
       : "Aucun contexte spécifique disponible.";
 
-  // NOUVEAU : Instructions améliorées pour éviter les problèmes identifiés
+  // Obtenir la date et l'heure actuelles
+  const now = new Date();
+  const options = {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Africa/Abidjan", // Ajuster selon votre fuseau
+  };
+  const currentDateTime = now.toLocaleDateString("fr-FR", options);
+
   return `Tu es ${businessName}, un agent de l'entreprise. Tu travailles pour l'entreprise, tu n'es PAS l'entreprise elle-même.
+
+📅 CONTEXTE TEMPOREL : Nous sommes le ${currentDateTime}
 
 ⚠️ DISTINCTION IMPORTANTE :
 - Ton nom est : ${businessName}
 - Le nom de l'entreprise : Mentionné dans les informations disponibles
 - NE JAMAIS dire "Chez ${businessName}" mais "Chez nous" ou "Dans notre entreprise"
 - Utilise "nous", "notre", "chez nous" naturellement
-- Si tu ne l'as pas → Reste positif et proactif
-- Évite les négations inutiles- Parle avec l'autorité d'un employé, pas d'un observateur externe
-- Ré^pond toujours dans la langue où la question est pausé . Ne melange jamais de langue dans un message
+- Parle avec l'autorité d'un employé, pas d'un observateur externe
+- Réponds TOUJOURS dans la langue de la question. Ne mélange JAMAIS les langues.
+
 PERSONNALITÉ: ${personalityDescriptions[personality] || personality}
 TON RÔLE: ${goalDescriptions[goal] || goal}
 
 INFORMATIONS DISPONIBLES:
 ${contextSection}
 
-🎯 RÈGLES CRITIQUES POUR WHATSAPP:
+🎯 RÈGLES CRITIQUES POUR ÊTRE PLUS HUMAIN ET NATUREL:
 
-1. **CONCISION ABSOLUE**
-   - Maximum 2-3 phrases par réponse
-   - Si on te demande un prix, donne LE PRIX directement
-   - Pas de longues introductions
-   - Évite les phrases comme "Je serais ravi de...", "N'hésitez pas à..."
+1. **ARRÊTE DE POSER TROP DE QUESTIONS**
+   - Maximum 1 question par réponse (et seulement si VRAIMENT nécessaire)
+   - Si le client dit "oui" ou montre de l'intérêt → donne directement l'info
+   - Évite ABSOLUMENT "Souhaitez-vous..." à chaque message
+   - Laisse le client diriger la conversation
 
-2. **COMPRÉHENSION CONTEXTUELLE**
-   - Garde en mémoire ce qui a été dit précédemment
-   - Réponds EXACTEMENT à ce qui est demandé
+2. **SOIS NATUREL COMME UN HUMAIN**
+   - Réponds comme si tu parlais à un ami
+   - Utilise des expressions naturelles ("Ah d'accord", "Exactement", "Bien sûr")
+   - Adapte-toi au ton du client (s'il est décontracté, sois décontracté)
+   - Si le client utilise des emojis, tu peux en utiliser aussi (avec modération)
 
-3. **FORMAT WHATSAPP**
-   - Utilise des retours à la ligne pour aérer (double espace)
-   - Emojis si besoin avec parcimonie : 1-2 max par message
-   - Structure claire :
-     * Phrase courte
-     * 
-     * Deuxième point si nécessaire
+3. **RÉPONSES DIRECTES ET COMPLÈTES**
+   - Quand on te demande une info → donne TOUTE l'info pertinente d'un coup
+   - Ne garde pas des infos pour "après" juste pour poser des questions
+   - Si le client veut plus de détails, il demandera
 
-4. **EXEMPLES DE BONNES RÉPONSES**
-   ❌ MAUVAIS : "Bien sûr ! La scolarité chez nous pour une licence se situe généralement entre 450 000 et 800 000 FCFA par an, selon le programme choisi. N'hésitez pas..."
-   ✅ BON : "Pour la licence en informatique : 600 000 FCFA/an
+4. **EXEMPLES DE TRANSFORMATION**
+   ❌ MAUVAIS : "Les cantines sont ouvertes de 7h à 19h. Souhaitez-vous connaître le menu?"
+   ✅ BON : "Les cantines sont ouvertes de 7h à 19h. On y trouve des plats locaux et internationaux entre 500 et 1500 FCFA."
 
-   Ça inclut tous les cours et l'accès aux labos."
+   ❌ MAUVAIS : "Oui, nous avons une page Facebook. Souhaitez-vous le lien?"
+   ✅ BON : "Oui, nous avons une page Facebook : [lien]. Vous y trouverez toutes nos actualités et événements."
 
-5. **RÉPONSES INTELLIGENTES**
-   - Si prix demandé → Donne le prix exact
-   - Si "combien" → Chiffre direct
-   - Si "dites-moi" → Information demandée sans blabla
-   - Si confusion → Clarifier en 1 phrase max
+5. **GESTION DES ERREURS HUMAINE**
+   - Si tu te trompes, excuse-toi simplement et corrige
+   - Pas besoin de longues explications
+   - "Ah pardon, je me suis trompé. C'est plutôt..."
 
-6. **ENGAGEMENT**
-   - Montre un intérêt sincère pour les besoins du client
-   - Pose des questions pertinentes si nécessaire
-   - Propose des solutions ou alternatives
-   - Continue la conversation jusqu'à satisfaction
+6. **ADAPTATION AU CONTEXTE**
+   - Matin : "Bonjour ! Comment puis-je vous aider ?"
+   - Après-midi : "Bonjour ! En quoi puis-je vous aider ?"
+   - Soir : "Bonsoir ! Comment puis-je vous aider ?"
+   - Utilise l'heure pour des réponses contextuelles
 
-7. **CE QU'IL NE FAUT JAMAIS FAIRE**
-   - Répéter ce qui a déjà été dit
-   - Répondre à côté de la question
-   - Faire des paragraphes
-   - Proposer de l'aide non demandée
-   - Parler d'autres sujets que celui demandé
+7. **FLUIDITÉ CONVERSATIONNELLE**
+   - Rebondis sur ce que dit le client
+   - Montre que tu comprends ("Je comprends", "C'est une bonne question")
+   - Sois empathique quand approprié
 
-8. **STRUCTURE DE RÉPONSE TYPE**
-   [Réponse directe à la question]
-   
-   [Info complémentaire utile si nécessaire - 1 phrase max]
+8. **FORMAT NATUREL**
+   - Utilise des retours à la ligne pour aérer
+   - Structure simple et claire
+   - Pas de listes à puces sauf si vraiment nécessaire
 
-RAPPEL FINAL: Sois DIRECT, PRÉCIS, CONTEXTUEL. Pas de bavardage.`;
+RAPPEL FINAL: Sois HUMAIN, NATUREL, DIRECT. Arrête de poser des questions à chaque message. Donne l'info complète et laisse le client diriger.`;
 };
