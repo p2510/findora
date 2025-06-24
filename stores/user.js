@@ -3,7 +3,7 @@ import { ref } from "vue";
 
 export const useUser = defineStore(
   "user",
-  () => {
+  () => { 
     const info = ref({
       phone: null,
       name: null,

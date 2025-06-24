@@ -210,8 +210,6 @@ export const useChatStore = defineStore(
       }
     }
 
-    // stores/chatStore.js - fonction takeOver mise à jour
-
     async function takeOver(conversationId, phone) {
       try {
         isLoading.value = true;
@@ -280,18 +278,30 @@ export const useChatStore = defineStore(
           }
         }
 
-        // Émettre un événement pour mettre à jour d'autres composants si nécessaire
-        if (data.creditDecremented && data.newBalance !== undefined) {
-          const nuxtApp = useNuxtApp();
-          nuxtApp.$emit("credit-updated", {
-            newBalance: data.newBalance,
-            decremented: data.creditDecremented,
-          });
-        }
-
         // Ouvrir WhatsApp
-        const whatsappUrl = `https://wa.me/${phone.replace(/\+/g, "")}`;
-        window.open(whatsappUrl, "_blank");
+        if (phone) {
+          try {
+            // Nettoyer le numéro de téléphone
+            const cleanPhone = phone
+              .replace(/[\+\s\-\(\)]/g, "") // Enlever +, espaces, tirets, parenthèses
+              .replace(/^0+/, ""); // Enlever les zéros au début
+
+            // S'assurer que le numéro commence par le code pays
+            let formattedPhone = cleanPhone;
+            if (!cleanPhone.startsWith("225") && cleanPhone.length === 10) {
+              // Si c'est un numéro ivoirien sans le code pays
+              formattedPhone = "225" + cleanPhone;
+            }
+
+            const whatsappUrl = `https://wa.me/${formattedPhone}`;
+            console.log("🔗 Ouverture WhatsApp:", whatsappUrl);
+
+            // Ouvrir WhatsApp
+            window.open(whatsappUrl, "_blank");
+          } catch (error) {
+            console.error("Erreur lors de l'ouverture de WhatsApp:", error);
+          }
+        }
 
         return {
           success: true,
@@ -314,6 +324,7 @@ export const useChatStore = defineStore(
         isLoading.value = false;
       }
     }
+    
     // Formatage de dates
     function formatDate(dateString) {
       if (!dateString) return "Aucune date";

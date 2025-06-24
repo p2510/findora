@@ -400,7 +400,7 @@ const scrollToBottom = () => {
 };
 
 const chatStore = useChatStore();
-
+const isProcessing = ref(false);
 // Computed pour trier les conversations par date (plus récent en premier)
 const sortedFilteredConversations = computed(() => {
   return [...chatStore.filteredConversations].sort((a, b) => {
