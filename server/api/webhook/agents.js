@@ -19,9 +19,9 @@ export default defineEventHandler(async (event) => {
   const supabaseKey =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1eHZjY3dteGZwZ3lvY2dsaW9lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczMjcyNzA4NCwiZXhwIjoyMDQ4MzAzMDg0fQ.amjPfsZkysKczrI29qJmgabu-NQjyj-Sza3sWmcm4iA";
 
-  const CONVERSATION_TIMEOUT_MINUTES = 1;
+  const CONVERSATION_TIMEOUT_MINUTES = 30;
   const DEFAULT_BOT_RESPONSE = "Nous vous répondrons dans un instant";
-  const MAX_EXCHANGES = 5;
+  const MAX_EXCHANGES = 32;
   let   SUPPORT_PHONE = "2250500145177";
 
   // Expressions régulières pour détecter les demandes de conseiller
@@ -257,7 +257,7 @@ export default defineEventHandler(async (event) => {
               );
 
               const clientMessage =
-                "Votre demande a bien été prise en compte. Un conseiller va prendre en charge votre conversation dans les plus brefs délais. Merci de votre patience.";
+                "Votre demande a bien été prise en compte. Un autre conseiller va prendre en charge votre conversation dans les plus brefs délais. Merci de votre patience.";
               await sendWhatsAppMessage(token, senderPhone, clientMessage);
 
               await supabase.from("messages").insert([
@@ -317,7 +317,7 @@ export default defineEventHandler(async (event) => {
               console.log("Notification envoyée: limite d'échanges atteinte");
 
               const clientMessage =
-                "Votre demande a été transmise à un conseiller client qui vous répondra dans les plus brefs délais. Merci de votre patience.";
+                "Votre demande a été transmise à un autre conseiller client qui vous répondra dans les plus brefs délais. Merci de votre patience.";
               await sendWhatsAppMessage(token, senderPhone, clientMessage);
 
               await supabase.from("messages").insert([
@@ -462,7 +462,7 @@ export default defineEventHandler(async (event) => {
             if (!aiResponse || aiResponse === DEFAULT_BOT_RESPONSE) {
               console.warn("Réponse IA vide ou par défaut");
               aiResponse =
-                "Je suis désolé, je n'ai pas pu traiter votre demande. Un conseiller va prendre le relais.";
+                "Je suis désolé, je n'ai pas pu traiter votre demande. Un conseiller va prendre le relais , Merci pour la compréhension.";
 
               const notificationMessage = `Alerte: Problème de réponse IA pour ${senderName} (${senderPhone}). Intervention nécessaire.`;
 
@@ -482,7 +482,7 @@ export default defineEventHandler(async (event) => {
               aiError
             );
             aiResponse =
-              "Je suis désolé, je rencontre des difficultés techniques. Un conseiller va vous répondre rapidement.";
+              " Un conseiller va vous répondre rapidement.";
 
             const notificationMessage = `Erreur IA: ${aiError.message} pour ${senderName} (${senderPhone})`;
 

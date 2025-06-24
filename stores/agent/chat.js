@@ -32,31 +32,34 @@ export const useChatStore = defineStore(
       try {
         isLoading.value = true;
         let url = `/api/agent/chat/list?user_id=${users.info.uuid}`;
-        
+
         // Ajouter le paramètre de statut si fourni
         if (status) {
           url += `&status=${status}`;
         }
-        
+
         const response = await fetch(url);
         if (!response.ok)
           throw new Error(`Response status: ${response.status}`);
         const data = await response.json();
-        
+
         // Vérifier s'il y a de nouveaux messages
         checkForNewMessages(data);
-        
+
         // Si on demande uniquement les conversations actives
-        if (status === 'active') {
+        if (status === "active") {
           // Mettre à jour uniquement les conversations actives
           const activeConversations = data;
-          
+
           // Fusionner avec les conversations existantes en conservant les non-actives
           const nonActiveConversations = conversations.value.filter(
-            conv => conv.status.toLowerCase() !== 'active'
+            (conv) => conv.status.toLowerCase() !== "active"
           );
-          
-          conversations.value = [...activeConversations, ...nonActiveConversations];
+
+          conversations.value = [
+            ...activeConversations,
+            ...nonActiveConversations,
+          ];
         } else {
           // Sinon, mettre à jour toutes les conversations
           conversations.value = data;
@@ -64,13 +67,13 @@ export const useChatStore = defineStore(
 
         // Sélectionner automatiquement la première conversation
         if (data.length > 0 && !selectedConversation.value) {
-          selectConversation(data[data.length-1]);
+          selectConversation(data[data.length - 1]);
         }
-        
+
         // Mettre à jour la conversation sélectionnée si elle existe dans les nouvelles données
         if (selectedConversation.value) {
           const updatedSelectedConvo = data.find(
-            conv => conv.id === selectedConversation.value.id
+            (conv) => conv.id === selectedConversation.value.id
           );
           if (updatedSelectedConvo) {
             selectedConversation.value = updatedSelectedConvo;
@@ -84,59 +87,66 @@ export const useChatStore = defineStore(
         isLoading.value = false;
       }
     }
-    
+
     /**
      * Vérifie s'il y a de nouveaux messages dans les conversations
      * @param {Array} updatedConversations - Les conversations mises à jour
      */
     function checkForNewMessages(updatedConversations) {
-      updatedConversations.forEach(conversation => {
+      updatedConversations.forEach((conversation) => {
         const convId = conversation.id;
         const lastMessageTime = conversation.last_message_at;
-        
+
         // Si c'est la première fois qu'on voit cette conversation, juste enregistrer son état
         if (!lastKnownMessages.value[convId]) {
           lastKnownMessages.value[convId] = {
             lastTime: lastMessageTime,
             content: conversation.last_content,
-            response: conversation.last_response
+            response: conversation.last_response,
           };
           return;
         }
-        
+
         // Comparer avec le dernier état connu
         const knownState = lastKnownMessages.value[convId];
-        
+
         // Si la date du dernier message a changé, c'est qu'il y a un nouveau message
         if (new Date(lastMessageTime) > new Date(knownState.lastTime)) {
           // Si le contenu ou la réponse est différent, jouer une notification
-          if (conversation.last_content !== knownState.content || 
-              conversation.last_response !== knownState.response) {
-            
+          if (
+            conversation.last_content !== knownState.content ||
+            conversation.last_response !== knownState.response
+          ) {
             // Ne pas jouer de notification si c'est la conversation actuellement sélectionnée
             // et que l'utilisateur est déjà en train de la consulter
-            const isCurrent = selectedConversation.value && 
-                             selectedConversation.value.id === convId;
-            
+            const isCurrent =
+              selectedConversation.value &&
+              selectedConversation.value.id === convId;
+
             if (!isCurrent || !document.hasFocus()) {
-              console.log('1')
+              console.log("1");
               // Afficher une notification du navigateur si l'application n'est pas au premier plan
-              if (!document.hasFocus() && 'Notification' in window && 
-                  Notification.permission === 'granted') {
-                    console.log(2)
-                new Notification('Nouveau message', {
-                  body: `${conversation.name}: ${conversation.last_content || conversation.last_response}`,
-                  icon: '/public/icon.png'
+              if (
+                !document.hasFocus() &&
+                "Notification" in window &&
+                Notification.permission === "granted"
+              ) {
+                console.log(2);
+                new Notification("Nouveau message", {
+                  body: `${conversation.name}: ${
+                    conversation.last_content || conversation.last_response
+                  }`,
+                  icon: "/public/icon.png",
                 });
               }
             }
           }
-          
+
           // Mettre à jour l'état connu
           lastKnownMessages.value[convId] = {
             lastTime: lastMessageTime,
             content: conversation.last_content,
-            response: conversation.last_response
+            response: conversation.last_response,
           };
         }
       });
@@ -145,18 +155,18 @@ export const useChatStore = defineStore(
     // Fonction pour démarrer le polling des conversations actives
     function startRealTimePolling(interval = 5000) {
       if (pollingActive.value) return; // Ne pas démarrer si déjà actif
-      
+
       pollingActive.value = true;
-      
+
       // Créer un intervalle pour mettre à jour les conversations actives
       refreshInterval.value = setInterval(async () => {
-        await fetchConversations('active');
+        await fetchConversations("active");
       }, interval);
-      
+
       // Immédiatement récupérer les conversations actives
-      fetchConversations('active');
+      fetchConversations("active");
     }
-    
+
     // Fonction pour arrêter le polling
     function stopRealTimePolling() {
       if (refreshInterval.value) {
@@ -190,7 +200,7 @@ export const useChatStore = defineStore(
 
     function setFilter(status) {
       filterStatus.value = status;
-      
+
       // Si on filtre sur les conversations actives, démarrer le polling
       if (status === "active") {
         startRealTimePolling();
@@ -199,7 +209,9 @@ export const useChatStore = defineStore(
         stopRealTimePolling();
       }
     }
-    
+
+    // stores/chatStore.js - fonction takeOver mise à jour
+
     async function takeOver(conversationId, phone) {
       try {
         isLoading.value = true;
@@ -216,8 +228,27 @@ export const useChatStore = defineStore(
           }
         );
 
-        if (!response.ok)
+        if (!response.ok) {
           throw new Error(`Response status: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        // La réponse de votre API a la structure { statusCode, body }
+        const data = result.body || result;
+
+        // Afficher une notification selon le résultat
+        const { $toast } = useNuxtApp();
+
+        if (data.creditDecremented) {
+          $toast.success(`Prise de relais effectuée. ${data.message}`, {
+            duration: 5000,
+          });
+        } else {
+          $toast.info("Prise de relais effectuée", {
+            duration: 3000,
+          });
+        }
 
         // Mettre à jour localement
         if (
@@ -225,6 +256,13 @@ export const useChatStore = defineStore(
           selectedConversation.value.id === conversationId
         ) {
           selectedConversation.value.status = "terminated";
+          if (selectedConversation.value.metadata) {
+            selectedConversation.value.metadata = {
+              ...selectedConversation.value.metadata,
+              manual_takeover: true,
+              credit_decremented: data.creditDecremented,
+            };
+          }
         }
 
         // Trouver et mettre à jour dans la liste des conversations
@@ -233,21 +271,49 @@ export const useChatStore = defineStore(
         );
         if (conversationIndex !== -1) {
           conversations.value[conversationIndex].status = "terminated";
+          if (conversations.value[conversationIndex].metadata) {
+            conversations.value[conversationIndex].metadata = {
+              ...conversations.value[conversationIndex].metadata,
+              manual_takeover: true,
+              credit_decremented: data.creditDecremented,
+            };
+          }
+        }
+
+        // Émettre un événement pour mettre à jour d'autres composants si nécessaire
+        if (data.creditDecremented && data.newBalance !== undefined) {
+          const nuxtApp = useNuxtApp();
+          nuxtApp.$emit("credit-updated", {
+            newBalance: data.newBalance,
+            decremented: data.creditDecremented,
+          });
         }
 
         // Ouvrir WhatsApp
         const whatsappUrl = `https://wa.me/${phone.replace(/\+/g, "")}`;
         window.open(whatsappUrl, "_blank");
 
-        return true;
+        return {
+          success: true,
+          creditDecremented: data.creditDecremented || false,
+          newBalance: data.newBalance,
+        };
       } catch (error) {
         console.error("Erreur lors de la prise de relais", error);
-        return false;
+
+        const { $toast } = useNuxtApp();
+        $toast.error("Erreur lors de la prise de relais", {
+          duration: 5000,
+        });
+
+        return {
+          success: false,
+          error: error.message,
+        };
       } finally {
         isLoading.value = false;
       }
     }
-
     // Formatage de dates
     function formatDate(dateString) {
       if (!dateString) return "Aucune date";
@@ -291,7 +357,7 @@ export const useChatStore = defineStore(
         ? text.substring(0, maxLength) + "..."
         : text;
     }
-    
+
     const $reset = () => {
       conversations.value = [];
       selectedConversation.value = null;
@@ -301,9 +367,6 @@ export const useChatStore = defineStore(
       lastKnownMessages.value = {};
       stopRealTimePolling(); // Arrêter le polling lors de la réinitialisation
     };
-
- 
- 
 
     return {
       conversations,

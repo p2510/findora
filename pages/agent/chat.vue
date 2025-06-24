@@ -73,7 +73,9 @@
               </ul>
             </div>
 
-            <ol class="flex flex-col gap-2 divide-y-[1px] dark:divide-slate-600">
+            <ol
+              class="flex flex-col gap-2 divide-y-[1px] dark:divide-slate-600"
+            >
               <li
                 v-for="conversation in sortedFilteredConversations"
                 :key="conversation.id"
@@ -224,7 +226,10 @@
                 </div>
 
                 <!-- Réponse automatique (alignée à droite) -->
-                <div v-if="message.response" class="flex justify-end items-start">
+                <div
+                  v-if="message.response"
+                  class="flex justify-end items-start"
+                >
                   <div class="flex flex-col gap-[2px] w-3/4">
                     <div
                       class="p-3 rounded-lg bg-blue-700 text-white rounded-tr-none dark:bg-blue-800"
@@ -232,9 +237,10 @@
                       <p class="text-sm">{{ message.response }}</p>
                     </div>
                     <p class="text-right">
-                      <span class="text-slate-600 text-xs dark:text-slate-400">{{
-                        chatStore.formatTime(message.created_at)
-                      }}</span>
+                      <span
+                        class="text-slate-600 text-xs dark:text-slate-400"
+                        >{{ chatStore.formatTime(message.created_at) }}</span
+                      >
                     </p>
                   </div>
                   <p class="rounded-full bg-blue-700 px-2 pt-2 ml-2">
@@ -315,24 +321,38 @@
                   <UIcon name="i-heroicons-phone" class="w-4 h-4 text-white" />
                   {{ $t("agent.chat.call") }}
                 </a>
-                <button
-                  @click="handleTakeOver"
-                  :disabled="
-                    chatStore.isLoading ||
-                    chatStore.selectedConversation.status === 'terminated'
-                  "
-                  class="text-white bg-green-600 hover:bg-green-700 transition-all duration-300 ease-in-out w-full py-2 rounded-lg flex items-center justify-center gap-2"
-                  :class="{
-                    'opacity-50 cursor-not-allowed':
-                      chatStore.selectedConversation.status === 'terminated',
-                  }"
-                >
-                  <UIcon
-                    name="i-heroicons-chat-bubble-left-right"
-                    class="w-4 h-4"
-                  />
-                  {{ $t("agent.chat.take_over") }}
-                </button>
+                <div class="space-y-2">
+                  <button
+                    @click="handleTakeOver"
+                    :disabled="
+                      chatStore.isLoading ||
+                      chatStore.selectedConversation.status === 'terminated' ||
+                      isProcessing
+                    "
+                    class="text-white bg-green-600 hover:bg-green-700 transition-all duration-300 ease-in-out w-full py-2 rounded-lg flex items-center justify-center gap-2"
+                    :class="{
+                      'opacity-50 cursor-not-allowed':
+                        chatStore.selectedConversation.status ===
+                          'terminated' || isProcessing,
+                    }"
+                  >
+                    <UIcon
+                      v-if="!isProcessing"
+                      name="i-heroicons-chat-bubble-left-right"
+                      class="w-4 h-4"
+                    />
+                    <UIcon
+                      v-else
+                      name="i-heroicons-arrow-path"
+                      class="w-4 h-4 animate-spin"
+                    />
+                    {{
+                      isProcessing
+                        ? "Traitement..."
+                        : $t("agent.chat.take_over")
+                    }}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -341,14 +361,21 @@
     </section>
 
     <!-- Version Mobile -->
-    <MobileAgentView v-else class=" pt-3 pb-32">
+    <MobileAgentView v-else class="pt-3 pb-32">
       <MobileAgentChat />
     </MobileAgentView>
   </div>
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, ref, watch, nextTick, computed } from "vue";
+import {
+  onMounted,
+  onBeforeUnmount,
+  ref,
+  watch,
+  nextTick,
+  computed,
+} from "vue";
 import { useChatStore } from "@/stores/agent/chat";
 import { SoundNotification } from "@/utils/soundNotification";
 
@@ -397,15 +424,28 @@ const soundNotification = ref(new SoundNotification());
 const handleTakeOver = async () => {
   if (
     !chatStore.selectedConversation ||
-    chatStore.selectedConversation.status === "terminated"
+    chatStore.selectedConversation.status === "terminated" ||
+    isProcessing.value
   ) {
     return;
   }
 
-  await chatStore.takeOver(
-    chatStore.selectedConversation.id,
-    chatStore.selectedConversation.phone
-  );
+  isProcessing.value = true;
+
+  try {
+    const result = await chatStore.takeOver(
+      chatStore.selectedConversation.id,
+      chatStore.selectedConversation.phone
+    );
+
+    // Optionnel : rafraîchir les données après la prise de relais
+    if (result.success) {
+      
+      
+    }
+  } finally {
+    isProcessing.value = false;
+  }
 };
 
 // Fonction pour activer/désactiver les notifications sonores
@@ -478,7 +518,7 @@ const checkNewMessages = () => {
 onMounted(() => {
   // Détecter si mobile
   isMobile.value = window.innerWidth < 768;
-  window.addEventListener('resize', () => {
+  window.addEventListener("resize", () => {
     isMobile.value = window.innerWidth < 768;
   });
 
