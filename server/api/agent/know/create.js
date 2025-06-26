@@ -1,7 +1,7 @@
 // server/api/agent/know/create.js
 import { createClient } from "@supabase/supabase-js";
 import OpenAI from "openai";
-import { vectorizeKnowledgeBase } from "~/server/utils/embeddings";
+import { vectorizeKnowledgeBase } from "~/server/utils/agent_with_tools/embeddings";
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();

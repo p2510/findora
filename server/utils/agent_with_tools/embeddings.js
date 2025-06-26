@@ -1,5 +1,4 @@
 // server/utils/embeddings.js
-import { createClient } from "@supabase/supabase-js";
 
 /**
  * Chunking intelligent du contenu

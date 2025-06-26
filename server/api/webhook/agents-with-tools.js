@@ -1,19 +1,27 @@
-// server/api/webhook/agents-with-tools.js
+// server/api/webhook/agents-with-tools.js - SYSTÈME COMPLET
+
 import { createClient } from "@supabase/supabase-js";
 import OpenAI from "openai";
 import axios from "axios";
 import path from "path";
 import fs from "fs";
 import { promises as fsPromises } from "fs";
-import { adaptiveSearch } from "~/server/utils/adaptive-search";
-import { searchCache } from "~/server/utils/cache";
-import { generateOptimizedPrompt } from "~/server/utils/embeddings";
-import { getAgentTools, handleToolCall } from "~/server/utils/tools-handler";
+import { adaptiveSearch } from "~/server/utils/agent_with_tools/adaptive-search";
+import { searchCache } from "~/server/utils/agent_with_tools/cache";
+import {
+  TriageAgent,
+  PolicyExecutionAgent,
+  ActionValidationAgent,
+} from "~/server/utils/agent_with_tools/specialized-agents";
+import {
+  getAgentTools,
+  handleToolCall,
+} from "~/server/utils/tools/tools-handler";
 
 export default defineEventHandler(async (event) => {
-  console.log("🚀 Webhook Agent IA avec Tools - Début");
+  console.log("🚀 Système Multi-Agents IA - Début");
 
-  // Configuration constants
+  // Configuration
   const config = useRuntimeConfig();
   const supabaseUrl = "https://puxvccwmxfpgyocglioe.supabase.co";
   const supabaseKey =
@@ -36,18 +44,22 @@ export default defineEventHandler(async (event) => {
   });
   const supabasePublic = createClient(supabaseUrl, supabaseKey);
 
-  // Obtenir les tools depuis le gestionnaire
+  // Obtenir les tools
   const tools = getAgentTools();
 
   try {
     const requestBody = await readBody(event);
     const { messages, channel_id: channelId } = requestBody;
 
+    console.log("📨 Messages reçus:", messages?.length || 0);
+    console.log("🔑 Channel ID:", channelId);
+
     if (!messages || !messages.length || !channelId) {
       return { success: false, message: "Données de webhook invalides" };
     }
 
     // Récupérer les informations du canal
+    console.log("🔍 Récupération des infos du canal...");
     const { data: channel, error: channelError } = await supabasePublic
       .from("whatsapp_backlogs")
       .select("expire_date, chanel_id, token, user_id")
@@ -55,7 +67,7 @@ export default defineEventHandler(async (event) => {
       .single();
 
     if (channelError) {
-      console.error("Erreur lors de la récupération du canal:", channelError);
+      console.error("❌ Erreur canal:", channelError);
       return { success: false, message: "Canal introuvable" };
     }
 
@@ -66,8 +78,10 @@ export default defineEventHandler(async (event) => {
 
     const token = channel.token;
     const userId = channel.user_id;
+    console.log("👤 User ID:", userId);
 
     // Récupérer les informations de l'abonnement
+    console.log("💳 Vérification de l'abonnement...");
     const { data: subscription, error: subscriptionError } =
       await supabasePublic
         .from("subscriptions")
@@ -76,10 +90,7 @@ export default defineEventHandler(async (event) => {
         .single();
 
     if (subscriptionError) {
-      console.error(
-        "Erreur lors de la récupération de l'abonnement:",
-        subscriptionError
-      );
+      console.error("❌ Erreur abonnement:", subscriptionError);
       return { success: false, message: "Abonnement introuvable" };
     }
 
@@ -88,6 +99,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Récupérer les informations de l'agent
+    console.log("🤖 Récupération de l'agent...");
     const { data: agent, error: agentError } = await supabase
       .from("agent_configs")
       .select("*")
@@ -95,13 +107,15 @@ export default defineEventHandler(async (event) => {
       .single();
 
     if (agentError) {
-      console.error("Erreur lors de la récupération de l'agent:", agentError);
+      console.error("❌ Erreur agent:", agentError);
       return { success: false, message: "Agent non trouvé" };
     }
 
     if (!agent.status) {
       return { success: false, message: "Agent inactif" };
     }
+
+    console.log("✅ Agent trouvé:", agent.name);
 
     // Vérifier l'état de l'API WhatsApp
     const healthResponse = await fetch("https://gate.whapi.cloud/health", {
@@ -116,7 +130,7 @@ export default defineEventHandler(async (event) => {
       return { success: false, message: "Canal WhatsApp non autorisé" };
     }
 
-    // Récupérer les informations utilisateur pour le numéro de support
+    // Récupérer le numéro de support
     try {
       const usersResponse = await fetch(
         `https://manager.whapi.cloud/channels/${channelId}`,
@@ -133,12 +147,11 @@ export default defineEventHandler(async (event) => {
         SUPPORT_PHONE = usersResponse.phone;
       }
     } catch (err) {
-      console.log(
-        "Impossible de récupérer le numéro de support, utilisation du numéro par défaut"
-      );
+      console.log("⚠️ Utilisation du numéro de support par défaut");
     }
 
     // Traiter les messages reçus
+    console.log("📬 Traitement des messages...");
     const processedMessages = [];
 
     await Promise.all(
@@ -149,6 +162,8 @@ export default defineEventHandler(async (event) => {
         const senderName = message?.from_name || "";
         let messageContent = null;
 
+        console.log(`📱 Message de: ${senderPhone}`);
+
         // Traitement du message texte ou vocal
         if (message.text) {
           messageContent = message.text?.body || "";
@@ -158,10 +173,7 @@ export default defineEventHandler(async (event) => {
             const voiceUrl = message.voice.link;
 
             if (voiceUrl) {
-              console.log(
-                `Téléchargement du fichier audio depuis: ${voiceUrl}`
-              );
-
+              console.log("🎤 Traitement du message vocal...");
               const tempFilePath = path.join(
                 tempDir,
                 `voice_${Date.now()}_${Math.random()
@@ -176,9 +188,6 @@ export default defineEventHandler(async (event) => {
               });
 
               await fsPromises.writeFile(tempFilePath, response.data);
-              console.log(
-                `Fichier audio téléchargé et enregistré à: ${tempFilePath}`
-              );
 
               const transcription = await openai.audio.transcriptions.create({
                 file: fs.createReadStream(tempFilePath),
@@ -186,22 +195,21 @@ export default defineEventHandler(async (event) => {
                 response_format: "text",
               });
 
-              console.log(`Transcription obtenue: ${transcription}`);
+              console.log("📝 Transcription:", transcription);
               await fsPromises.unlink(tempFilePath);
 
               messageContent = transcription;
             }
           } catch (voiceError) {
-            console.error(
-              "Erreur lors du traitement du message vocal:",
-              voiceError
-            );
+            console.error("❌ Erreur vocal:", voiceError);
             messageContent =
-              "Je n'ai pas pu comprendre votre message vocal. Pourriez-vous envoyer un message texte à la place?";
+              "Je n'ai pas pu comprendre votre message vocal. Pourriez-vous envoyer un message texte ?";
           }
         }
 
         if (!messageContent) return;
+
+        console.log("💬 Message reçu:", messageContent);
 
         try {
           // Gérer la conversation
@@ -214,6 +222,8 @@ export default defineEventHandler(async (event) => {
               senderName
             );
 
+          console.log("🗨️ Conversation ID:", conversationId);
+
           // Compter le nombre d'échanges
           const { count: exchangeCount } = await supabase
             .from("messages")
@@ -221,60 +231,29 @@ export default defineEventHandler(async (event) => {
             .eq("conversation_id", conversationId);
 
           if (exchangeCount >= MAX_EXCHANGES) {
-            const notificationMessage = `La conversation avec ${senderName} (${senderPhone}) nécessite une intervention humaine. Veuillez prendre le relais.`;
+            console.log("⚠️ Limite d'échanges atteinte");
+            // Gérer la limite d'échanges
+            const notificationMessage = `La conversation avec ${senderName} (${senderPhone}) nécessite une intervention humaine.`;
+            await sendWhatsAppMessage(
+              token,
+              SUPPORT_PHONE,
+              notificationMessage
+            );
 
-            try {
-              await sendWhatsAppMessage(
-                token,
-                SUPPORT_PHONE,
-                notificationMessage
-              );
-              console.log("Notification envoyée: limite d'échanges atteinte");
+            const clientMessage =
+              "Votre demande a été transmise à un conseiller qui vous répondra dans les plus brefs délais.";
+            await sendWhatsAppMessage(token, senderPhone, clientMessage);
 
-              const clientMessage =
-                "Votre demande a été transmise à un autre conseiller client qui vous répondra dans les plus brefs délais. Merci de votre patience.";
-              await sendWhatsAppMessage(token, senderPhone, clientMessage);
+            processedMessages.push({
+              phone: senderPhone,
+              status: "delegated",
+              reason: "exchange_limit_reached",
+            });
 
-              await supabase.from("messages").insert([
-                {
-                  conversation_id: conversationId,
-                  user_id: userId,
-                  content: messageContent,
-                  response: clientMessage,
-                  metadata: {
-                    delegated: true,
-                    reason: "exchange_limit_reached",
-                  },
-                },
-              ]);
-
-              processedMessages.push({
-                phone: senderPhone,
-                status: "delegated",
-                reason: "exchange_limit_reached",
-              });
-
-              const terminationResult = await terminateAndDecrementLimit(
-                supabase,
-                supabasePublic,
-                conversationId,
-                userId
-              );
-
-              if (!terminationResult.success) {
-                console.error(terminationResult.message);
-              }
-
-              return;
-            } catch (notifError) {
-              console.error(
-                "Erreur lors de l'envoi de notification:",
-                notifError
-              );
-            }
+            return;
           }
 
-          // Stocker le message temporairement
+          // Stocker le message
           const { data: insertedMessage } = await supabase
             .from("messages")
             .insert([
@@ -288,215 +267,282 @@ export default defineEventHandler(async (event) => {
             .select()
             .single();
 
-          let aiResponse = DEFAULT_BOT_RESPONSE;
-          let searchResult;
-          let chunks = [];
-          let analysis = { language: "fr", intents: [] };
-          let toolCall = null;
-          let delegated = false;
-          let reason = null;
+          // Recherche dans la knowledge base
+          console.log("🔍 Recherche dans la knowledge base...");
+          let searchResult = searchCache.get(messageContent, agent.id);
 
-          try {
-            // Utilisation du système d'embeddings
-            console.log("🔍 Recherche adaptative pour:", messageContent);
+          if (!searchResult) {
+            searchResult = await adaptiveSearch(
+              messageContent,
+              agent.id,
+              openai,
+              supabase
+            );
+            searchCache.set(messageContent, agent.id, searchResult);
+          }
 
-            searchResult = searchCache.get(messageContent, agent.id);
+          const chunks = searchResult.chunks || [];
+          console.log(`📚 ${chunks.length} chunks trouvés`);
 
-            if (!searchResult) {
-              searchResult = await adaptiveSearch(
-                messageContent,
-                agent.id,
-                openai,
-                supabase
+          // Récupérer l'historique
+          const { data: recentMessages } = await supabase
+            .from("messages")
+            .select("content, response, created_at")
+            .eq("conversation_id", conversationId)
+            .order("created_at", { ascending: false })
+            .limit(10);
+
+          const conversationHistory =
+            recentMessages
+              ?.reverse()
+              .slice(0, -1)
+              .map((msg) => ({
+                role: msg.response ? "assistant" : "user",
+                content: msg.response || msg.content,
+              })) || [];
+
+          // 🎯 ORCHESTRATION MULTI-AGENTS
+          console.log("🤖 Démarrage de l'orchestration multi-agents");
+
+          // ÉTAPE 1: TRIAGE
+          const triageResult = await TriageAgent(openai, {
+            message: messageContent,
+            conversationHistory,
+            customerInfo: {
+              name: senderName,
+              phone: senderPhone,
+              previousInteractions: recentMessages?.length || 0,
+            },
+          });
+
+          console.log("📋 Triage:", triageResult);
+
+          // ÉTAPE 2: POLICY EXECUTION
+          const policyResult = await PolicyExecutionAgent(openai, {
+            triageResult,
+            message: messageContent,
+            agentConfig: agent,
+            knowledgeBase: chunks,
+            tools,
+            context: {
+              supabase,
+              token,
+              senderPhone,
+              senderName,
+              conversationId,
+              userId,
+              insertedMessageId: insertedMessage.id,
+              SUPPORT_PHONE,
+              agentId: agent.id,
+            },
+          });
+
+          console.log("📜 Policy:", policyResult);
+
+          // ÉTAPE 3: VALIDATION
+          const validationResult = await ActionValidationAgent(openai, {
+            originalMessage: messageContent,
+            triageResult,
+            policyResult,
+            conversationContext: conversationHistory,
+          });
+
+          console.log("✅ Validation:", validationResult);
+
+          // Exécuter les actions approuvées
+          let finalResponse = "";
+          const executedActions = [];
+
+          for (const action of validationResult.approvedActions || []) {
+            console.log("🎬 Exécution action:", action.type);
+
+            if (action.type === "tool_call" && action.toolCall) {
+              console.log(
+                "🔧 Tool call détails:",
+                JSON.stringify(action.toolCall, null, 2)
               );
 
-              searchCache.set(messageContent, agent.id, searchResult);
-            }
+              // Vérifier la structure du toolCall
+              let toolCallToExecute = action.toolCall;
 
-            ({ chunks, analysis } = searchResult);
-            console.log(`📚 ${chunks.length} chunks trouvés`);
-            console.log(`🗣️ Langue détectée: ${analysis.language}`);
-            console.log(
-              `🎯 Intentions: ${analysis.intents.map((i) => i.type).join(", ")}`
-            );
-
-            // Générer le prompt optimisé
-            const systemPrompt = generateOptimizedPrompt(
-              agent.name,
-              agent.personality,
-              agent.goal,
-              chunks
-            );
-
-            const isMultilingual = analysis.language !== "fr";
-            const finalSystemPrompt =
-              systemPrompt +
-              (isMultilingual
-                ? `\n\nIMPORTANT: L'utilisateur a posé sa question en ${analysis.language}. Réponds dans la même langue.`
-                : "");
-
-            // Récupérer l'historique récent
-            const { data: recentMessages } = await supabase
-              .from("messages")
-              .select("content, response, created_at")
-              .eq("conversation_id", conversationId)
-              .order("created_at", { ascending: false })
-              .limit(10);
-
-            const conversationHistory =
-              recentMessages
-                ?.reverse()
-                .slice(0, -1) // Exclure le dernier message
-                .map((msg) => ({
-                  role: msg.response ? "assistant" : "user",
-                  content: msg.response || msg.content,
-                })) || [];
-
-            // Générer la réponse avec GPT et les outils
-            const completion = await openai.chat.completions.create({
-              model: "gpt-4.1-nano",
-              messages: [
-                { role: "system", content: finalSystemPrompt },
-                ...conversationHistory,
-                { role: "user", content: messageContent },
-              ],
-              max_tokens: 400,
-              temperature: 0.3,
-              tools,
-              tool_choice: "auto",
-            });
-
-            // Vérifier si un appel de fonction a été effectué
-            if (completion.choices[0].message.tool_calls) {
-              const toolCallData = completion.choices[0].message.tool_calls[0];
-              toolCall = toolCallData.function.name;
-
-              const toolResult = await handleToolCall(toolCallData, {
-                token,
-                supabase,
-                senderPhone,
-                senderName,
-                conversationId,
-                userId,
-                insertedMessageId: insertedMessage.id,
-                SUPPORT_PHONE,
-                agentId: agent.id
-              });
-
-              aiResponse = toolResult.response;
-              delegated = toolResult.delegated || false;
-              reason = toolResult.reason;
-
-              // Si c'était une délégation, terminer la conversation
-              if (delegated) {
-                processedMessages.push({
-                  phone: senderPhone,
-                  status: "delegated",
-                  reason: reason,
-                  tool_call: toolCall,
-                });
-
-                const terminationResult = await terminateAndDecrementLimit(
-                  supabase,
-                  supabasePublic,
-                  conversationId,
-                  userId
+              // Si la structure n'est pas correcte, essayer de la reconstruire
+              if (
+                !toolCallToExecute.function ||
+                !toolCallToExecute.function.name
+              ) {
+                console.error(
+                  "❌ Structure tool call invalide:",
+                  toolCallToExecute
                 );
 
-                if (!terminationResult.success) {
-                  console.error(terminationResult.message);
-                }
-
-                return;
-              }
-            } else {
-              // Pas d'appel de fonction, utiliser la réponse textuelle
-              aiResponse =
-                completion.choices[0]?.message?.content ||
-                (analysis.language === "en"
-                  ? "Sorry, I couldn't generate a response."
-                  : analysis.language === "es"
-                  ? "Lo siento, no pude generar una respuesta."
-                  : "Désolé, je n'ai pas pu générer de réponse.");
-
-              // Vérifier si la réponse est valide
-              if (!aiResponse || aiResponse === DEFAULT_BOT_RESPONSE) {
-                console.warn("Réponse IA vide ou par défaut");
-                aiResponse =
-                  "Je suis désolé, je n'ai pas pu traiter votre demande. Un conseiller va prendre le relais.";
-
-                const notificationMessage = `Alerte: Problème de réponse IA pour ${senderName} (${senderPhone}). Intervention nécessaire.`;
-
-                try {
-                  await sendWhatsAppMessage(
-                    token,
-                    SUPPORT_PHONE,
-                    notificationMessage
+                // Essayer de récupérer depuis policyResult si disponible
+                if (
+                  policyResult.decision.actions_specifiques &&
+                  policyResult.decision.actions_specifiques[0]?.toolCall
+                ) {
+                  toolCallToExecute =
+                    policyResult.decision.actions_specifiques[0].toolCall;
+                  console.log(
+                    "🔄 Récupération depuis policy:",
+                    JSON.stringify(toolCallToExecute, null, 2)
                   );
-                } catch (notifError) {
-                  console.error("Erreur notification:", notifError);
+                } else {
+                  finalResponse +=
+                    "Je n'ai pas pu traiter votre demande correctement. ";
+                  continue;
                 }
               }
-            }
-          } catch (aiError) {
-            console.error(
-              "Erreur lors de l'obtention de la réponse IA:",
-              aiError
-            );
-            aiResponse =
-              "Je suis désolé, je rencontre des difficultés techniques. Un conseiller va vous répondre rapidement.";
 
-            const notificationMessage = `Erreur IA: ${aiError.message} pour ${senderName} (${senderPhone})`;
+              // S'assurer que nous avons une fonction valide
+              if (
+                !toolCallToExecute.function ||
+                !toolCallToExecute.function.name
+              ) {
+                console.error(
+                  "❌ Impossible de récupérer une structure valide"
+                );
+                finalResponse +=
+                  "Une erreur s'est produite. Un conseiller va vous aider. ";
+                continue;
+              }
 
-            try {
-              await sendWhatsAppMessage(
-                token,
-                SUPPORT_PHONE,
-                notificationMessage
-              );
-            } catch (notifError) {
-              console.error("Erreur notification:", notifError);
+              try {
+                const toolResult = await handleToolCall(toolCallToExecute, {
+                  token,
+                  supabase,
+                  senderPhone,
+                  senderName,
+                  conversationId,
+                  userId,
+                  insertedMessageId: insertedMessage.id,
+                  SUPPORT_PHONE,
+                  agentId: agent.id,
+                  openai,
+                  messageContent,
+                });
+
+                executedActions.push({
+                  tool: toolCallToExecute.function.name,
+                  result: toolResult,
+                });
+
+                // Utiliser la réponse du tool
+                if (toolResult.response) {
+                  finalResponse = toolResult.response;
+                }
+
+                // Si c'est une délégation, arrêter ici
+                if (toolResult.delegated) {
+                  console.log("🚪 Conversation déléguée");
+
+                  // Mettre à jour le message
+                  await supabase
+                    .from("messages")
+                    .update({
+                      response: finalResponse,
+                      metadata: {
+                        orchestration: {
+                          triage: triageResult,
+                          policy: policyResult.decision,
+                          validation: validationResult.status,
+                          executedActions,
+                        },
+                        delegated: true,
+                        reason: toolResult.reason,
+                      },
+                    })
+                    .eq("id", insertedMessage.id);
+
+                  // Terminer la conversation si nécessaire
+                  if (toolResult.reason === "requested_advisor") {
+                    const terminationResult = await terminateAndDecrementLimit(
+                      supabase,
+                      supabasePublic,
+                      conversationId,
+                      userId
+                    );
+
+                    if (!terminationResult.success) {
+                      console.error(terminationResult.message);
+                    }
+                  }
+
+                  processedMessages.push({
+                    phone: senderPhone,
+                    status: "delegated",
+                    reason: toolResult.reason,
+                    tool_call: toolCallToExecute.function.name,
+                  });
+
+                  // Ne pas continuer avec d'autres actions
+                  return;
+                }
+              } catch (toolError) {
+                console.error("❌ Erreur exécution tool:", toolError);
+                finalResponse +=
+                  "Je n'ai pas pu traiter votre demande. Un conseiller va vous aider. ";
+
+                // Notifier le support en cas d'erreur
+                await sendWhatsAppMessage(
+                  token,
+                  SUPPORT_PHONE,
+                  `Erreur tool ${toolCallToExecute.function.name} pour ${senderPhone}: ${toolError.message}`
+                );
+              }
+            } else if (action.type === "message" && action.content) {
+              finalResponse += (finalResponse ? "\n" : "") + action.content;
             }
           }
 
-          // Mettre à jour avec la réponse finale et les métadonnées
+          // Si pas de réponse générée par les tools, utiliser le message de synthèse
+          if (!finalResponse && policyResult.decision?.reponse_suggeree) {
+            finalResponse = policyResult.decision.reponse_suggeree;
+          }
+
+          // Si toujours pas de réponse, utiliser le fallback
+          if (!finalResponse) {
+            finalResponse =
+              "Je suis là pour vous aider. Comment puis-je vous assister ?";
+          }
+
+          console.log("💬 Réponse finale:", finalResponse);
+
+          // Mettre à jour le message
           await supabase
             .from("messages")
             .update({
-              response: aiResponse,
+              response: finalResponse,
               metadata: {
-                language: searchResult?.analysis?.language || "fr",
-                intents:
-                  searchResult?.analysis?.intents?.map((i) => i.type) || [],
-                cached: !!searchCache.get(messageContent, agent.id),
-                chunks_found: chunks?.length || 0,
-                tool_call: toolCall,
-                delegated: delegated,
-                reason: reason,
+                orchestration: {
+                  triage: triageResult,
+                  policy: policyResult.decision,
+                  validation: validationResult.status,
+                  executedActions,
+                },
               },
             })
             .eq("id", insertedMessage.id);
 
-          // Envoyer la réponse via WhatsApp
+          // Envoyer la réponse
           const response = await sendWhatsAppMessage(
             token,
             senderPhone,
-            aiResponse
+            finalResponse
           );
 
           processedMessages.push({
             phone: senderPhone,
             status: response.sent ? "sent" : "failed",
-            aiResponse: aiResponse !== DEFAULT_BOT_RESPONSE,
-            language: searchResult?.analysis?.language,
-            fromCache: !!searchCache.get(messageContent, agent.id),
-            tool_call: toolCall,
+            orchestrationComplete: true,
+            actionsExecuted: executedActions.length,
           });
         } catch (err) {
-          console.error(
-            `Erreur lors du traitement du message pour ${senderPhone}:`,
-            err
-          );
+          console.error("❌ Erreur traitement:", err);
+
+          const fallbackResponse =
+            "Je rencontre un problème technique. Un conseiller va vous contacter.";
+          await sendWhatsAppMessage(token, senderPhone, fallbackResponse);
+
           processedMessages.push({
             phone: senderPhone,
             status: "error",
@@ -508,11 +554,11 @@ export default defineEventHandler(async (event) => {
 
     return {
       success: true,
-      message: "Messages traités avec succès",
+      message: "Messages traités avec orchestration multi-agents",
       processed: processedMessages,
     };
   } catch (error) {
-    console.error("Erreur globale:", error);
+    console.error("❌ Erreur globale:", error);
     return {
       success: false,
       message: "Erreur lors du traitement de la webhook",
@@ -520,9 +566,9 @@ export default defineEventHandler(async (event) => {
     };
   }
 
-  // Fonction pour gérer la création ou mise à jour des conversations
+  // Fonction pour gérer la conversation
   async function handleConversation(supabase, agentId, userId, phone, name) {
-    const { data: conversation, error } = await supabase
+    const { data: conversation } = await supabase
       .from("conversations")
       .select("id, status")
       .eq("agent_id", agentId)
@@ -530,56 +576,11 @@ export default defineEventHandler(async (event) => {
       .eq("status", "active")
       .single();
 
-    let isNewConversation = false;
-
-    if (!error && conversation) {
-      const { data: lastMessage } = await supabase
-        .from("messages")
-        .select("created_at")
-        .eq("conversation_id", conversation.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
-
-      if (lastMessage) {
-        const lastMessageTime = new Date(lastMessage.created_at);
-        const timeDifference = (new Date() - lastMessageTime) / 1000 / 60;
-
-        if (timeDifference > CONVERSATION_TIMEOUT_MINUTES) {
-          const terminationResult = await terminateAndDecrementLimit(
-            supabase,
-            supabasePublic,
-            conversation.id,
-            userId
-          );
-
-          if (!terminationResult.success) {
-            console.error(terminationResult.message);
-          }
-
-          const { data: newConversation } = await supabase
-            .from("conversations")
-            .insert([
-              {
-                agent_id: agentId,
-                phone,
-                name,
-                user_id: userId,
-                status: "active",
-              },
-            ])
-            .select()
-            .single();
-
-          isNewConversation = true;
-          return { conversationId: newConversation.id, isNewConversation };
-        }
-
-        return { conversationId: conversation.id, isNewConversation };
-      }
+    if (conversation) {
+      return { conversationId: conversation.id, isNewConversation: false };
     }
 
-    const { data: newConversation, error: insertError } = await supabase
+    const { data: newConversation } = await supabase
       .from("conversations")
       .insert([
         {
@@ -593,14 +594,7 @@ export default defineEventHandler(async (event) => {
       .select()
       .single();
 
-    if (insertError) {
-      throw new Error(
-        `Erreur lors de la création de conversation: ${insertError.message}`
-      );
-    }
-
-    isNewConversation = true;
-    return { conversationId: newConversation.id, isNewConversation };
+    return { conversationId: newConversation.id, isNewConversation: true };
   }
 
   // Fonction pour envoyer un message WhatsApp
@@ -622,68 +616,38 @@ export default defineEventHandler(async (event) => {
 
       return await response.json();
     } catch (error) {
-      throw new Error(`Échec d'envoi du message WhatsApp: ${error.message}`);
+      throw new Error(`Échec d'envoi WhatsApp: ${error.message}`);
     }
   }
+});
 
-  // Fonction pour terminer une conversation et décrémenter le crédit
-  async function terminateAndDecrementLimit(
-    supabase,
-    supabasePublic,
-    conversationId,
-    userId
-  ) {
-    const { error: updateError } = await supabase
+async function terminateAndDecrementLimit(
+  supabase,
+  supabasePublic,
+  conversationId,
+  userId
+) {
+  try {
+    await supabase
       .from("conversations")
       .update({ status: "terminated" })
       .eq("id", conversationId);
 
-    if (updateError) {
-      console.error(
-        "Erreur lors de la terminaison de la conversation:",
-        updateError
-      );
-      return {
-        success: false,
-        message: "Erreur lors de la terminaison de la conversation",
-      };
-    }
-
-    const { data: subscription, error: fetchError } = await supabasePublic
+    const { data: subscription } = await supabasePublic
       .from("subscriptions")
       .select("max_limit")
       .eq("user_id", userId)
       .single();
 
-    if (fetchError) {
-      console.error(
-        "Erreur lors de la récupération de l'abonnement:",
-        fetchError
-      );
-      return {
-        success: false,
-        message: "Erreur lors de la récupération de l'abonnement",
-      };
+    if (subscription && subscription.max_limit > 0) {
+      await supabasePublic
+        .from("subscriptions")
+        .update({ max_limit: subscription.max_limit - 1 })
+        .eq("user_id", userId);
     }
 
-    const newLimit = Math.max(0, subscription.max_limit - 1);
-
-    const { error: decrementError } = await supabasePublic
-      .from("subscriptions")
-      .update({ max_limit: newLimit })
-      .eq("user_id", userId);
-
-    if (decrementError) {
-      console.error("Erreur lors du décrément de la limite:", decrementError);
-      return {
-        success: false,
-        message: "Erreur lors du décrément de la limite",
-      };
-    }
-
-    return {
-      success: true,
-      message: "Conversation terminée et limite décrémentée",
-    };
+    return { success: true };
+  } catch (error) {
+    return { success: false, message: error.message };
   }
-});
+}
