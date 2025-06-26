@@ -5,9 +5,9 @@ import axios from "axios";
 import path from "path";
 import fs from "fs";
 import { promises as fsPromises } from "fs";
-import { simpleSearch } from "~/server/utils/agent/simple-search";
-import { searchCache } from "~/server/utils/agent/cache";
-import { generateOptimizedPrompt } from "~/server/utils/agent/embeddings";
+import { simpleSearch } from "~/server/utils/echo/simple-search";
+import { searchCache } from "~/server/utils/echo/cache";
+import { generateOptimizedPrompt } from "~/server/utils/echo/embeddings";
 
 export default defineEventHandler(async (event) => {
   console.log("🚀 Agent conversationnel - Démarrage");
