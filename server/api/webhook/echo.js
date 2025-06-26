@@ -263,7 +263,7 @@ async function generateAIResponseWithTools(params) {
     tools: tools,
     tool_choice: "auto",
     max_tokens: 400,
-    temperature: 0.7
+    temperature: 0.3
   });
 
   // Vérifier si le modèle veut appeler la fonction de support
