@@ -704,7 +704,7 @@ async function terminateAndDecrementLimit(supabase, supabasePublic, conversation
     }
 
     return { success: true };
-  } catch (error) {
+  } catch (error) { 
     return { success: false, message: error.message };
-  }
-}
+  } 
+} 
