@@ -19,8 +19,7 @@ export default defineEventHandler(async (event) => {
   const supabaseKey =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1eHZjY3dteGZwZ3lvY2dsaW9lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczMjcyNzA4NCwiZXhwIjoyMDQ4MzAzMDg0fQ.amjPfsZkysKczrI29qJmgabu-NQjyj-Sza3sWmcm4iA";
   const openaiApiKey =
-    config.openai_api_key ||
-    "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";
+    config.openai_api_key 
 
   // Validation de la clé API OpenAI
   if (!openaiApiKey) {

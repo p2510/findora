@@ -109,7 +109,7 @@ export default defineEventHandler(async (event) => {
 
 
     // Vérifier la clé OpenAI
-    const apiKey = config.openai_api_key || "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";
+    const apiKey = config.openai_api_key 
     console.log("🔑 OpenAI key présente:", apiKey ? "OUI" : "NON");
     
     const openai = new OpenAI({ apiKey });
