@@ -8,32 +8,66 @@ export default defineEventHandler(async (event) => {
   const supabaseUrl = "https://puxvccwmxfpgyocglioe.supabase.co";
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1eHZjY3dteGZwZ3lvY2dsaW9lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczMjcyNzA4NCwiZXhwIjoyMDQ4MzAzMDg0fQ.amjPfsZkysKczrI29qJmgabu-NQjyj-Sza3sWmcm4iA";
   
-  const requestBody = await readBody(event);
-  const { metadata, user_id } = JSON.parse(requestBody);
-
-  const validTypes = [
-    "presentation",
-    "produit", 
-    "service",
-    "site web",
-    "faq",
-    "réseaux sociaux",
-  ];
-
-  const invalidTypes = metadata.filter(
-    (item) => !validTypes.includes(item.type)
-  );
-
-  if (invalidTypes.length > 0) {
-    return {
-      success: false,
-      message: `Les éléments suivants ont un type invalide : ${invalidTypes
-        .map((item) => item.type)
-        .join(", ")}`,
-    };
-  }
-
   try {
+    console.log("🔍 Début de l'API know/create");
+    
+    const requestBody = await readBody(event);
+    console.log("📥 Body reçu:", typeof requestBody, requestBody);
+    
+    // Vérifier si requestBody est déjà un objet ou une string
+    let parsedData;
+    if (typeof requestBody === 'string') {
+      parsedData = JSON.parse(requestBody);
+    } else {
+      parsedData = requestBody;
+    }
+    
+    const { metadata, user_id } = parsedData;
+    console.log("📋 Données parsées:", { 
+      metadata: metadata?.length || 0, 
+      user_id,
+      metadataPreview: metadata?.slice(0, 2) 
+    });
+
+    if (!metadata || !Array.isArray(metadata)) {
+      return {
+        success: false,
+        message: "Les métadonnées sont manquantes ou invalides",
+      };
+    }
+
+    if (!user_id) {
+      return {
+        success: false,
+        message: "L'ID utilisateur est manquant",
+      };
+    }
+
+    const validTypes = [
+      "presentation",
+      "produit", 
+      "service",
+      "site web",
+      "faq",
+      "réseaux sociaux",
+    ];
+
+    const invalidTypes = metadata.filter(
+      (item) => !validTypes.includes(item.type)
+    );
+
+    if (invalidTypes.length > 0) {
+      console.log("❌ Types invalides trouvés:", invalidTypes);
+      return {
+        success: false,
+        message: `Les éléments suivants ont un type invalide : ${invalidTypes
+          .map((item) => item.type)
+          .join(", ")}`,
+      };
+    }
+
+    console.log("✅ Validation des types OK");
+
     const supabaseAgent = createClient(supabaseUrl, supabaseKey, {
       db: { schema: "agent_ia" },
     });
@@ -45,15 +79,19 @@ export default defineEventHandler(async (event) => {
       .single();
 
     if (fetchError && fetchError.code !== "PGRST116") {
+      console.log("❌ Erreur fetch agent:", fetchError);
       throw new Error(fetchError.message);
     }
 
     if (!existingAgent) {
+      console.log("❌ Aucun agent trouvé pour user_id:", user_id);
       return {
         success: false,
         message: "Aucun agent n'existe pour cet utilisateur. Veuillez en créer un avant d'ajouter des connaissances.",
       };
     }
+
+    console.log("✅ Agent trouvé:", existingAgent.id);
 
     const { data: existingKnowledge, error: knowledgeFetchError } =
       await supabaseAgent
@@ -63,15 +101,23 @@ export default defineEventHandler(async (event) => {
         .single();
 
     if (knowledgeFetchError && knowledgeFetchError.code !== "PGRST116") {
+      console.log("❌ Erreur fetch knowledge:", knowledgeFetchError);
       throw new Error(knowledgeFetchError.message);
     }
 
-    // Initialiser OpenAI
-    const openai = new OpenAI({ 
-      apiKey: config.openai_api_key || "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"
-    });
+    console.log("📚 Knowledge existante:", existingKnowledge ? "OUI" : "NON");
+
+    // Vérifier la clé OpenAI
+    const apiKey = config.openai_api_key || "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";
+    console.log("🔑 OpenAI key présente:", apiKey ? "OUI" : "NON");
+    
+    const openai = new OpenAI({ apiKey });
 
     console.log("🧠 Début de la vectorisation de la knowledge base");
+    console.log("📊 Métadonnées à vectoriser:", metadata.map(item => ({
+      type: item.type,
+      contentLength: item.content?.length || 0
+    })));
     
     // Si mise à jour, supprimer les anciens embeddings AVANT la vectorisation
     if (existingKnowledge) {
@@ -84,7 +130,6 @@ export default defineEventHandler(async (event) => {
         
       if (deleteError) {
         console.error("❌ Erreur suppression anciens embeddings:", deleteError);
-        // Ne pas bloquer le processus, continuer avec la nouvelle vectorisation
       } else {
         console.log(`✅ ${deletedCount || 0} anciens embeddings supprimés`);
       }
@@ -93,6 +138,7 @@ export default defineEventHandler(async (event) => {
     // Vectoriser la nouvelle knowledge base
     let totalChunks = 0;
     try {
+      console.log("🚀 Appel de vectorizeKnowledgeBase...");
       totalChunks = await vectorizeKnowledgeBase(
         existingAgent.id,
         metadata,
@@ -101,8 +147,14 @@ export default defineEventHandler(async (event) => {
       );
       
       console.log(`✅ ${totalChunks} nouveaux chunks créés et sauvegardés`);
+      
+      if (totalChunks === 0) {
+        throw new Error("Aucun chunk n'a pu être créé. Vérifiez le contenu des métadonnées.");
+      }
+      
     } catch (vectorError) {
-      console.error("❌ Erreur vectorisation:", vectorError);
+      console.error("❌ Erreur vectorisation détaillée:", vectorError);
+      console.error("❌ Stack trace:", vectorError.stack);
       throw new Error("Erreur lors de la vectorisation: " + vectorError.message);
     }
 
@@ -127,9 +179,11 @@ export default defineEventHandler(async (event) => {
         .single();
 
       if (error) {
+        console.log("❌ Erreur update knowledge:", error);
         throw new Error(error.message);
       }
 
+      console.log("✅ Knowledge mise à jour avec succès");
       return {
         success: true,
         message: "Les connaissances de l'agent ont été mises à jour avec succès !",
@@ -145,9 +199,11 @@ export default defineEventHandler(async (event) => {
         .single();
 
       if (error) {
+        console.log("❌ Erreur insert knowledge:", error);
         throw new Error(error.message);
       }
 
+      console.log("✅ Knowledge créée avec succès");
       return {
         success: true,
         message: "Les connaissances ont été ajoutées avec succès pour cet agent.",
@@ -157,6 +213,7 @@ export default defineEventHandler(async (event) => {
     }
   } catch (err) {
     console.error("❌ Erreur dans l'API know/create:", err);
+    console.error("❌ Stack trace complète:", err.stack);
     return {
       success: false,
       message: err.message,

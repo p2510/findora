@@ -13,10 +13,6 @@ export default defineNuxtConfig({
     "dayjs-nuxt",
     "@nuxtjs/i18n",
   ],
-  server: {
-    host: "0.0.0.0", // écoute sur toutes les interfaces IPv4
-    port: 3000,
-  },
   hotjar: {
     hotjarId: 5242761,
     scriptVersion: 6,
