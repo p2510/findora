@@ -13,6 +13,10 @@ export default defineNuxtConfig({
     "dayjs-nuxt",
     "@nuxtjs/i18n",
   ],
+  server: {
+    host: "0.0.0.0", // écoute sur toutes les interfaces IPv4
+    port: 3000,
+  },
   hotjar: {
     hotjarId: 5242761,
     scriptVersion: 6,
@@ -70,24 +74,24 @@ export default defineNuxtConfig({
     detectBrowserLanguage: {
       useCookie: true,
       cookieKey: "i18n_redirected",
-      redirectOn: "root", 
+      redirectOn: "root",
     },
     lazy: true,
   },
   colorMode: {
-    preference: 'system', // default value of $colorMode.preference
-    fallback: 'light', // fallback value if not system preference found
-    hid: 'nuxt-color-mode-script',
-    globalName: '__NUXT_COLOR_MODE__',
-    componentName: 'ColorScheme',
-    classPrefix: '',
-    classSuffix: '',
-    storageKey: 'nuxt-color-mode', // Clé pour persister dans localStorage
-    storage: 'localStorage' // Utiliser localStorage pour persister
+    preference: "system", // default value of $colorMode.preference
+    fallback: "light", // fallback value if not system preference found
+    hid: "nuxt-color-mode-script",
+    globalName: "__NUXT_COLOR_MODE__",
+    componentName: "ColorScheme",
+    classPrefix: "",
+    classSuffix: "",
+    storageKey: "nuxt-color-mode", // Clé pour persister dans localStorage
+    storage: "localStorage", // Utiliser localStorage pour persister
   },
-  
+
   // Si vous utilisez @nuxt/ui
   ui: {
     global: true,
-  }
+  },
 });
