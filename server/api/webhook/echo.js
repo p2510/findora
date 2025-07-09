@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1eHZjY3dteGZwZ3lvY2dsaW9lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczMjcyNzA4NCwiZXhwIjoyMDQ4MzAzMDg0fQ.amjPfsZkysKczrI29qJmgabu-NQjyj-Sza3sWmcm4iA";
   const openaiApiKey =
     config.openai_api_key ||
-    "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";
+    "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";
 
   // Validation de la clé API OpenAI
   if (!openaiApiKey) {

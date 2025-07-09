@@ -108,7 +108,7 @@ export default defineEventHandler(async (event) => {
     console.log("📚 Knowledge existante:", existingKnowledge ? "OUI" : "NON");
 
     // Vérifier la clé OpenAI
-    const apiKey = config.openai_api_key || "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";
+    const apiKey = config.openai_api_key || "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";
     console.log("🔑 OpenAI key présente:", apiKey ? "OUI" : "NON");
     
     const openai = new OpenAI({ apiKey });
