@@ -107,11 +107,13 @@ export default defineEventHandler(async (event) => {
 
     console.log("📚 Knowledge existante:", existingKnowledge ? "OUI" : "NON");
 
+
     // Vérifier la clé OpenAI
-    const apiKey = config.openai_api_key || "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";
+    const apiKey = config.openai_api_key || "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";
     console.log("🔑 OpenAI key présente:", apiKey ? "OUI" : "NON");
     
     const openai = new OpenAI({ apiKey });
+ 
 
     console.log("🧠 Début de la vectorisation de la knowledge base");
     console.log("📊 Métadonnées à vectoriser:", metadata.map(item => ({
