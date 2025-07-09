@@ -1,11 +1,9 @@
-// server/utils/agent/simple-search.js
 import { generateEmbedding } from './embeddings';
 
 /**
  * Recherche simple et directe par embedding
  */
 export const simpleSearch = async (query, agentId, openai, supabase) => {
-  console.log("🔍 Recherche simple:", query);
   
   try {
     // 1. Générer l'embedding directement sans modification

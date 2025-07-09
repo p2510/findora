@@ -1,16 +1,16 @@
-// server/api/webhook/agents.js
 import { createClient } from "@supabase/supabase-js";
 import OpenAI from "openai";
-import axios from "axios";
-import path from "path";
-import fs from "fs";
 import { promises as fsPromises } from "fs";
+import fs from "fs";
+import axios from "axios";
 import { simpleSearch } from "~/server/utils/echo/simple-search";
 import { searchCache } from "~/server/utils/echo/cache";
 import { generateOptimizedPrompt } from "~/server/utils/echo/embeddings";
 
+let SUPPORT_PHONE_SECOND = "2250758639989";
+
 export default defineEventHandler(async (event) => {
-  console.log("🚀 Agent conversationnel - Démarrage");
+  console.log("🚀 Agent conversationnel simplifié - Démarrage");
 
   // Configuration
   const config = useRuntimeConfig();
@@ -18,16 +18,23 @@ export default defineEventHandler(async (event) => {
     config.public.supabase_url || "https://puxvccwmxfpgyocglioe.supabase.co";
   const supabaseKey =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1eHZjY3dteGZwZ3lvY2dsaW9lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczMjcyNzA4NCwiZXhwIjoyMDQ4MzAzMDg0fQ.amjPfsZkysKczrI29qJmgabu-NQjyj-Sza3sWmcm4iA";
+  const openaiApiKey =
+    config.openai_api_key ||
+    "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";
 
-  const CONVERSATION_TIMEOUT_MINUTES = 30;
+  // Validation de la clé API OpenAI
+  if (!openaiApiKey) {
+    console.error("Erreur: openai_api_key n'est pas défini");
+    throw new Error("Clé API OpenAI manquante");
+  }
+
+  const CONVERSATION_TIMEOUT_MINUTES = 180;
   const MAX_EXCHANGES = 32;
-  let SUPPORT_PHONE = "2250500145177";
+  let SUPPORT_PHONE = "2250703670374";
 
   // Initialisation des clients
   const openai = new OpenAI({
-    apiKey:
-      config.openai_api_key ||
-      "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",
+    apiKey: openaiApiKey,
   });
 
   const supabase = createClient(supabaseUrl, supabaseKey, {
@@ -76,11 +83,12 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    return {
+    const finalResponse = {
       success: true,
       message: "Traitement terminé",
       processed: processedMessages,
     };
+    return finalResponse;
   } catch (error) {
     console.error("Erreur système:", error);
     return {
@@ -91,7 +99,6 @@ export default defineEventHandler(async (event) => {
   }
 });
 
-// Traitement individuel des messages
 // Traitement individuel des messages
 async function processMessage(params) {
   const {
@@ -104,7 +111,7 @@ async function processMessage(params) {
     supabasePublic,
     SUPPORT_PHONE,
     MAX_EXCHANGES,
-    CONVERSATION_TIMEOUT_MINUTES
+    CONVERSATION_TIMEOUT_MINUTES,
   } = params;
 
   const senderPhone = message.from;
@@ -112,7 +119,33 @@ async function processMessage(params) {
 
   try {
     // Extraction du contenu du message
-    const messageContent = await extractMessageContent(message, openai);
+    let messageContent;
+    let transcriptionMetadata = null;
+
+    if (message.voice) {
+      const startTime = Date.now();
+      try {
+        messageContent = await extractMessageContent(message, openai);
+        const processingTimeMs = Date.now() - startTime;
+
+        transcriptionMetadata = {
+          voice_transcription: {
+            processedBy: "OpenAI",
+            model: "whisper-1",
+            processingTimeMs,
+            original_format: "oga",
+          },
+        };
+
+        console.log(`🎤 Audio transcrit: "${messageContent}"`);
+      } catch (error) {
+        console.error("Erreur transcription audio:", error);
+        return null;
+      }
+    } else {
+      messageContent = await extractMessageContent(message, openai);
+    }
+
     if (!messageContent) return null;
 
     // Gestion de la conversation
@@ -138,7 +171,7 @@ async function processMessage(params) {
         token,
         SUPPORT_PHONE,
         supabase,
-        supabasePublic
+        supabasePublic,
       });
     }
 
@@ -154,34 +187,33 @@ async function processMessage(params) {
       senderName,
       token,
       SUPPORT_PHONE,
-      supabasePublic
+      supabasePublic,
+      transcriptionMetadata,
     });
 
     return {
       phone: senderPhone,
-      status: aiResponse.humanSupportRequested ? "delegated" : 
-              aiResponse.infoVerificationRequested ? "pending_verification" : "success",
+      status: aiResponse.humanSupportRequested ? "delegated" : "success",
       humanSupportRequested: aiResponse.humanSupportRequested,
-      infoVerificationRequested: aiResponse.infoVerificationRequested
+      processedBy: aiResponse.processedBy,
+      model: aiResponse.model,
+      processingTimeMs: aiResponse.processingTimeMs,
     };
-
   } catch (error) {
     console.error(`Erreur traitement message ${senderPhone}:`, error);
-    
+
     // Réponse d'urgence simple
     const fallbackResponse = "Un instant s'il vous plaît...";
     await sendWhatsAppMessage(token, senderPhone, fallbackResponse);
-    
+
     return {
       phone: senderPhone,
       status: "error",
-      error: error.message
+      error: error.message,
     };
   }
 }
 
-// Génération de la réponse IA avec détection de demande de support via tools
-// Génération de la réponse IA avec détection de demande de support via tools
 async function generateAIResponseWithTools(params) {
   const {
     messageContent,
@@ -195,6 +227,7 @@ async function generateAIResponseWithTools(params) {
     token,
     SUPPORT_PHONE,
     supabasePublic,
+    transcriptionMetadata,
   } = params;
 
   // Stockage temporaire du message
@@ -205,7 +238,8 @@ async function generateAIResponseWithTools(params) {
         conversation_id: conversationId,
         user_id: userId,
         content: messageContent,
-        response: "...", // Placeholder temporaire
+        response: "...",
+        metadata: transcriptionMetadata || {},
       },
     ])
     .select()
@@ -214,7 +248,11 @@ async function generateAIResponseWithTools(params) {
   // Recherche simple dans le cache ou nouvelle recherche
   let searchResult = searchCache.get(messageContent, agent.id);
 
+  console.log("résultat du cache", searchResult);
+
   if (!searchResult) {
+    console.log("Recherche par chunk", searchResult);
+
     searchResult = await simpleSearch(
       messageContent,
       agent.id,
@@ -234,14 +272,14 @@ async function generateAIResponseWithTools(params) {
     chunks
   );
 
-  // Définition des tools
+  // Définition des tools - UNIQUEMENT support humain
   const tools = [
     {
       type: "function",
       function: {
         name: "request_human_support",
         description:
-          "Transfer the conversation to a human support agent when the customer explicitly asks to speak with a human, advisor, or real person",
+          "Transfer the conversation to a human support agent when the customer explicitly asks to speak with a human, advisor, counselor, or real person, or when they need specialized assistance",
         parameters: {
           type: "object",
           properties: {
@@ -256,26 +294,6 @@ async function generateAIResponseWithTools(params) {
         strict: true,
       },
     },
-    {
-      type: "function",
-      function: {
-        name: "request_info_verification",
-        description:
-          "Request verification from support when the agent lacks information to answer the customer's query",
-        parameters: {
-          type: "object",
-          properties: {
-            missing_info: {
-              type: "string",
-              description: "Brief description of the missing information",
-            },
-          },
-          required: ["missing_info"],
-          additionalProperties: false,
-        },
-        strict: true,
-      },
-    },
   ];
 
   // Récupération de l'historique
@@ -284,27 +302,41 @@ async function generateAIResponseWithTools(params) {
     conversationId
   );
 
-  // Première génération avec tools
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4.1-nano",
-    messages: [
-      {
-        role: "system",
-        content:
-          systemPrompt +
-          `
-          \n\nIMPORTANT: 
-          - Si le client demande explicitement à parler à un humain, un conseiller, une vraie personne, ou utilise des mots comme 'agent', 'support', 'aide humaine', tu DOIS utiliser la fonction request_human_support.
-          - Si tu manques d'information pour répondre précisément à la demande du client, utilise la fonction request_info_verification pour demander une vérification au support, tout en continuant la conversation avec une réponse temporaire.`,
-      },
-      ...conversationHistory,
-      { role: "user", content: messageContent },
-    ],
-    tools: tools,
-    tool_choice: "auto",
-    max_tokens: 400,
-    temperature: 0.3,
-  });
+  // Fonction pour créer la requête API
+  const createApiRequest = async () => {
+    const startTime = Date.now();
+    console.log("système prompt");
+    console.log("===============================================");
+    console.log(systemPrompt);
+    console.log("===============================================");
+    console.log("système prompt -fin");
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4.1-nano",
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt,
+        },
+        ...conversationHistory,
+        { role: "user", content: messageContent },
+      ],
+      tools,
+      tool_choice: "auto",
+      max_tokens: 800,
+      temperature: 0.6,
+    });
+    const processingTimeMs = Date.now() - startTime;
+    return {
+      response,
+      processedBy: "OpenAI",
+      model: "gpt-4.1-nano",
+      processingTimeMs,
+    };
+  };
+
+  const completionResult = await createApiRequest();
+  const completion = completionResult.response;
 
   // Vérifier si le modèle veut appeler une fonction
   const toolCalls = completion.choices[0]?.message?.tool_calls;
@@ -318,24 +350,29 @@ async function generateAIResponseWithTools(params) {
     if (humanSupportCall) {
       const args = JSON.parse(humanSupportCall.function.arguments);
 
-      // Notification au support
+      // Notification aux deux supports
       const notificationMessage = `${senderName} (${senderPhone}) demande un conseiller.\nRaison: ${args.reason}\nMessage original: "${messageContent}"`;
-      await sendWhatsAppMessage(token, SUPPORT_PHONE, notificationMessage);
+      
+      // Envoyer aux deux numéros de support
+      await Promise.allSettled([
+        sendWhatsAppMessage(token, SUPPORT_PHONE, notificationMessage),
+        sendWhatsAppMessage(token, SUPPORT_PHONE_SECOND, notificationMessage)
+      ]);
 
       // Générer une réponse personnalisée pour le transfert
       const transferMessages = [
         {
           role: "system",
           content: `Tu es ${agent.name}. Le client vient de demander à parler à un humain/conseiller. Tu dois répondre de manière naturelle et empathique pour confirmer que sa demande est prise en compte et qu'un conseiller va le contacter. 
-          
-          Règles importantes:
-          - Sois bref (1-2 phrases max)
-          - Sois naturel et empathique
-          - Confirme que sa demande est comprise
-          - Indique qu'un conseiller va le contacter rapidement
-          - Adapte ton ton au contexte de la conversation
-          - Ne répète PAS le message du client
-          - Varie tes réponses, ne sois pas robotique`,
+        
+        Règles importantes:
+        - Sois bref (1-2 phrases max)
+        - Sois naturel et empathique
+        - Confirme que sa demande est comprise
+        - Indique qu'un conseiller va le contacter rapidement
+        - Adapte ton ton au contexte de la conversation
+        - Ne répète PAS le message du client
+        - Varie tes réponses, ne sois pas robotique`,
         },
         ...conversationHistory.slice(-4),
         { role: "user", content: messageContent },
@@ -345,12 +382,8 @@ async function generateAIResponseWithTools(params) {
         },
       ];
 
-      const transferResponse = await openai.chat.completions.create({
-        model: "gpt-4.1-nano",
-        messages: transferMessages,
-        max_tokens: 100,
-        temperature: 0.8,
-      });
+      const transferResult = await createApiRequest();
+      const transferResponse = transferResult.response;
 
       const clientResponse =
         transferResponse.choices[0]?.message?.content ||
@@ -365,97 +398,28 @@ async function generateAIResponseWithTools(params) {
         .update({
           response: clientResponse,
           metadata: {
+            ...insertedMessage.metadata,
             delegated: true,
             reason: "human_requested_via_ai",
             ai_detected_reason: args.reason,
+            processedBy: transferResult.processedBy,
+            model: transferResult.model,
+            processingTimeMs: transferResult.processingTimeMs,
           },
         })
         .eq("id", insertedMessage.id);
-
-      await terminateAndDecrementLimit(
-        supabase,
-        supabasePublic,
-        conversationId,
-        userId
-      );
 
       return {
         response: clientResponse,
         humanSupportRequested: true,
-      };
-    }
-
-    // Vérifier si c'est une demande de vérification d'information
-    const infoVerificationCall = toolCalls.find(
-      (call) => call.function.name === "request_info_verification"
-    );
-
-    if (infoVerificationCall) {
-      const args = JSON.parse(infoVerificationCall.function.arguments);
-
-      // Notification au support
-      const notificationMessage = `${senderName} (${senderPhone}) a une question nécessitant une vérification.\nInformation manquante: ${args.missing_info}\nMessage original: "${messageContent}"`;
-      await sendWhatsAppMessage(token, SUPPORT_PHONE, notificationMessage);
-
-      // Générer une réponse temporaire pour le client
-      const tempResponseMessages = [
-        {
-          role: "system",
-          content: `Tu es ${agent.name}. Tu manques d'information pour répondre à la demande du client. Réponds de manière naturelle et empathique pour indiquer que tu vérifies l'information et que tu reviendras vers lui rapidement.
-
-          Règles importantes:
-          - Sois bref (1-2 phrases max)
-          - Sois naturel et rassurant
-          - Confirme que tu vérifies l'information
-          - Indique que tu reviens rapidement
-          - Adapte ton ton au contexte de la conversation
-          - Ne répète PAS le message du client
-          - Varie tes réponses, ne sois pas robotique`,
-        },
-        ...conversationHistory.slice(-4),
-        { role: "user", content: messageContent },
-        {
-          role: "assistant",
-          content: `[J'ai détecté un manque d'information: ${args.missing_info}]`,
-        },
-      ];
-
-      const tempResponse = await openai.chat.completions.create({
-        model: "gpt-4.1-nano",
-        messages: tempResponseMessages,
-        max_tokens: 100,
-        temperature: 0.3,
-      });
-
-      const clientResponse =
-        tempResponse.choices[0]?.message?.content ||
-        "Un instant, je vérifie cette information et je reviens vers vous rapidement.";
-
-      // Envoyer la réponse temporaire au client
-      await sendWhatsAppMessage(token, senderPhone, clientResponse);
-
-      // Enregistrement
-      await supabase
-        .from("messages")
-        .update({
-          response: clientResponse,
-          metadata: {
-            info_verification_requested: true,
-            missing_info: args.missing_info,
-            status: "pending_verification",
-          },
-        })
-        .eq("id", insertedMessage.id);
-
-      return {
-        response: clientResponse,
-        humanSupportRequested: false,
-        infoVerificationRequested: true,
+        processedBy: transferResult.processedBy,
+        model: transferResult.model,
+        processingTimeMs: transferResult.processingTimeMs,
       };
     }
   }
 
-  // Pas de demande de support ou de vérification, réponse normale
+  // Pas de demande de support, réponse normale
   const aiResponse =
     completion.choices[0]?.message?.content || "Je suis là pour vous aider.";
 
@@ -465,8 +429,12 @@ async function generateAIResponseWithTools(params) {
     .update({
       response: aiResponse,
       metadata: {
+        ...insertedMessage.metadata,
         cached: !!searchCache.get(messageContent, agent.id),
         chunks_found: chunks.length,
+        processedBy: completionResult.processedBy,
+        model: completionResult.model,
+        processingTimeMs: completionResult.processingTimeMs,
       },
     })
     .eq("id", insertedMessage.id);
@@ -477,7 +445,9 @@ async function generateAIResponseWithTools(params) {
   return {
     response: aiResponse,
     humanSupportRequested: false,
-    infoVerificationRequested: false,
+    processedBy: completionResult.processedBy,
+    model: completionResult.model,
+    processingTimeMs: completionResult.processingTimeMs,
   };
 }
 
@@ -504,13 +474,19 @@ async function extractMessageContent(message, openai) {
       await fsPromises.writeFile(tempPath, response.data);
 
       // Transcription
+      const startTime = Date.now();
       const transcription = await openai.audio.transcriptions.create({
         file: fs.createReadStream(tempPath),
         model: "whisper-1",
         response_format: "text",
       });
+      const processingTimeMs = Date.now() - startTime;
 
       await fsPromises.unlink(tempPath);
+
+      console.log(
+        `🎤 Audio transcrit en ${processingTimeMs}ms: "${transcription}"`
+      );
       return transcription;
     } catch (error) {
       console.error("Erreur transcription:", error);
@@ -521,7 +497,7 @@ async function extractMessageContent(message, openai) {
   return null;
 }
 
-// Fonctions utilitaires (restent les mêmes)
+// Fonctions utilitaires
 async function getSystemInfo(channelId, supabasePublic, supabase) {
   try {
     // Canal
@@ -660,10 +636,20 @@ async function handleConversation(
           ])
           .select()
           .single();
-        return { conversationId: newConv.id, isNewConversation: true };
+        return {
+          conversationId: newConv.id,
+          isNewConversation: true,
+        };
       }
+      return {
+        conversationId: existing.id,
+        isNewConversation: false,
+      };
     }
-    return { conversationId: existing.id, isNewConversation: false };
+    return {
+      conversationId: existing.id,
+      isNewConversation: false,
+    };
   }
 
   // Nouvelle conversation
@@ -674,7 +660,10 @@ async function handleConversation(
     ])
     .select()
     .single();
-  return { conversationId: newConv.id, isNewConversation: true };
+  return {
+    conversationId: newConv.id,
+    isNewConversation: true,
+  };
 }
 
 async function getExchangeCount(supabase, conversationId) {
@@ -691,7 +680,7 @@ async function getConversationHistory(supabase, conversationId) {
     .select("content, response")
     .eq("conversation_id", conversationId)
     .order("created_at", { ascending: false })
-    .limit(10);
+    .limit(15);
 
   return (messages || [])
     .reverse()
@@ -716,7 +705,12 @@ async function handleExchangeLimitReached(params) {
   } = params;
 
   const notificationMessage = `Conversation longue avec ${senderName} (${senderPhone}). Intervention recommandée.`;
-  await sendWhatsAppMessage(token, SUPPORT_PHONE, notificationMessage);
+  
+  // Envoyer aux deux numéros de support
+  await Promise.allSettled([
+    sendWhatsAppMessage(token, SUPPORT_PHONE, notificationMessage),
+    sendWhatsAppMessage(token, SUPPORT_PHONE_SECOND, notificationMessage)
+  ]);
 
   const clientMessage =
     "Je transmets votre demande à un conseiller pour un suivi personnalisé.";
@@ -728,16 +722,12 @@ async function handleExchangeLimitReached(params) {
       user_id: userId,
       content: messageContent,
       response: clientMessage,
-      metadata: { delegated: true, reason: "limit_reached" },
+      metadata: {
+        delegated: true,
+        reason: "limit_reached",
+      },
     },
   ]);
-
-  await terminateAndDecrementLimit(
-    supabase,
-    supabasePublic,
-    conversationId,
-    userId
-  );
 
   return {
     phone: senderPhone,
